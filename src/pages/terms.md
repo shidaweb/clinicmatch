@@ -1,120 +1,145 @@
 ---
-title: 'Terms and Conditions'
+title: '利用規約'
 layout: '~/layouts/MarkdownLayout.astro'
 ---
 
-_Last updated_: January 06, 2023
+# クリニックマッチ 利用規約（株式会社キラック）
 
-Please read these terms and conditions carefully before using Our Service.
+最終更新日：2025年1月25日
 
-## Interpretation and Definitions
+本利用規約（以下「本規約」といいます。）は、株式会社キラック（以下「当社」といいます。）が提供する「クリニックマッチ」（以下「本サービス」といいます。）の利用条件を定めるものです。利用者は、本規約に同意のうえ本サービスを利用するものとします。
 
-### Interpretation
+## 第1条（適用）
 
-The words of which the initial letter is capitalized have meanings defined under the following conditions. The following definitions shall have the same meaning regardless of whether they appear in singular or in plural.
+本規約は、本サービスの利用に関する当社と利用者との間の一切の関係に適用されます。
 
-### Definitions
+当社が本サービス上または当社ウェブサイト上で掲載するルール、ガイドライン、注意事項等は、本規約の一部を構成します。
 
-For the purposes of these Terms and Conditions:
+## 第2条（定義）
 
-- **Affiliate** means an entity that controls, is controlled by or is under common control with a party, where "control" means ownership of 50% or more of the shares, equity interest or other securities entitled to vote for election of directors or other managing authority.
+本規約において用いる用語は、以下のとおり定義します。
 
-- **Country** refers to: California, United States
+- **「利用者」**：本規約に同意し、本サービスを利用する個人または法人。
+- **「出品者」**：機器等の売却を希望し、本サービス上で情報提供を行う利用者。
+- **「購入希望者」**：機器等の購入を希望し、本サービス上で情報提供を行う利用者。
+- **「機器等」**：美容医療機器、関連機器、付属品、消耗品、周辺機材その他本サービスが対象とする物品。
+- **「取引」**：出品者と購入希望者の間で成立する売買その他の合意。
+- **「実務支援」**：搬出・輸送・搬入・設置・検品・動作確認・書類確認その他当社が提供する支援（第三者の事業者を利用する場合を含む）。
 
-- **Company** (referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to AstroWind LLC, 1 Cupertino, CA 95014.
+## 第3条（本サービスの内容）
 
-- **Device** means any device that can access the Service such as a computer, a cellphone or a digital tablet.
+当社は、利用者から提供を受けた情報に基づき、出品者と購入希望者のマッチングを支援します。
 
-- **Service** refers to the Website.
+当社は、必要に応じて実務支援を提供します。実務支援の全部または一部は、当社が選定する第三者（運送会社、設置業者、検品事業者等）により提供される場合があります。
 
-- **Terms and Conditions** (also referred as "Terms") mean these Terms and Conditions that form the entire agreement between You and the Company regarding the use of the Service. This Terms and Conditions agreement is a Demo.
+当社は、取引当事者（出品者・購入希望者）ではありません。取引は原則として利用者間で成立し、履行されます。ただし、当社が別途書面または本サービス上で明示する場合はこの限りではありません。
 
-- **Third-party Social Media Service** means any services or content (including data, information, products or services) provided by a third-party that may be displayed, included or made available by the Service.
+## 第4条（利用申込・登録）
 
-- **Website** refers to AstroWind, accessible from [https://astrowind.vercel.app](https://astrowind.vercel.app)
+利用者は、当社所定の方法（フォーム送信、LINE、メール等を含む）により必要情報を提供し、本サービスの利用を申し込むものとします。
 
-- **You** means the individual accessing or using the Service, or the company, or other legal entity on behalf of which such individual is accessing or using the Service, as applicable.
+当社は、申込内容を審査のうえ、利用を承諾する場合があります。当社は、承諾しない場合でもその理由を開示する義務を負いません。
 
-## Acknowledgment
+利用者は、提供情報に虚偽、誤記、欠落がないことを保証し、変更があった場合は速やかに当社へ通知します。
 
-These are the Terms and Conditions governing the use of this Service and the agreement that operates between You and the Company. These Terms and Conditions set out the rights and obligations of all users regarding the use of the Service.
+## 第5条（機器情報の提供・真実性）
 
-Your access to and use of the Service is conditioned on Your acceptance of and compliance with these Terms and Conditions. These Terms and Conditions apply to all visitors, users and others who access or use the Service.
+利用者は、機器等の型番、製造番号（シリアル）、年式、使用状況、付属品、保守履歴、故障・不具合の有無、改造の有無、権利関係（所有権、担保権等）、関連書類（取扱説明書、添付文書、点検記録等）その他当社が求める情報を、可能な範囲で正確に提供します。
 
-By accessing or using the Service You agree to be bound by these Terms and Conditions. If You disagree with any part of these Terms and Conditions then You may not access the Service.
+当社は、利用者が提供した情報の正確性、完全性、適法性を保証しません。
 
-You represent that you are over the age of 18\. The Company does not permit those under 18 to use the Service.
+利用者間で機器情報の相違・不足が判明した場合、当該紛争は原則として利用者の責任と負担で解決するものとします。
 
-Your access to and use of the Service is also conditioned on Your acceptance of and compliance with the Privacy Policy of the Company. Our Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your personal information when You use the Application or the Website and tells You about Your privacy rights and how the law protects You. Please read Our Privacy Policy carefully before using Our Service.
+## 第6条（法令遵守・適法性の確認）
 
-## Links to Other Websites
+利用者は、機器等の取引・譲渡・移設・設置・使用・広告表示等に関連して適用される法令等（薬機法、医療法、景品表示法、個人情報保護法、各種条例、業界ガイドライン等を含む）を遵守します。
 
-Our Service may contain links to third-party web sites or services that are not owned or controlled by the Company.
+機器等が医療機器に該当するか否か、必要な許認可、手続、表示、添付文書の取り扱い等については、利用者が自己の責任で確認し、必要な対応を行うものとします。
 
-The Company has no control over, and assumes no responsibility for, the content, privacy policies, or practices of any third party web sites or services. You further acknowledge and agree that the Company shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of or reliance on any such content, goods or services available on or through any such web sites or services.
+当社は、特定の機器等について取引の適法性・許認可要件を保証するものではありません。
 
-We strongly advise You to read the terms and conditions and privacy policies of any third-party web sites or services that You visit.
+## 第7条（マッチング・交渉）
 
-## Termination
+当社は、利用者の希望条件に基づき候補の提示、条件整理、連絡調整等を行うことがありますが、マッチング成立や取引成立を保証しません。
 
-We may terminate or suspend Your access immediately, without prior notice or liability, for any reason whatsoever, including without limitation if You breach these Terms and Conditions.
+取引条件（価格、引渡時期、検品条件、瑕疵担保/契約不適合責任、キャンセル条件等）は、利用者間で合意して決定します。
 
-Upon termination, Your right to use the Service will cease immediately.
+当社が提示する相場観、助言、参考情報は一般的な情報提供であり、最終判断は利用者が行うものとします。
 
-## Limitation of Liability
+## 第8条（実務支援・第三者サービス）
 
-Notwithstanding any damages that You might incur, the entire liability of the Company and any of its suppliers under any provision of this Terms and Your exclusive remedy for all of the foregoing shall be limited to the amount actually paid by You through the Service or 100 USD if You haven't purchased anything through the Service.
+実務支援の提供条件、費用、日程、対応範囲、免責等は、当社が別途提示する内容に従います。
 
-To the maximum extent permitted by applicable law, in no event shall the Company or its suppliers be liable for any special, incidental, indirect, or consequential damages whatsoever (including, but not limited to, damages for loss of profits, loss of data or other information, for business interruption, for personal injury, loss of privacy arising out of or in any way related to the use of or inability to use the Service, third-party software and/or third-party hardware used with the Service, or otherwise in connection with any provision of this Terms), even if the Company or any supplier has been advised of the possibility of such damages and even if the remedy fails of its essential purpose.
+実務支援に第三者事業者を利用する場合、当該第三者の約款・免責・補償条件等が適用される場合があります。
 
-Some states do not allow the exclusion of implied warranties or limitation of liability for incidental or consequential damages, which means that some of the above limitations may not apply. In these states, each party's liability will be limited to the greatest extent permitted by law.
+搬出入や設置に際し、施設条件（搬入経路、床荷重、電源、設置スペース、養生等）の不足により追加費用や遅延が生じた場合、原則として利用者の負担とします。
 
-## "AS IS" and "AS AVAILABLE" Disclaimer
+## 第9条（料金・支払）
 
-The Service is provided to You "AS IS" and "AS AVAILABLE" and with all faults and defects without warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own behalf and on behalf of its Affiliates and its and their respective licensors and service providers, expressly disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the Service, including all implied warranties of merchantability, fitness for a particular purpose, title and non-infringement, and warranties that may arise out of course of dealing, course of performance, usage or trade practice. Without limitation to the foregoing, the Company provides no warranty or undertaking, and makes no representation of any kind that the Service will meet Your requirements, achieve any intended results, be compatible or work with any other software, applications, systems or services, operate without interruption, meet any performance or reliability standards or be error free or that any errors or defects can or will be corrected.
+本サービスの利用料金（マッチング手数料、実務支援費用、検品費用、輸送費、設置費用等）の有無および金額・算定方法・支払時期は、当社が別途提示する見積、申込画面、案内書面等に従います。
 
-Without limiting the foregoing, neither the Company nor any of the company's provider makes any representation or warranty of any kind, express or implied: (i) as to the operation or availability of the Service, or the information, content, and materials or products included thereon; (ii) that the Service will be uninterrupted or error-free; (iii) as to the accuracy, reliability, or currency of any information or content provided through the Service; or (iv) that the Service, its servers, the content, or e-mails sent from or on behalf of the Company are free of viruses, scripts, trojan horses, worms, malware, timebombs or other harmful components.
+利用者が当社に支払うべき金銭を期限までに支払わない場合、当社はサービス提供の停止、取引支援の中断等の措置を行うことがあります。
 
-Some jurisdictions do not allow the exclusion of certain types of warranties or limitations on applicable statutory rights of a consumer, so some or all of the above exclusions and limitations may not apply to You. But in such a case the exclusions and limitations set forth in this section shall be applied to the greatest extent enforceable under applicable law.
+振込手数料その他支払に必要な費用は、別途定めがない限り利用者が負担します。
 
-## Governing Law
+## 第10条（キャンセル・中断）
 
-The laws of the Country, excluding its conflicts of law rules, shall govern this Terms and Your use of the Service. Your use of the Application may also be subject to other local, state, national, or international laws.
+取引交渉の中断、条件変更、キャンセルの可否および費用負担は、利用者間の合意および当社が別途提示する条件に従います。
 
-## Disputes Resolution
+実務支援の手配後のキャンセルは、第三者事業者への実費・キャンセル料が発生する場合があり、利用者が負担します。
 
-If You have any concern or dispute about the Service, You agree to first try to resolve the dispute informally by contacting the Company.
+## 第11条（禁止事項）
 
-## For European Union (EU) Users
+利用者は、以下の行為を行ってはなりません。
 
-If You are a European Union consumer, you will benefit from any mandatory provisions of the law of the country in which you are resident in.
+- 虚偽情報の提供、他者になりすます行為
+- 法令または公序良俗に反する行為
+- 当社または第三者の権利（知的財産権、名誉、プライバシー等）を侵害する行為
+- 反社会的勢力への利益供与、資金洗浄に該当する行為
+- 本サービスの運営を妨害する行為（過度な問い合わせ、スパム、脆弱性探索等を含む）
+- 当社の事前承諾なく、本サービスを通じて知り得た情報を用いて当社を介さずに取引する目的の行為（※当社が別途許容する場合を除く）
+- その他当社が不適切と判断する行為
 
-## United States Legal Compliance
+## 第12条（知的財産権）
 
-You represent and warrant that (i) You are not located in a country that is subject to the United States government embargo, or that has been designated by the United States government as a "terrorist supporting" country, and (ii) You are not listed on any United States government list of prohibited or restricted parties.
+本サービスに関する著作権、商標権その他の知的財産権は当社または正当な権利者に帰属します。利用者は、当社の事前承諾なく、複製、転載、改変、公衆送信等を行ってはなりません。
 
-## Severability and Waiver
+## 第13条（個人情報・秘密情報）
 
-### Severability
+当社は、利用者の情報を当社のプライバシーポリシーに従い取り扱います。
 
-If any provision of these Terms is held to be unenforceable or invalid, such provision will be changed and interpreted to accomplish the objectives of such provision to the greatest extent possible under applicable law and the remaining provisions will continue in full force and effect.
+利用者は、本サービスを通じて知り得た相手方または当社の非公開情報を、相手方または当社の承諾なく第三者に開示または漏えいしてはなりません。
 
-### Waiver
+法令に基づく場合、または権利保護・不正防止のため合理的に必要な場合、当社は必要最小限の範囲で情報を開示することがあります。
 
-Except as provided herein, the failure to exercise a right or to require performance of an obligation under these Terms shall not effect a party's ability to exercise such right or require such performance at any time thereafter nor shall the waiver of a breach constitute a waiver of any subsequent breach.
+## 第14条（免責・責任制限）
 
-## Translation Interpretation
+当社は、本サービスが利用者の特定目的に適合すること、マッチング・取引成立、機器等の品質・適法性・安全性、第三者サービスの完全性等を保証しません。
 
-These Terms and Conditions may have been translated if We have made them available to You on our Service. You agree that the original English text shall prevail in the case of a dispute.
+利用者間の取引に関する紛争（契約不適合、代金不払い、引渡遅延、損害賠償等）は、原則として利用者の責任で解決するものとします。
 
-## Changes to These Terms and Conditions
+当社の故意または重過失による場合を除き、当社が利用者に負う損害賠償責任の範囲は、通常かつ直接の損害に限られ、かつ当該損害発生日から遡って3か月間に当社が受領した本サービス利用料金の総額（該当がない場合は1万円）を上限とします。
 
-We reserve the right, at Our sole discretion, to modify or replace these Terms at any time. If a revision is material We will make reasonable efforts to provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at Our sole discretion.
+逸失利益、間接損害、特別損害、データ消失等について当社は責任を負いません。
 
-By continuing to access or use Our Service after those revisions become effective, You agree to be bound by the revised terms. If You do not agree to the new terms, in whole or in part, please stop using the website and the Service.
+## 第15条（利用停止・契約解除）
 
-## Contact Us
+当社は、利用者が本規約に違反した場合、または当社が不適切と判断した場合、事前通知なく本サービスの提供停止、利用制限、取引支援の中断、登録抹消等を行うことができます。
 
-If you have any questions about these Terms and Conditions, You can contact us:
+## 第16条（サービス内容の変更・終了）
 
-- By email: somecoolemail@domain.com
+当社は、利用者への事前通知をもって、本サービスの内容を変更または終了することがあります。緊急やむを得ない場合は事後の通知となることがあります。
+
+## 第17条（規約の変更）
+
+当社は、必要に応じて本規約を変更できます。変更後の規約は、本サービス上の掲示または当社が定める方法により周知し、周知後に利用者が本サービスを利用した場合、変更に同意したものとみなします。
+
+## 第18条（準拠法・管轄）
+
+本規約は日本法に準拠し解釈されます。
+
+本サービスに関連して当社と利用者の間で紛争が生じた場合、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+
+## 付則
+
+本規約は2025年1月25日から適用します。

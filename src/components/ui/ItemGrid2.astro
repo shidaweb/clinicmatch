@@ -32,28 +32,46 @@ const {
         containerClass
       )}
     >
-      {items.map(({ title, description, icon, callToAction, classes: itemClasses = {} }) => (
-        <div
-          class={twMerge(
-            'relative flex flex-col intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade',
-            panelClass,
-            itemClasses?.panel
-          )}
-        >
-          {(icon || defaultIcon) && (
-            <Icon name={icon || defaultIcon} class={twMerge('mb-2 w-10 h-10', defaultIconClass, itemClasses?.icon)} />
-          )}
-          <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>{title}</div>
-          {description && (
-            <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} set:html={description} />
-          )}
-          {callToAction && (
-            <div class="mt-2">
-              <Button {...callToAction} />
-            </div>
-          )}
-        </div>
-      ))}
+      {items.map(({ title, description, icon, href, callToAction, classes: itemClasses = {} }) => {
+        const panelEl = (
+          <>
+            {(icon || defaultIcon) && (
+              <Icon name={icon || defaultIcon} class={twMerge('mb-2 w-10 h-10', defaultIconClass, itemClasses?.icon)} />
+            )}
+            <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>{title}</div>
+            {description && (
+              <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} set:html={description} />
+            )}
+            {callToAction && (
+              <div class="mt-2">
+                <Button {...callToAction} />
+              </div>
+            )}
+          </>
+        );
+        const panelBoxClass = twMerge(
+          'relative flex flex-col intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade',
+          panelClass,
+          itemClasses?.panel
+        );
+        return href != null ? (
+          <a
+            href={href}
+            class={twMerge(
+              panelBoxClass,
+              'block no-underline text-inherit cursor-pointer',
+              'border-slate-200 dark:border-slate-600',
+              'transition-all duration-200 ease-out',
+              'hover:-translate-y-1 hover:shadow-xl hover:border-primary/40',
+              'active:scale-[0.99]'
+            )}
+          >
+            {panelEl}
+          </a>
+        ) : (
+          <div class={panelBoxClass}>{panelEl}</div>
+        );
+      })}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 site:
   name: クリニックマッチ
-  site: 'https://astrowind.vercel.app'
+  site: 'https://clinicmatch.org'
   base: '/'
   trailingSlash: false
 
@@ -11,7 +11,7 @@ metadata:
   title:
     default: クリニックマッチ
     template: '%s — クリニックマッチ'
-  description: "\U0001F680 Suitable for Startups, Small Business, Sass Websites, Professional Portfolios, Marketing Websites, Landing Pages & Blogs."
+  description: "美容医療機器の中古売買・仲介。クリニックマッチは医療機関のニーズに合った機器選びをサポートします。"
   robots:
     index: true
     follow: true
@@ -22,10 +22,6 @@ metadata:
         width: 1200
         height: 628
     type: website
-  twitter:
-    handle: '@arthelokyo'
-    site: '@arthelokyo'
-    cardType: summary_large_image
 
 i18n:
   language: en

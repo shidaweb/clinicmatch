@@ -77,27 +77,38 @@ import { UI } from 'astrowind:config';
 
     attachEvent('[data-aw-social-share]', 'click', function (_, elem) {
       const network = elem.getAttribute('data-aw-social-share');
-      const url = encodeURIComponent(elem.getAttribute('data-aw-url'));
-      const text = encodeURIComponent(elem.getAttribute('data-aw-text'));
+      /* 表示中の記事URLを共有する（data-aw-url はビルド時・クライアントナビの不整合を避けるため使わない） */
+      const urlToShare = window.location.href;
+      const url = encodeURIComponent(urlToShare);
+      const text = encodeURIComponent(elem.getAttribute('data-aw-text') || '');
 
+      if (network === 'copy') {
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(urlToShare).then(
+            function () {
+              var t = elem.getAttribute('title');
+              elem.setAttribute('title', 'コピーしました');
+              setTimeout(function () { elem.setAttribute('title', t || '記事のURLをコピー'); }, 1500);
+            }
+          );
+        }
+        return;
+      }
+
+      const title = elem.getAttribute('data-aw-text') || '';
+      /* クリニックマッチの記事: タイトル URL（Twitter / Facebook で共通） */
+      const shareText = 'クリニックマッチの記事: ' + title + ' ' + urlToShare;
       let href;
       switch (network) {
         case 'facebook':
-          href = `https://www.facebook.com/sharer.php?u=${url}`;
+          href = `https://www.facebook.com/sharer.php?u=${url}&quote=${encodeURIComponent(shareText)}`;
           break;
         case 'twitter':
-          href = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-          break;
-        case 'linkedin':
-          href = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${text}`;
-          break;
-        case 'whatsapp':
-          href = `https://wa.me/?text=${text}%20${url}`;
+          href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
           break;
         case 'mail':
           href = `mailto:?subject=%22${text}%22&body=${text}%20${url}`;
           break;
-
         default:
           return;
       }

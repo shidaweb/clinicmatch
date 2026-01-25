@@ -1,79 +1,101 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import ContactUs from '~/components/widgets/Contact.astro';
-import Features2 from '~/components/widgets/Features2.astro';
+
+/** Fillout フォームの埋め込みURL（Share タブで取得）。.env に PUBLIC_FILLOUT_FORM_BUY / PUBLIC_FILLOUT_FORM_SELL を設定 */
+const buyFormUrl = import.meta.env.PUBLIC_FILLOUT_FORM_BUY || '';
+const sellFormUrl = import.meta.env.PUBLIC_FILLOUT_FORM_SELL || '';
 
 const metadata = {
-  title: 'Contact',
+  title: 'お問い合わせ',
 };
 ---
 
 <Layout metadata={metadata}>
-  <!-- HeroText Widget ******************* -->
+  <HeroText tagline="Contact" title="お問い合わせ" />
 
-  <HeroText tagline="Contact" title="Let's Connect!" />
+  <section id="form" class="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+    <!-- type 未指定: 購入／売却のフォームを選んでもらう -->
+    <div id="form-choice" class="form-panel text-center">
+      <p class="text-muted dark:text-slate-400 mb-6">ご希望のフォームをお選びください。</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href="/contact?type=buy"
+          class="btn btn-primary inline-block py-3 px-6 rounded-full"
+        >
+          購入希望フォーム
+        </a>
+        <a
+          href="/contact?type=sell"
+          class="btn btn-secondary inline-block py-3 px-6 rounded-full border"
+        >
+          売却希望フォーム
+        </a>
+      </div>
+    </div>
 
-  <ContactUs
-    id="form"
-    title="Drop us a message today!"
-    subtitle="For quicker answers, explore our FAQs section. You may find the solution you're looking  for right there! If not, our support team is delighted to help you."
-    inputs={[
+    <!-- type=buy: 購入希望の Fillout フォーム -->
+    <div id="form-buy" class="form-panel hidden">
+      <div class="mb-4">
+        <a href="/contact" class="text-primary hover:underline">← フォームを選び直す</a>
+      </div>
+      <h2 class="text-xl font-bold mb-4">購入希望のお問い合わせ</h2>
       {
-        type: 'text',
-        name: 'name',
-        label: 'Name',
-      },
-      {
-        type: 'email',
-        name: 'email',
-        label: 'Email',
-      },
-    ]}
-    textarea={{
-      label: 'Message',
-    }}
-    disclaimer={{
-      label:
-        'By submitting this contact form, you acknowledge and agree to the collection of your personal information.',
-    }}
-    description="Our support team typically responds within 24 business hours."
-  />
+        buyFormUrl ? (
+          <iframe
+            src={buyFormUrl}
+            title="購入希望フォーム"
+            class="w-full border-0 rounded-lg"
+            style="min-height: 600px;"
+          />
+        ) : (
+          <p class="text-muted dark:text-slate-400 p-6 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+            購入希望フォームの URL が設定されていません。.env に <code>PUBLIC_FILLOUT_FORM_BUY</code> を設定してください。
+          </p>
+        )
+      }
+    </div>
 
-  <!-- Features2 Widget ************** -->
+    <!-- type=sell: 売却希望の Fillout フォーム -->
+    <div id="form-sell" class="form-panel hidden">
+      <div class="mb-4">
+        <a href="/contact" class="text-primary hover:underline">← フォームを選び直す</a>
+      </div>
+      <h2 class="text-xl font-bold mb-4">売却希望のお問い合わせ</h2>
+      {
+        sellFormUrl ? (
+          <iframe
+            src={sellFormUrl}
+            title="売却希望フォーム"
+            class="w-full border-0 rounded-lg"
+            style="min-height: 600px;"
+          />
+        ) : (
+          <p class="text-muted dark:text-slate-400 p-6 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+            売却希望フォームの URL が設定されていません。.env に <code>PUBLIC_FILLOUT_FORM_SELL</code> を設定してください。
+          </p>
+        )
+      }
+    </div>
+  </section>
 
-  <Features2
-    title="We are here to help!"
-    items={[
-      {
-        title: 'General support',
-        description: `Chat with us for inquiries related to account management, website navigation, payment issues, accessing purchased templates or general questions about the website's functionality.`,
-      },
-      {
-        title: 'Contact sales',
-        description:
-          'Chat with us for questions about purchases, customization options, licensing for commercial use, inquiries about specific template, etc.',
-      },
-      {
-        title: 'Technical support',
-        description:
-          'Chat with us when facing issues like template installation, problems editing difficulties, compatibility issues with software or download errors, or other technical challenges related to using the templates.',
-      },
-      {
-        title: 'Phone',
-        description: '+1 (234) 567-890',
-        icon: 'tabler:headset',
-      },
-      {
-        title: 'Email',
-        description: 'contact@support.com',
-        icon: 'tabler:mail',
-      },
-      {
-        title: 'Location',
-        description: '1234 Lorem Ipsum St, 12345, Miami, EEUU',
-        icon: 'tabler:map-pin',
-      },
-    ]}
-  />
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var type = (params.get('type') || '').toLowerCase();
+      var choice = document.getElementById('form-choice');
+      var buy = document.getElementById('form-buy');
+      var sell = document.getElementById('form-sell');
+      if (!choice || !buy || !sell) return;
+
+      if (type === 'buy') {
+        choice.classList.add('hidden');
+        buy.classList.remove('hidden');
+      } else if (type === 'sell') {
+        choice.classList.add('hidden');
+        sell.classList.remove('hidden');
+      }
+      // それ以外は choice を表示（buy/sell は hidden のまま）
+    })();
+  </script>
 </Layout>

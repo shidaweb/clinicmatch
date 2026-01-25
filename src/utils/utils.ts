@@ -1,8 +1,7 @@
-import { I18N } from 'astrowind:config';
-
-export const formatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(I18N?.language, {
+/** ブログ用: 年・月・日の日本語表示（例: 2026年1月25日） */
+export const formatter: Intl.DateTimeFormat = new Intl.DateTimeFormat('ja-JP', {
   year: 'numeric',
-  month: 'short',
+  month: 'long',
   day: 'numeric',
   timeZone: 'UTC',
 });
