@@ -2,8 +2,7 @@
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 
-/** Fillout フォームの埋め込みURL（Share タブで取得）。.env に PUBLIC_FILLOUT_FORM_BUY / PUBLIC_FILLOUT_FORM_SELL を設定 */
-const buyFormUrl = import.meta.env.PUBLIC_FILLOUT_FORM_BUY || '';
+/** Fillout フォームの埋め込みURL（売却は iframe、購入はポップアップ afCsAehK2qus で固定）。.env に PUBLIC_FILLOUT_FORM_SELL を設定 */
 const sellFormUrl = import.meta.env.PUBLIC_FILLOUT_FORM_SELL || '';
 
 const metadata = {
@@ -20,7 +19,8 @@ const metadata = {
       <p class="text-muted dark:text-slate-400 mb-6">ご希望のフォームをお選びください。</p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
-          href="/contact?type=buy"
+          href="#"
+          data-fillout-open="afCsAehK2qus"
           class="btn btn-primary inline-block py-3 px-6 rounded-full"
         >
           購入希望フォーム
@@ -34,26 +34,19 @@ const metadata = {
       </div>
     </div>
 
-    <!-- type=buy: 購入希望の Fillout フォーム -->
+    <!-- type=buy: 購入希望の Fillout ポップアップ -->
     <div id="form-buy" class="form-panel hidden">
       <div class="mb-4">
         <a href="/contact" class="text-primary hover:underline">← フォームを選び直す</a>
       </div>
       <h2 class="text-xl font-bold mb-4">購入希望のお問い合わせ</h2>
-      {
-        buyFormUrl ? (
-          <iframe
-            src={buyFormUrl}
-            title="購入希望フォーム"
-            class="w-full border-0 rounded-lg"
-            style="min-height: 600px;"
-          />
-        ) : (
-          <p class="text-muted dark:text-slate-400 p-6 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
-            購入希望フォームの URL が設定されていません。.env に <code>PUBLIC_FILLOUT_FORM_BUY</code> を設定してください。
-          </p>
-        )
-      }
+      <a
+        href="#"
+        data-fillout-open="afCsAehK2qus"
+        class="btn btn-primary inline-block py-3 px-6 rounded-full"
+      >
+        購入希望フォームを開く
+      </a>
     </div>
 
     <!-- type=sell: 売却希望の Fillout フォーム -->

@@ -26,9 +26,10 @@ const metadata = {
       {
         variant: 'primary',
         text: '購入希望フォーム',
-        href: '/contact?type=buy', // TODO: Fillout URLに差し替え or /contact 内で分岐
+        href: '#',
+        'data-fillout-open': 'afCsAehK2qus',
       },
-      { text: '売却希望フォーム', href: '/contact?type=sell' }, // TODO: Fillout URLに差し替え
+      { text: '売却希望フォーム', href: '/contact?type=sell' },
       { text: 'ブログを見る', href: '/blog' },
     ]}
     image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}  // TODO: クリニックマッチ用に差し替え
@@ -322,8 +323,8 @@ const metadata = {
 
   <CallToAction
     actions={[
-      { variant: 'primary', text: '購入希望フォーム', href: '/contact?type=buy' }, // TODO: Fillout URLに差し替え
-      { text: '売却希望フォーム', href: '/contact?type=sell' }, // TODO: Fillout URLに差し替え
+      { variant: 'primary', text: '購入希望フォーム', href: '#', 'data-fillout-open': 'afCsAehK2qus' },
+      { text: '売却希望フォーム', href: '/contact?type=sell' },
     ]}
   >
     <Fragment slot="title">
