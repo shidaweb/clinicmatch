@@ -19,9 +19,13 @@
     "check:prettier": "prettier --check .",
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "fix:eslint": "eslint --fix .",
-    "fix:prettier": "prettier -w ."
+    "fix:prettier": "prettier -w .",
+    "sanity:dev": "npm --prefix sanity run dev",
+    "sanity:deploy": "npm --prefix sanity run deploy"
   },
   "dependencies": {
+    "@sanity/client": "^6.22.5",
+    "@sanity/image-url": "^1.0.2",
     "@astrojs/rss": "^4.0.12",
     "@astrojs/sitemap": "^3.4.2",
     "@astrolib/analytics": "^0.6.1",
@@ -40,7 +44,6 @@
     "@astrojs/partytown": "^2.1.4",
     "@astrojs/tailwind": "^5.1.5",
     "@eslint/js": "^9.33.0",
-    "@iconify-json/flat-color-icons": "^1.2.1",
     "@iconify-json/tabler": "^1.2.20",
     "@tailwindcss/typography": "^0.5.16",
     "@types/js-yaml": "^4.0.9",

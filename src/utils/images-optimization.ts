@@ -24,6 +24,7 @@ export interface ImageProps extends Omit<HTMLAttributes<'img'>, 'src'> {
   objectPosition?: string;
 
   format?: string;
+  quality?: number | null;
 }
 
 export type ImagesOptimizer = (
@@ -31,7 +32,8 @@ export type ImagesOptimizer = (
   breakpoints: number[],
   width?: number,
   height?: number,
-  format?: string
+  format?: string,
+  quality?: number
 ) => Promise<Array<{ src: string; width: number }>>;
 
 /* ******* */
@@ -217,7 +219,8 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
   breakpoints,
   _width,
   _height,
-  format = undefined
+  format = undefined,
+  quality = 90
 ) => {
   if (!image) {
     return [];
@@ -225,7 +228,13 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
 
   return Promise.all(
     breakpoints.map(async (w: number) => {
-      const result = await getImage({ src: image, width: w, inferSize: true, ...(format ? { format: format } : {}) });
+      const result = await getImage({
+        src: image,
+        width: w,
+        inferSize: true,
+        quality: quality ?? 90,
+        ...(format ? { format: format } : {}),
+      });
 
       return {
         src: result?.src,
@@ -241,7 +250,7 @@ export const isUnpicCompatible = (image: string) => {
 };
 
 /* ** */
-export const unpicOptimizer: ImagesOptimizer = async (image, breakpoints, width, height, format = undefined) => {
+export const unpicOptimizer: ImagesOptimizer = async (image, breakpoints, width, height, format = undefined, _quality?: number) => {
   if (!image || typeof image !== 'string') {
     return [];
   }
@@ -285,6 +294,7 @@ export async function getImagesOptimized(
     layout = 'constrained',
     style = '',
     format,
+    quality,
     ...rest
   }: ImageProps,
   transform: ImagesOptimizer = () => Promise.resolve([])
@@ -327,7 +337,7 @@ export async function getImagesOptimized(
   let breakpoints = getBreakpoints({ width: width, breakpoints: widths, layout: layout });
   breakpoints = [...new Set(breakpoints)].sort((a, b) => a - b);
 
-  const srcset = (await transform(image, breakpoints, Number(width) || undefined, Number(height) || undefined, format))
+  const srcset = (await transform(image, breakpoints, Number(width) || undefined, Number(height) || undefined, format, quality ?? undefined))
     .map(({ src, width }) => `${src} ${width}w`)
     .join(', ');
 

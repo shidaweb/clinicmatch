@@ -275,6 +275,47 @@ Clone this repository on your own GitHub account and deploy to Vercel:
 
 <br>
 
+### Blog: Sanity (Headless CMS)
+
+The blog uses **Sanity** as the data source. Configure environment variables (see `.env.example`) and ensure the following in your Sanity project.
+
+#### 設定手順
+
+1. **環境変数**: `.env.example` を `.env` にコピーし、次を設定する。
+   - `SANITY_PROJECT_ID` … Sanity の project ID（例: `sjwdnh1q`）
+   - `SANITY_DATASET` … データセット名（例: `production`）
+   - `SANITY_API_VERSION` … 任意（例: `2024-01-01`、未設定時は `2024-01-01`）
+2. **開発**: `npm run dev` で起動し、`/blog` に Sanity の記事が表示されるか確認する。
+3. **ビルド**: `npm run build` で SSG が通ることを確認する。Cloudflare Pages では、ビルド前に上記環境変数を **Settings > Environment variables** で設定すること。
+4. **Phase1**: トークンは不要。公開読み取り・draft 除外で運用する。
+
+#### Sanity で用意する post の最低フィールド
+
+- `_type`: `"post"`
+- `title` (string, 必須)
+- `slug` (slug): `slug.current` をGROQで参照
+- `publishedAt` (datetime)
+- `_updatedAt` (datetime, 自動)
+- `excerpt` (text, 任意)
+- `mainImage` (image): `mainImage.asset->url` でURL取得
+- `category` (reference → 別ドキュメント): `slug`(slug), `title`(string) を持つ型を参照
+- `tags` (array of references): 各要素は `slug`, `title` を持つ型を参照
+- `author` (reference または string): 参照の場合は `author->name`
+- `body` (block/Portable Text): Phase1 では `pt::text(body)` でプレーンテキスト化して表示
+
+#### Cloudflare Pages での運用（Sanity publish 後に再ビルド）
+
+1. Cloudflare Pages の **Deploy hooks** でビルド用URLを発行する（例: `https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/xxxxxxxx`）。
+2. Sanity の **Document Actions** や **Webhook** で、post の publish 時に上記 Deploy hook の URL へ `POST` する。
+3. プレースホルダー例（Sanity Webhook の URL に設定）:
+   ```
+   https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/YOUR_DEPLOY_HOOK_ID
+   ```
+
+環境変数 `SANITY_PROJECT_ID`, `SANITY_DATASET` は Cloudflare Pages の **Settings > Environment variables** で設定すること。
+
+<br>
+
 ## Frequently Asked Questions
 
 - Why?

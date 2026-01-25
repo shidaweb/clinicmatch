@@ -13,7 +13,7 @@ import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 
 const metadata = {
-  title: 'AstroWind — Free template for creating websites with Astro + Tailwind CSS',
+  title: 'クリニックマッチ｜美容医療機器の売買を、安心・透明に。',
   ignoreTitleTemplate: true,
 };
 ---
@@ -25,78 +25,80 @@ const metadata = {
     actions={[
       {
         variant: 'primary',
-        text: 'Get template',
-        href: 'https://github.com/arthelokyo/astrowind',
-        target: '_blank',
-        icon: 'tabler:download',
+        text: '購入希望フォーム',
+        href: '/contact?type=buy', // TODO: Fillout URLに差し替え or /contact 内で分岐
       },
-      { text: 'Learn more', href: '#features' },
+      { text: '売却希望フォーム', href: '/contact?type=sell' }, // TODO: Fillout URLに差し替え
+      { text: 'ブログを見る', href: '/blog' },
     ]}
-    image={{ src: '~/assets/images/hero-image.png', alt: 'AstroWind Hero Image' }}
+    image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}  // TODO: クリニックマッチ用に差し替え
   >
     <Fragment slot="title">
-      Free template for <span class="hidden xl:inline">creating websites with</span>
-      <span class="text-accent dark:text-white"> Astro 5.0</span> + Tailwind CSS
+      美容医療機器の売買を、<br />
+      <span class="hidden xl:inline">もっと</span>
+      <span class="text-accent dark:text-white">安心・透明</span>に。
     </Fragment>
 
     <Fragment slot="subtitle">
-      <span class="hidden sm:inline">
-        <span class="font-semibold">AstroWind</span> is a free, customizable and production-ready template for Astro 5.0
-        + Tailwind CSS.</span
-      >
-      <span class="block mb-1 sm:hidden font-bold text-blue-600">AstroWind: Production-ready.</span>
-      Suitable for Startups, Small Business, SaaS websites, Professional Portfolios, Marketing websites, Landing Pages &
-      Blogs.
+      クリニックマッチは、クリニック/事業者向けの中古美容医療機器マッチングを支援します。
+      条件整理から候補提示、取引に必要な実務の段取りまで、スムーズに進められる導線を用意します。
+      <span class="block mt-2 text-sm text-slate-500 dark:text-slate-400">
+        ※対応範囲（仲介/紹介/手数料）は取引形態により異なります。詳細は個別にご案内します。
+      </span>
     </Fragment>
   </Hero>
 
   <!-- Note Widget ******************* -->
 
-  <Note title="Philosophy:" description="Simplicity, Best Practices and High Performance" />
+  <Note
+    title="基本方針"
+    description="清潔感と信頼性を前提に、取引条件を明確化し、情報の非対称性を減らすことで安全な売買を支援します。"
+  />
 
   <!-- Features Widget *************** -->
 
   <Features
     id="features"
-    tagline="Features"
-    title="What you get with AstroWind"
-    subtitle="One of the most professional and comprehensive templates currently on the market. Most starred & forked Astro theme in 2022, 2023 and 2024."
+    tagline="強み"
+    title="クリニックマッチでできること"
+    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading' } }}
+    subtitle="「相場が分かりにくい」「比較が大変」「条件交渉が煩雑」になりがちな中古機器取引を、分かりやすく整流化します。"
     items={[
       {
-        title: 'Astro + Tailwind CSS Integration',
+        title: '条件整理と要件定義',
         description:
-          'A seamless integration between two great frameworks that offer high productivity, performance and versatility.',
-        icon: 'tabler:brand-tailwind',
+          'メーカー/型番/年式/状態/付属品/希望価格/設置・搬入条件など、必要情報を漏れなく整理して取引の前提を揃えます。',
+        icon: 'tabler:clipboard-check',
       },
       {
-        title: 'Ready-to-use Components',
+        title: '候補提示と比較検討',
         description:
-          'Widgets made with Tailwind CSS ready to be used in Marketing Websites, SaaS, Blogs, Personal Profiles, Small Business...',
-        icon: 'tabler:components',
+          '目的・予算・運用に合わせて候補を整理し、比較しやすい形で提示します（仕様・状態・価格・リスク観点を含む）。',
+        icon: 'tabler:arrows-exchange',
       },
       {
-        title: 'Best Practices',
+        title: 'スピード感あるマッチング',
         description:
-          'Creating secure, efficient, and user-friendly websites that deliver exceptional experiences and lasting value.',
-        icon: 'tabler:list-check',
+          'タイミング勝負になりやすい在庫情報を、必要条件に沿って素早く絞り込み、意思決定を前に進めます。',
+        icon: 'tabler:bolt',
       },
       {
-        title: 'Excellent Page Speed',
+        title: '取引実務の段取り',
         description:
-          'Having a good page speed impacts organic search ranking, improves user experience (UI/UX) and increase conversion rates.',
-        icon: 'tabler:rocket',
+          '検品・動作確認・搬出入・保守/修理の論点など、取引に必要な実務タスクを整理してスムーズな実行を支援します。',
+        icon: 'tabler:truck-delivery',
       },
       {
-        title: 'Search Engine Optimization (SEO)',
+        title: '情報管理と守秘',
         description:
-          "SEO lies in its ability to enhance a website's visibility, driving organic traffic and enabling it to reach a wider audience.",
-        icon: 'tabler:arrows-right-left',
+          '検討段階の情報や取引条件が拡散しないように配慮し、必要な範囲で情報を取り扱います。',
+        icon: 'tabler:lock',
       },
       {
-        title: 'Open to new ideas and contributions',
+        title: '市場理解の発信（ブログ）',
         description:
-          'Embracing a culture that is open to new ideas and contributions is integral fostering innovation, collaboration, and a dynamic user experience.',
-        icon: 'tabler:bulb',
+          '中古機器の見極め、注意点、相場感、手続きのポイントなどを記事として整理し、判断材料を提供します。',
+        icon: 'tabler:book',
       },
     ]}
   />
@@ -104,34 +106,36 @@ const metadata = {
   <!-- Content Widget **************** -->
 
   <Content
+    id="torihiki"
     isReversed
-    tagline="Inside template"
-    title="AstroWind's Blueprint: Fun Meets Functionality!"
+    tagline="取引の考え方"
+    title="意思決定を早め<br />リスクを減らす"
+    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading leading-snug' } }}
     items={[
       {
-        title: 'Built on top of Astro 5.0',
+        title: '論点を先に揃える',
         description:
-          'Benefiting from the performance and developer-friendly features of this modern static site generator.',
+          '価格だけでなく、状態・保証・搬入条件・付属品・点検履歴など、後から揉めやすい論点を先に揃えます。',
       },
       {
-        title: 'Styled using Tailwind CSS',
+        title: '比較できる形に整える',
         description:
-          'Facilitating rapid design and consistent styling with this highly popular utility-first CSS framework.',
+          '候補ごとに見比べやすい整理を行い、意思決定を前に進めるための情報設計をします。',
       },
       {
-        title: 'Cross-browser compatibility',
+        title: '段取りで事故を減らす',
         description:
-          'Ensure your website looks and functions consistently across various web browsers, delivering a seamless experience to all users.',
+          '検品/動作確認/引渡し/設置などの実務を先回りして整理し、想定外コストや遅延を減らします。',
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-      alt: 'Colorful Image',
+      src: '~/assets/images/torihiki-joken.png',
+      alt: '取引条件が明確だと、判断が速い',
     }}
   >
     <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Building on modern foundations</h3>
-      Gain a competitive advantage by incorporating industry leading practices
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">取引条件が明確だと、判断が速い</h3>
+      クリニックの運用を止めずに、必要な機器を適切に調達・入替できる状態を目指します。
     </Fragment>
 
     <Fragment slot="bg">
@@ -145,69 +149,28 @@ const metadata = {
     isAfterContent
     items={[
       {
-        title: 'High level of customization',
-        description: `Tailor the template effortlessly to match your brand's identity and requirements, making your website distinct and saving you time.`,
+        title: '購入：欲しい条件から逆算',
+        description: `施術メニュー/患者層/運用体制に合わせて、必要要件を定義し、候補の探索と比較を進めます。`,
       },
       {
-        title: 'Multiple layout possibilities',
-        description:
-          'Explore various layout options to find the structure that best presents your content, enhancing user engagement and navigation.',
+        title: '売却：状態と条件を整理して価値を最大化',
+        description: `年式・状態・付属品・点検履歴などを整理し、スムーズに検討してもらえる形に整えます。`,
       },
       {
-        title: 'Fully responsive design',
-        description:
-          "Ensure your website's optimal performance on various devices and screen sizes, providing a consistent and enjoyable user experience.",
+        title: '取引は段取りが9割',
+        description: `搬出入・設置・動作確認・保守/修理の論点を先に押さえ、現場負担を減らします。`,
       },
       {
-        title: 'Integration of media',
-        description:
-          'Seamlessly incorporate images, videos, and multimedia elements that enhance your content and engage visitors effectively.',
+        title: 'ブログで判断材料を提供',
+        description: `中古機器の注意点や相場感など、検討に必要な情報を継続的に発信します。`,
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2194&q=80',
-      alt: 'Blueprint Image',
+      src: '~/assets/images/medical-equipment.png',
+      alt: '医療機器を用いた顔の施術',
     }}
   >
-    <Fragment slot="content">Ensure your online presence truly represents you.</Fragment>
-
-    <Fragment slot="bg">
-      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
-  </Content>
-
-  <!-- Content Widget **************** -->
-
-  <Content
-    isReversed
-    isAfterContent
-    items={[
-      {
-        title: 'Enhanced user engagement',
-        description:
-          'Captivate your audience with interactive elements, intuitive navigation, and visually appealing layouts, encouraging longer visits.',
-      },
-      {
-        title: 'Continuous improvement',
-        description:
-          'Ensure your website stays aligned with the latest trends and technologies through regular updates and enhancements.',
-      },
-      {
-        title: 'Time and resource efficiency',
-        description:
-          'Skip the time-consuming process of building a website from scratch and launch your online presence sooner with AstroWind.',
-      },
-      {
-        title: 'Community support',
-        description: `Join the growing AstroWind community for insights, resources, and assistance, ensuring you're never alone on your web development journey.`,
-      },
-    ]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1611462985358-60d3498e0364?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-      alt: 'Astronauts Image',
-    }}
-  >
-    <Fragment slot="content">Designed to foster growth and success.</Fragment>
+    <Fragment slot="content"><h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">購入・売却どちらも「条件整理」が最短ルート。</h3></Fragment>
 
     <Fragment slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
@@ -217,93 +180,74 @@ const metadata = {
   <!-- Steps Widget ****************** -->
 
   <Steps
-    title="Get your dream website up and running in no time with AstroWind."
+    title="取引の進め方（最小ステップ）"
     items={[
       {
-        title: 'Step 1: <span class="font-medium">Download</span>',
+        title: 'Step 1: <span class="font-medium">フォーム送信</span>',
         description:
-          "Kickstart with GitHub! Either fork the AstroWind template or simply click 'Use this template'. Your canvas awaits, ready for your digital masterpiece. In just a few clicks, you've already set the foundation.",
-        icon: 'tabler:package',
+          '購入/売却の希望と、分かる範囲の情報を入力します。匿名相談からでもOKです（条件による）。',
+        icon: 'tabler:forms',
       },
       {
-        title: 'Step 2: <span class="font-medium">Add content</span>',
+        title: 'Step 2: <span class="font-medium">条件整理と確認</span>',
         description:
-          "Pour your vision into it. Add images, text, and all that jazz to breathe life into your digital space. Remember, it's the content that tells your story, so make it captivating.",
-        icon: 'tabler:letter-case',
+          '必要情報を整理し、候補提示や売却条件の整備に向けて論点を揃えます。搬出入など実務も含めて確認します。',
+        icon: 'tabler:filter',
       },
       {
-        title: 'Step 3: <span class="font-medium">Customize styles</span>',
+        title: 'Step 3: <span class="font-medium">マッチング〜段取り</span>',
         description:
-          'Give it your personal touch. Tailor colors, fonts, and layouts until it feels just right. Your unique flair, amplified by AstroWind! Precision in design ensures a seamless user experience.',
-        icon: 'tabler:paint',
+          '候補の比較・条件調整を進め、検品/引渡し/設置などの段取りを整理します。',
+        icon: 'tabler:truck',
       },
       {
-        title: 'Ready!',
+        title: '完了: <span class="font-medium">取引成立</span>',
         icon: 'tabler:check',
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1616198814651-e71f960c3180?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80',
-      alt: 'Steps image',
+      src: '~/assets/images/torihiki-nagare.png',
+      alt: '取引の流れ',
     }}
   />
 
   <!-- Features2 Widget ************** -->
 
   <Features2
-    title="Most used widgets"
-    subtitle="Provides frequently used components for building websites using Tailwind CSS"
-    tagline="Components"
+    title="よくある相談テーマ"
+    subtitle="まずはこの辺りの整理から入ると、判断が早くなります。"
+    tagline="相談例"
+    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase' } }}
     items={[
       {
-        title: 'Headers',
-        description: "Ever tried driving without GPS? Boom! That's why websites need headers for direction.",
-        icon: 'flat-color-icons:template',
+        title: '価格の相場感',
+        description: '同型番でも状態や付属品で価格が大きく変わります。比較軸を整理します。',
+        icon: 'tabler:exchange',
       },
       {
-        title: 'Heros',
-        description:
-          "Picture a superhero landing – epic, right? That's the job of a Hero section, making grand entrances!",
-        icon: 'flat-color-icons:gallery',
+        title: '状態・リスクの見極め',
+        description: '点検履歴、使用状況、消耗部品、修理可否などの論点を整理します。',
+        icon: 'tabler:clipboard-check',
       },
       {
-        title: 'Features',
-        description:
-          'Where websites strut their stuff and show off superpowers. No holding back on the bragging rights here!',
-        icon: 'flat-color-icons:approval',
+        title: '搬出入・設置',
+        description: 'サイズ/重量/電源/搬入経路など、現場で詰まりやすい点を先に確認します。',
+        icon: 'tabler:truck-delivery',
       },
       {
-        title: 'Content',
-        description:
-          "Dive into the meat and potatoes of a site; without it, you'd just be window shopping. Content is king.",
-        icon: 'flat-color-icons:document',
+        title: '保証・保守',
+        description: 'メーカー保守、第三者保守、修理業許可の論点など、前提を揃えます。',
+        icon: 'tabler:headset',
       },
       {
-        title: 'Call-to-Action',
-        description:
-          'That enthusiastic friend who\'s always urging, "Do it! Do it!"? Yeah, that\'s this button nudging you towards adventure.',
-        icon: 'flat-color-icons:advertising',
+        title: '売却時の情報整備',
+        description: '検討者が判断しやすい形に情報を整え、売却のスピードを上げます。',
+        icon: 'tabler:file-text',
       },
       {
-        title: 'Pricing',
-        description: 'Behold the dessert menu of the website world. Tempting choices await, can you resist?',
-        icon: 'flat-color-icons:currency-exchange',
-      },
-      {
-        title: 'Testimonial',
-        description: 'Step into the gossip corner! Here, other visitors spill the beans and share the juicy details.',
-        icon: 'flat-color-icons:voice-presentation',
-      },
-      {
-        title: 'Contact',
-        description:
-          'Like a digital mailbox, but faster! Drop a line, ask a question, or send a virtual high-five. Ding! Message in.',
-        icon: 'flat-color-icons:business-contact',
-      },
-      {
-        title: 'Footers',
-        description: "The footer's like the credits of a movie but sprinkled with easter eggs. Time to hunt!",
-        icon: 'flat-color-icons:database',
+        title: '導入後の運用',
+        description: '施術メニュー、スタッフ体制、トレーニングなど運用面も含めて整理します。',
+        icon: 'tabler:users',
       },
     ]}
   >
@@ -315,50 +259,48 @@ const metadata = {
   <!-- HighlightedPosts Widget ******* -->
 
   <BlogLatestPosts
-    title="Find out more content in our Blog"
-    information={`The blog is used to display AstroWind documentation.
-                        Each new article will be an important step that you will need to know to be an expert in creating a website using Astro + Tailwind CSS.
-                        Astro is a very interesting technology. Thanks.
-                `}
+    title="ブログ：美容医療の中古市場を整備する人"
+    information={`中古美容医療機器の「見極め」「注意点」「相場感」「取引の段取り」などを、実務目線で整理します。
+                 初めての購入/売却でも、検討の軸が作れるような記事を掲載していきます。`}
   />
 
   <!-- FAQs Widget ******************* -->
 
   <FAQs
-    title="Frequently Asked Questions"
-    subtitle="Dive into the following questions to gain insights into the powerful features that AstroWind offers and how it can elevate your web development journey."
-    tagline="FAQs"
-    classes={{ container: 'max-w-6xl' }}
+    title="よくある質問"
+    subtitle="検討の初期段階で気になりやすい点をまとめました。"
+    tagline="FAQ"
+    classes={{ container: 'max-w-6xl', headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase' } }}
     items={[
       {
-        title: 'Why AstroWind?',
+        title: '手数料はかかりますか？',
         description:
-          "Michael Knight a young loner on a crusade to champion the cause of the innocent. The helpless. The powerless in a world of criminals who operate above the law. Here he comes Here comes Speed Racer. He's a demon on wheels.",
+          '取引形態（紹介/仲介/付帯支援など）や案件内容により異なります。まずは条件を伺い、個別にご案内します。',
       },
       {
-        title: 'What do I need to start?',
+        title: 'どんな機器が対象ですか？',
         description:
-          'Space, the final frontier. These are the voyages of the Starship Enterprise. Its five-year mission: to explore strange new worlds. Many say exploration is part of our destiny, but it’s actually our duty to future generations.',
+          '美容医療領域の主要カテゴリを想定しています。メーカー/型番/年式/状態などにより可否が変わるため、フォームからご相談ください。',
       },
       {
-        title: 'How to install the Astro + Tailwind CSS template?',
+        title: '匿名で相談できますか？',
         description:
-          "Well, the way they make shows is, they make one show. That show's called a pilot. Then they show that show to the people who make shows, and on the strength of that one show they decide if they're going to make more shows.",
+          '初期相談は匿名/限定情報での相談も可能な場合があります（状況によりお願い事項があるため、個別にご案内します）。',
       },
       {
-        title: "What's something that you don't understand?",
+        title: 'どのくらいの期間で決まりますか？',
         description:
-          "A flower in my garden, a mystery in my panties. Heart attack never stopped old Big Bear. I didn't even know we were calling him Big Bear.",
+          '条件の明確さと市場在庫により異なります。早いケースでは数日〜、通常は条件整理後に候補提示→比較検討の流れになります。',
       },
       {
-        title: 'What is something that you would like to try again?',
+        title: '守秘・情報管理は大丈夫ですか？',
         description:
-          "A business big enough that it could be listed on the NASDAQ goes belly up. Disappears! It ceases to exist without me. No, you clearly don't know who you're talking to, so let me clue you in.",
+          '検討段階の情報が不用意に拡散しないように配慮し、必要な範囲で情報を取り扱います。必要に応じて個別の取り決めも検討します。',
       },
       {
-        title: 'If you could only ask one question to each person you meet, what would that question be?',
+        title: '動作確認や検品はどうなりますか？',
         description:
-          "This is not about revenge. This is about justice. A lot of things can change in twelve years, Admiral. Well, that's certainly good to know. About four years. I got tired of hearing how young I looked.",
+          '案件により異なります。検品/動作確認/搬出入/設置の論点を整理し、段取りとして詰めていきます。',
       },
     ]}
   />
@@ -367,10 +309,10 @@ const metadata = {
 
   <Stats
     stats={[
-      { title: 'Downloads', amount: '132K' },
-      { title: 'Stars', amount: '24.8K' },
-      { title: 'Forks', amount: '10.3K' },
-      { title: 'Users', amount: '48.4K' },
+      { title: '相談受付', amount: '随時' },
+      { title: '対応専門領域', amount: '美容医療' },
+      { title: '進行はおまかせ', amount: '条件整理のプロに' },
+      { title: '情報管理', amount: '匿名・機密に' },
     ]}
   />
 
@@ -378,22 +320,17 @@ const metadata = {
 
   <CallToAction
     actions={[
-      {
-        variant: 'primary',
-        text: 'Get template',
-        href: 'https://github.com/arthelokyo/astrowind',
-        target: '_blank',
-        icon: 'tabler:download',
-      },
+      { variant: 'primary', text: '購入希望フォーム', href: '/contact?type=buy' }, // TODO: Fillout URLに差し替え
+      { text: '売却希望フォーム', href: '/contact?type=sell' }, // TODO: Fillout URLに差し替え
     ]}
   >
     <Fragment slot="title">
-      Astro&nbsp;+&nbsp;<br class="block sm:hidden" /><span class="sm:whitespace-nowrap">Tailwind CSS</span>
+      まずは条件整理から。<br class="block sm:hidden" /><span class="sm:whitespace-nowrap">匿名相談も可</span>
     </Fragment>
 
     <Fragment slot="subtitle">
-      Be very surprised by these huge fake numbers you are seeing on this page. <br class="hidden md:inline" />Don't
-      waste more time! :P
+      購入・売却どちらも、必要条件を揃えると判断が早くなります。<br class="hidden md:inline" />
+      まずはフォームから、分かる範囲で入力してください。
     </Fragment>
   </CallToAction>
 </Layout>

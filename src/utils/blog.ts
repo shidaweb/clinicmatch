@@ -1,11 +1,17 @@
 import type { PaginateFunction } from 'astro';
-import { getCollection, render } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
 import type { Post } from '~/types';
 import { APP_BLOG } from 'astrowind:config';
 import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
+import { getSanityClient } from '~/lib/sanity';
+import { POSTS_GROQ } from '~/lib/sanity.queries';
 
-const generatePermalink = async ({
+/** Image URL: GROQ uses mainImage.asset->url (string). Pass-through. */
+function getSanityImageUrl(src: string | null | undefined): string | undefined {
+  if (!src || typeof src !== 'string') return undefined;
+  return src;
+}
+
+const generatePermalink = ({
   id,
   slug,
   publishDate,
@@ -40,75 +46,86 @@ const generatePermalink = async ({
     .join('/');
 };
 
-const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> => {
-  const { id, data } = post;
-  const { Content, remarkPluginFrontmatter } = await render(post);
+/** Phase1: turn plain text into minimal HTML for prose container. */
+function plainToSimpleHtml(text: string | null | undefined): string {
+  if (!text || typeof text !== 'string') return '';
+  const Esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const t = Esc(text);
+  const inner = t.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br />');
+  return `<p>${inner}</p>`;
+}
 
-  const {
-    publishDate: rawPublishDate = new Date(),
-    updateDate: rawUpdateDate,
-    title,
-    excerpt,
-    image,
-    tags: rawTags = [],
-    category: rawCategory,
-    author,
-    draft = false,
-    metadata = {},
-  } = data;
-
-  const slug = cleanSlug(id); // cleanSlug(rawSlug.split('/').pop());
-  const publishDate = new Date(rawPublishDate);
-  const updateDate = rawUpdateDate ? new Date(rawUpdateDate) : undefined;
-
-  const category = rawCategory
-    ? {
-        slug: cleanSlug(rawCategory),
-        title: rawCategory,
-      }
-    : undefined;
-
-  const tags = rawTags.map((tag: string) => ({
-    slug: cleanSlug(tag),
-    title: tag,
-  }));
-
-  return {
-    id: id,
-    slug: slug,
-    permalink: await generatePermalink({ id, slug, publishDate, category: category?.slug }),
-
-    publishDate: publishDate,
-    updateDate: updateDate,
-
-    title: title,
-    excerpt: excerpt,
-    image: image,
-
-    category: category,
-    tags: tags,
-    author: author,
-
-    draft: draft,
-
-    metadata,
-
-    Content: Content,
-    // or 'content' in case you consume from API
-
-    readingTime: remarkPluginFrontmatter?.readingTime,
-  };
+type SanityPost = {
+  _id: string;
+  title?: string | null;
+  slug?: string | null;
+  publishedAt?: string | null;
+  _updatedAt?: string | null;
+  excerpt?: string | null;
+  mainImage?: string | { _ref?: string } | null;
+  category?: { slug?: string | null; title?: string | null } | null;
+  tags?: Array<{ slug?: string | null; title?: string | null }> | null;
+  author?: string | null;
+  bodyPlain?: string | null;
 };
 
+function sanityPostToPost(p: SanityPost): Post {
+  const slug = cleanSlug(p.slug || p._id);
+  const publishDate = p.publishedAt ? new Date(p.publishedAt) : new Date();
+  const updateDate = p._updatedAt ? new Date(p._updatedAt) : undefined;
+
+  const category =
+    p.category && (p.category.slug || p.category.title)
+      ? { slug: cleanSlug(p.category.slug || p.category.title || ''), title: p.category.title || p.category.slug || '' }
+      : undefined;
+
+  const tags = (p.tags || [])
+    .filter((t) => t && (t.slug || t.title))
+    .map((t) => ({ slug: cleanSlug(t!.slug || t!.title || ''), title: t!.title || t!.slug || '' }));
+
+  const image = getSanityImageUrl(typeof p.mainImage === 'string' ? p.mainImage : undefined);
+
+  const basePermalink = generatePermalink({ id: p._id, slug, publishDate, category: category?.slug });
+  const permalink =
+    !BLOG_BASE || basePermalink === BLOG_BASE || basePermalink.startsWith(BLOG_BASE + '/')
+      ? basePermalink
+      : [BLOG_BASE, basePermalink].filter(Boolean).join('/');
+
+  return {
+    id: p._id,
+    slug,
+    permalink,
+
+    publishDate,
+    updateDate,
+
+    title: p.title || '',
+    excerpt: p.excerpt ?? undefined,
+    image,
+
+    category,
+    tags,
+    author: p.author ?? undefined,
+
+    draft: false,
+
+    metadata: {},
+
+    Content: undefined,
+    content: plainToSimpleHtml(p.bodyPlain),
+
+    readingTime: undefined,
+  };
+}
+
 const load = async function (): Promise<Array<Post>> {
-  const posts = await getCollection('post');
-  const normalizedPosts = posts.map(async (post) => await getNormalizedPost(post));
+  const client = getSanityClient();
+  const raw = (await client.fetch<SanityPost[]>(POSTS_GROQ)) || [];
 
-  const results = (await Promise.all(normalizedPosts))
-    .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
-    .filter((post) => !post.draft);
-
-  return results;
+  return raw
+    .filter((p) => p && (p.slug || p._id))
+    .map(sanityPostToPost)
+    .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf());
 };
 
 let _posts: Array<Post>;
@@ -198,10 +215,10 @@ export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: Pagin
   if (!isBlogEnabled || !isBlogCategoryRouteEnabled) return [];
 
   const posts = await fetchPosts();
-  const categories = {};
-  posts.map((post) => {
+  const categories: Record<string, { slug: string; title: string }> = {};
+  posts.forEach((post) => {
     if (post.category?.slug) {
-      categories[post.category?.slug] = post.category;
+      categories[post.category.slug] = post.category;
     }
   });
 
@@ -222,11 +239,11 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
   if (!isBlogEnabled || !isBlogTagRouteEnabled) return [];
 
   const posts = await fetchPosts();
-  const tags = {};
-  posts.map((post) => {
+  const tags: Record<string, { slug: string; title: string }> = {};
+  posts.forEach((post) => {
     if (Array.isArray(post.tags)) {
-      post.tags.map((tag) => {
-        tags[tag?.slug] = tag;
+      post.tags.forEach((tag) => {
+        if (tag?.slug) tags[tag.slug] = tag;
       });
     }
   });
