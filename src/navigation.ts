@@ -18,7 +18,7 @@ export const headerData = {
     },
     { text: 'ブログ', href: getBlogPermalink() },
   ],
-  actions: [{ text: 'LINEで売買を相談する', href: '#', variant: 'line' }],
+  actions: [{ text: 'LINEで売買を相談する', href: 'https://lin.ee/vepVhWc', variant: 'line', target: '_blank' }],
 };
 
 export const footerData = {
@@ -35,7 +35,7 @@ export const footerData = {
       links: [
         { text: '購入希望のお問い合わせ', href: '#' },
         { text: '売却希望のお問い合わせ', href: '#' },
-        { text: 'LINEで売買をご相談', href: '#' },
+        { text: 'LINEで売買をご相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
       ],
     },
     {

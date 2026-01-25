@@ -32,7 +32,7 @@ const {
         containerClass
       )}
     >
-      {items.map(({ title, description, icon, href, callToAction, classes: itemClasses = {} }) => {
+      {items.map(({ title, description, icon, href, target, callToAction, classes: itemClasses = {} }) => {
         const panelEl = (
           <>
             {(icon || defaultIcon) && (
@@ -57,6 +57,7 @@ const {
         return href != null ? (
           <a
             href={href}
+            {...(target ? { target, rel: 'noopener noreferrer' } : {})}
             class={twMerge(
               panelBoxClass,
               'block no-underline text-inherit cursor-pointer',
