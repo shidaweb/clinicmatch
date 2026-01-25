@@ -26,9 +26,10 @@ const metadata = {
       {
         variant: 'primary',
         text: '購入希望フォーム',
-        href: '/contact?type=buy',
+        href: 'https://form.fillout.com/t/afCsAehK2qus',
+        'data-open-as-popup': '1',
       },
-      { text: '売却希望フォーム', href: '/contact?type=sell' },
+      { text: '売却希望フォーム', href: 'https://form.fillout.com/t/bXT2fHZkgtus', 'data-open-as-popup': '1' },
       { text: 'ブログを見る', href: '/blog' },
     ]}
     image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}  // TODO: クリニックマッチ用に差し替え
@@ -322,8 +323,8 @@ const metadata = {
 
   <CallToAction
     actions={[
-      { variant: 'primary', text: '購入希望フォーム', href: '/contact?type=buy' },
-      { text: '売却希望フォーム', href: '/contact?type=sell' },
+      { variant: 'primary', text: '購入希望フォーム', href: 'https://form.fillout.com/t/afCsAehK2qus', 'data-open-as-popup': '1' },
+      { text: '売却希望フォーム', href: 'https://form.fillout.com/t/bXT2fHZkgtus', 'data-open-as-popup': '1' },
     ]}
   >
     <Fragment slot="title">

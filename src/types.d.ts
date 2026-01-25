@@ -138,6 +138,7 @@ export interface Item {
   icon?: string;
   href?: string;
   target?: string;
+  dataOpenAsPopup?: boolean;
   classes?: Record<string, string>;
   callToAction?: CallToAction;
   image?: Image;

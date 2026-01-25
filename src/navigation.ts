@@ -33,8 +33,8 @@ export const footerData = {
     {
       title: 'お問い合わせ',
       links: [
-        { text: '購入希望のお問い合わせ', href: '/contact?type=buy' },
-        { text: '売却希望のお問い合わせ', href: '/contact?type=sell' },
+        { text: '購入希望のお問い合わせ', href: 'https://form.fillout.com/t/afCsAehK2qus', dataOpenAsPopup: true },
+        { text: '売却希望のお問い合わせ', href: 'https://form.fillout.com/t/bXT2fHZkgtus', dataOpenAsPopup: true },
         { text: 'LINEで売買をご相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
       ],
     },

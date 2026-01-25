@@ -32,7 +32,7 @@ const {
         containerClass
       )}
     >
-      {items.map(({ title, description, icon, href, target, callToAction, classes: itemClasses = {} }) => {
+      {items.map(({ title, description, icon, href, target, callToAction, dataOpenAsPopup, classes: itemClasses = {} }) => {
         const panelEl = (
           <>
             {(icon || defaultIcon) && (
@@ -58,6 +58,7 @@ const {
           <a
             href={href}
             {...(target ? { target, rel: 'noopener noreferrer' } : {})}
+            {...(dataOpenAsPopup ? { 'data-open-as-popup': '1' } : {})}
             class={twMerge(
               panelBoxClass,
               'block no-underline text-inherit cursor-pointer',

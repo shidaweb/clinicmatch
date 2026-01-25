@@ -9,6 +9,7 @@ interface Link {
   ariaLabel?: string;
   icon?: string;
   target?: string;
+  dataOpenAsPopup?: boolean;
 }
 
 interface Links {
@@ -61,13 +62,14 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
             <div class="dark:text-gray-300 font-medium mb-2">{title}</div>
             {links && Array.isArray(links) && links.length > 0 && (
               <ul class="text-sm">
-                {links.map(({ text, href, ariaLabel, target }) => (
+                {links.map(({ text, href, ariaLabel, target, dataOpenAsPopup }) => (
                   <li class="mb-2">
                     <a
                       class="text-muted hover:text-gray-700 hover:underline dark:text-gray-400 transition duration-150 ease-in-out"
                       href={href}
                       aria-label={ariaLabel}
                       {...(target ? { target, rel: 'noopener noreferrer' } : {})}
+                      {...(dataOpenAsPopup ? { 'data-open-as-popup': '1' } : {})}
                     >
                       <Fragment set:html={text} />
                     </a>
