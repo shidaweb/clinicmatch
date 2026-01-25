@@ -43,29 +43,6 @@ const { language, textDirection } = I18N;
   <body class="antialiased text-default bg-page tracking-tight">
     <slot />
 
-    <!-- Fillout popup: 購入希望 (非表示のトリガー、[data-fillout-open] のクリックで開く) -->
-    <div
-      data-fillout-id="afCsAehK2qus"
-      data-fillout-embed-type="popup"
-      data-fillout-dynamic-resize
-      data-fillout-inherit-parameters
-      data-fillout-domain="jugyoin.jp"
-      data-fillout-popup-size="medium"
-      aria-hidden="true"
-      style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"
-    ></div>
-    <script src="https://server.fillout.com/embed/v1/"></script>
-    <script is:inline>
-      document.body.addEventListener('click', function (e) {
-        var t = e.target.closest('[data-fillout-open="afCsAehK2qus"]');
-        if (!t) return;
-        e.preventDefault();
-        e.stopPropagation();
-        var el = document.querySelector('[data-fillout-id="afCsAehK2qus"] button, [data-fillout-id="afCsAehK2qus"] [role=button], [data-fillout-id="afCsAehK2qus"] a') || document.querySelector('[data-fillout-id="afCsAehK2qus"]');
-        if (el) el.click();
-      });
-    </script>
-
     <BasicScripts />
   </body>
 </html>

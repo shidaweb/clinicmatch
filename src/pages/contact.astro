@@ -2,8 +2,10 @@
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 
-/** Fillout フォームの埋め込みURL（売却は iframe、購入はポップアップ afCsAehK2qus で固定）。.env に PUBLIC_FILLOUT_FORM_SELL を設定 */
+/** 購入: Fillout Standard 埋め込みのフォーム ID（.env の PUBLIC_FILLOUT_FORM_BUY）。売却: iframe の src URL（PUBLIC_FILLOUT_FORM_SELL） */
+const buyFormId = (import.meta.env.PUBLIC_FILLOUT_FORM_BUY || '').trim();
 const sellFormUrl = import.meta.env.PUBLIC_FILLOUT_FORM_SELL || '';
+const filloutDomain = 'jugyoin.jp';
 
 const metadata = {
   title: 'お問い合わせ',
@@ -19,8 +21,7 @@ const metadata = {
       <p class="text-muted dark:text-slate-400 mb-6">ご希望のフォームをお選びください。</p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
-          href="#"
-          data-fillout-open="afCsAehK2qus"
+          href="/contact?type=buy"
           class="btn btn-primary inline-block py-3 px-6 rounded-full"
         >
           購入希望フォーム
@@ -34,19 +35,31 @@ const metadata = {
       </div>
     </div>
 
-    <!-- type=buy: 購入希望の Fillout ポップアップ -->
+    <!-- type=buy: 購入希望の Fillout フォーム（Standard 埋め込み: div + script） -->
     <div id="form-buy" class="form-panel hidden">
       <div class="mb-4">
         <a href="/contact" class="text-primary hover:underline">← フォームを選び直す</a>
       </div>
       <h2 class="text-xl font-bold mb-4">購入希望のお問い合わせ</h2>
-      <a
-        href="#"
-        data-fillout-open="afCsAehK2qus"
-        class="btn btn-primary inline-block py-3 px-6 rounded-full"
-      >
-        購入希望フォームを開く
-      </a>
+      {
+        buyFormId ? (
+          <>
+            <div
+              style="width:100%;height:500px;"
+              data-fillout-id={buyFormId}
+              data-fillout-embed-type="standard"
+              data-fillout-inherit-parameters
+              data-fillout-dynamic-resize
+              data-fillout-domain={filloutDomain}
+            />
+            <script src="https://server.fillout.com/embed/v1/" />
+          </>
+        ) : (
+          <p class="text-muted dark:text-slate-400 p-6 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+            購入希望フォームが設定されていません。.env に <code>PUBLIC_FILLOUT_FORM_BUY</code>（Fillout のフォーム ID）を設定してください。
+          </p>
+        )
+      }
     </div>
 
     <!-- type=sell: 売却希望の Fillout フォーム -->
