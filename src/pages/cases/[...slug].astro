@@ -1,0 +1,129 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Button from '~/components/ui/Button.astro';
+import { getPermalink, getHomePermalink } from '~/utils/permalinks';
+import type { MetaData } from '~/types';
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const cases = await getCollection('cases');
+  return cases.map((entry) => {
+    const slug = entry.id.replace(/\.mdx?$/, '');
+    return {
+      params: { slug },
+      props: { entry },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Props = { entry: Awaited<ReturnType<typeof getCollection<'cases'>>>[number] };
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const { data } = entry;
+
+function formatDateYMD(ym: string): string {
+  if (!ym || ym.length < 6) return ym;
+  const y = ym.slice(0, 4);
+  const m = ym.slice(5, 7);
+  const mNum = parseInt(m, 10);
+  return `${y}年${mNum}月`;
+}
+
+const machineRows = [
+  { label: '機器名', value: data.model },
+  { label: 'メーカー', value: data.manufacturer },
+  { label: '製造年月', value: formatDateYMD(data.manufacturedDate) },
+  { label: '保守状態', value: data.maintenanceContract },
+  { label: '使用状況', value: data.usage },
+  { label: '取引時期', value: formatDateYMD(data.transactionDate) },
+  { label: '価格帯', value: data.priceRange },
+  { label: 'ステータス', value: data.status },
+];
+
+const INQUIRY_URL = 'https://form.fillout.com/t/afCsAehK2qus';
+
+const metadata: MetaData = {
+  title: data.title,
+  description: `${data.categoryLabel}の取引事例。${data.manufacturer} ${data.model}（${formatDateYMD(data.manufacturedDate)}製造）。${data.usage}。`,
+  openGraph: {
+    type: 'article',
+  },
+};
+---
+
+<Layout metadata={metadata}>
+  <WidgetWrapper containerClass="max-w-3xl mx-auto">
+    <!-- パンくず: トップ > 取引事例 > [機器名] -->
+    <nav class="mb-6 text-sm text-muted dark:text-slate-400" aria-label="パンくず">
+      <ol class="flex flex-wrap items-center gap-1">
+        <li><a href={getHomePermalink()} class="hover:text-primary">トップ</a></li>
+        <li aria-hidden="true"> &gt; </li>
+        <li><a href={getPermalink('cases')} class="hover:text-primary">取引事例</a></li>
+        <li aria-hidden="true"> &gt; </li>
+        <li class="text-default font-medium" aria-current="page">{data.title}</li>
+      </ol>
+    </nav>
+
+    <article>
+      <header class="mb-8">
+        <span class="inline-block px-2.5 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
+          {data.categoryLabel}
+        </span>
+        <h1 class="mt-2 text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading text-default">
+          {data.title}
+        </h1>
+      </header>
+
+      <!-- 機器情報テーブル -->
+      <section class="mb-10" aria-labelledby="machine-info-heading">
+        <h2 id="machine-info-heading" class="sr-only">機器情報</h2>
+        <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <table class="w-full min-w-[320px] border-collapse border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden">
+            <thead>
+              <tr>
+                <th class="bg-slate-100 dark:bg-slate-800 font-bold text-left py-3 px-4 border-b border-slate-200 dark:border-slate-600 w-32 md:w-36">
+                  項目
+                </th>
+                <th class="bg-slate-100 dark:bg-slate-800 font-bold text-left py-3 px-4 border-b border-slate-200 dark:border-slate-600">
+                  内容
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {machineRows.map(({ label, value }) => (
+                <tr class="border-b border-slate-200 dark:border-slate-600 last:border-b-0">
+                  <td class="py-3 px-4 border-r border-slate-200 dark:border-slate-600 font-medium text-slate-700 dark:text-slate-300 align-top">
+                    {label}
+                  </td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400 align-top">{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Markdown本文 -->
+      <section class="prose prose-md lg:prose-lg dark:prose-invert dark:prose-headings:text-slate-300 prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-blue-400 prose-img:rounded-md max-w-none">
+        <Content />
+      </section>
+
+      <!-- CTA: この機器の相場を問い合わせる -->
+      <section class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-600" aria-labelledby="cta-heading">
+        <h2 id="cta-heading" class="text-xl font-bold font-heading text-default mb-4">
+          この機器の相場について
+        </h2>
+        <p class="text-muted dark:text-slate-400 mb-6">
+          詳しい相場や条件について知りたい方は、お気軽にフォームよりお問い合わせください。
+        </p>
+        <Button href={INQUIRY_URL} variant="primary" target="_blank" rel="noopener noreferrer">
+          この機器の相場を問い合わせる
+        </Button>
+      </section>
+    </article>
+  </WidgetWrapper>
+</Layout>
