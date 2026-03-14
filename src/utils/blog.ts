@@ -119,13 +119,18 @@ function sanityPostToPost(p: SanityPost): Post {
 }
 
 const load = async function (): Promise<Array<Post>> {
-  const client = getSanityClient();
-  const raw = (await client.fetch<SanityPost[]>(POSTS_GROQ)) || [];
+  try {
+    const client = getSanityClient();
+    const raw = (await client.fetch<SanityPost[]>(POSTS_GROQ)) || [];
 
-  return raw
-    .filter((p) => p && (p.slug || p._id))
-    .map(sanityPostToPost)
-    .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf());
+    return raw
+      .filter((p) => p && (p.slug || p._id))
+      .map(sanityPostToPost)
+      .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf());
+  } catch (e) {
+    console.error('[blog] Failed to fetch posts from Sanity:', e);
+    return [];
+  }
 };
 
 let _posts: Array<Post>;

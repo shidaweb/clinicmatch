@@ -8,9 +8,16 @@ const token = import.meta.env.SANITY_READ_TOKEN;
 
 export function getSanityClient() {
   if (!projectId || !dataset) {
-    throw new Error(
-      'Missing Sanity env: SANITY_PROJECT_ID and SANITY_DATASET are required. Check .env and Cloudflare Pages environment variables.'
+    console.error(
+      '[sanity] Missing env: SANITY_PROJECT_ID and/or SANITY_DATASET. Check .env and Cloudflare Pages environment variables.'
     );
+    // Return a minimal client that won't crash but will return empty results
+    return createClient({
+      projectId: projectId || 'missing',
+      dataset: dataset || 'production',
+      apiVersion,
+      useCdn,
+    });
   }
 
   return createClient({
