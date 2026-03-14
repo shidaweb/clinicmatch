@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url';
 
 import { defineConfig } from 'astro/config';
 
+import cloudflare from '@astrojs/cloudflare';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
@@ -23,9 +25,11 @@ const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroInteg
 
 export default defineConfig({
   site: 'https://clinicmatch.org',
-  output: 'static',
+  output: 'server',
+  adapter: cloudflare(),
 
   integrations: [
+    react(),
     tailwind({
       applyBaseStyles: false,
     }),

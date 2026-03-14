@@ -1,0 +1,39 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import SellForm from '~/components/interactive/SellForm';
+import { getPermalink, getHomePermalink } from '~/utils/permalinks';
+
+export const prerender = true;
+
+const metadata = {
+  title: '売却希望フォーム',
+  description: '中古美容医療機器の売却をご希望の方はこちらのフォームからお問い合わせください。',
+};
+---
+
+<Layout metadata={metadata}>
+  <WidgetWrapper containerClass="max-w-2xl mx-auto">
+    <!-- パンくず: トップ > お問い合わせ > 売却希望 -->
+    <nav class="mb-6 text-xs text-slate-500 dark:text-slate-400" aria-label="パンくず">
+      <ol class="flex flex-wrap items-center gap-1">
+        <li><a href={getHomePermalink()} class="hover:text-primary transition-colors">トップ</a></li>
+        <li aria-hidden="true"> &gt; </li>
+        <li><a href={getPermalink('contact')} class="hover:text-primary transition-colors">お問い合わせ</a></li>
+        <li aria-hidden="true"> &gt; </li>
+        <li class="text-slate-700 dark:text-slate-300 font-medium" aria-current="page">売却希望</li>
+      </ol>
+    </nav>
+
+    <header class="mb-8">
+      <h1 class="text-2xl md:text-3xl font-bold font-heading text-slate-900 dark:text-white mb-2">
+        売却希望フォーム
+      </h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        入力項目と所要時間（約2分）
+      </p>
+    </header>
+
+    <SellForm client:load />
+  </WidgetWrapper>
+</Layout>

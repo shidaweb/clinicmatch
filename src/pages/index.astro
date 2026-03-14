@@ -1,6 +1,7 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
 import { Icon } from 'astro-icon/components';
+import { getPermalink } from '~/utils/permalinks';
 
 import Hero from '~/components/widgets/Hero.astro';
 import Note from '~/components/widgets/Note.astro';
@@ -49,8 +50,7 @@ const categories = [
       {
         variant: 'secondary',
         text: '売買の相談をする',
-        href: 'https://form.fillout.com/t/afCsAehK2qus',
-        'data-open-as-popup': '1',
+        href: getPermalink('contact'),
       },
     ]}
     image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}
@@ -369,8 +369,8 @@ const categories = [
 
   <CallToAction
     actions={[
-      { variant: 'primary', text: '購入希望フォーム', href: 'https://form.fillout.com/t/afCsAehK2qus', 'data-open-as-popup': '1' },
-      { text: '売却希望フォーム', href: 'https://form.fillout.com/t/bXT2fHZkgtus', 'data-open-as-popup': '1' },
+      { variant: 'primary', text: '購入希望フォーム', href: getPermalink('contact/buy') },
+      { text: '売却希望フォーム', href: getPermalink('contact/sell') },
     ]}
   >
     <Fragment slot="title">

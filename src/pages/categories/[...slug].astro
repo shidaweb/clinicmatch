@@ -39,8 +39,8 @@ const metadata: MetaData = {
   description: data.description,
 };
 
-const FORM_BUY = 'https://form.fillout.com/t/afCsAehK2qus';
-const FORM_SELL = 'https://form.fillout.com/t/bXT2fHZkgtus';
+const FORM_BUY = getPermalink('contact/buy');
+const FORM_SELL = getPermalink('contact/sell');
 ---
 
 <Layout metadata={metadata}>
@@ -140,10 +140,10 @@ const FORM_SELL = 'https://form.fillout.com/t/bXT2fHZkgtus';
           {data.title}の中古購入・売却について、条件の整理からマッチングまでサポートします。お気軽にご相談ください。
         </p>
         <div class="flex flex-wrap gap-4">
-          <Button href={FORM_BUY} variant="primary" data-open-as-popup="1">
+          <Button href={FORM_BUY} variant="primary">
             この機器の購入を相談する
           </Button>
-          <Button href={FORM_SELL} variant="secondary" data-open-as-popup="1">
+          <Button href={FORM_SELL} variant="secondary">
             この機器を売却したい
           </Button>
         </div>
