@@ -55,32 +55,32 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
   <div class="absolute inset-0"></div>
   <div
     class:list={[
-      'relative text-default py-3 px-3 md:px-6 mx-auto w-full',
+      'relative text-default py-3 px-3 lg:px-6 mx-auto w-full',
       {
-        'md:flex md:justify-between': position !== 'center',
+        'lg:flex lg:justify-between': position !== 'center',
       },
       {
-        'md:grid md:grid-cols-3 md:items-center': position === 'center',
+        'lg:grid lg:grid-cols-[minmax(0,auto)_1fr_minmax(0,auto)] lg:items-center lg:gap-x-6': position === 'center',
       },
       {
         'max-w-7xl': !isFullWidth,
       },
     ]}
   >
-    <div class:list={[{ 'mr-auto rtl:mr-0 rtl:ml-auto': position === 'right' }, 'flex justify-between']}>
-      <a class="flex items-center" href={getHomePermalink()}>
+    <div class:list={[{ 'mr-auto rtl:mr-0 rtl:ml-auto': position === 'right' }, 'flex justify-between min-w-0 shrink-0']}>
+      <a class="flex items-center min-w-0 lg:mr-2" href={getHomePermalink()}>
         <Logo />
       </a>
-      <div class="flex items-center md:hidden">
+      <div class="flex items-center lg:hidden">
         <ToggleMenu />
       </div>
     </div>
     <nav
-      class="items-center w-full md:w-auto hidden md:flex md:mx-5 text-default overflow-y-auto overflow-x-hidden md:overflow-y-visible md:overflow-x-auto md:justify-self-center"
+      class="items-center w-full lg:w-auto hidden lg:flex lg:min-w-0 text-default overflow-y-auto overflow-x-hidden lg:overflow-y-visible lg:overflow-x-auto lg:justify-self-center"
       aria-label="Main navigation"
     >
       <ul
-        class="flex flex-col md:flex-row md:self-center w-full md:w-auto text-xl md:text-[0.9375rem] tracking-[0.01rem] font-medium md:justify-center"
+        class="flex flex-col lg:flex-row lg:self-center w-full lg:w-auto text-xl lg:text-[0.8125rem] xl:text-[0.875rem] tracking-[0.01rem] font-medium lg:justify-center lg:gap-x-0.5"
       >
         {
           links.map(({ text, href, links }) => (
@@ -91,30 +91,30 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
                     <span class="flex items-center">
                       <a
                         class:list={[
-                          'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
+                          'hover:text-link dark:hover:text-white px-2 lg:px-3 py-3 flex items-center whitespace-nowrap',
                           { 'aw-link-active': href === currentPath },
                         ]}
                         href={href}
                       >
                         {text}
                       </a>
-                      <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden md:inline pointer-events-none" />
+                      <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden lg:inline pointer-events-none" />
                     </span>
                   ) : (
                     <button
                       type="button"
-                      class="hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap"
+                      class="hover:text-link dark:hover:text-white px-2 lg:px-3 py-3 flex items-center whitespace-nowrap"
                     >
                       {text}{' '}
-                      <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden md:inline" />
+                      <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden lg:inline" />
                     </button>
                   )}
-                  <ul class="dropdown-menu md:backdrop-blur-md dark:md:bg-dark rounded md:absolute pl-4 md:pl-0 md:hidden font-medium md:bg-white/90 md:min-w-[200px] drop-shadow-xl">
+                  <ul class="dropdown-menu lg:backdrop-blur-md dark:lg:bg-dark rounded lg:absolute pl-4 lg:pl-0 lg:hidden font-medium lg:bg-white/90 lg:min-w-[200px] drop-shadow-xl">
                     {links.map(({ text: text2, href: href2 }) => (
                       <li>
                         <a
                           class:list={[
-                            'first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap',
+                            'first:rounded-t last:rounded-b lg:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap',
                             { 'aw-link-active': href2 === currentPath },
                           ]}
                           href={href2}
@@ -128,7 +128,7 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
               ) : (
                 <a
                   class:list={[
-                    'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
+                    'hover:text-link dark:hover:text-white px-2 lg:px-3 py-3 flex items-center whitespace-nowrap',
                     { 'aw-link-active': href === currentPath },
                   ]}
                   href={href}
@@ -144,18 +144,18 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
     <div
       class:list={[
         { 'ml-auto rtl:ml-0 rtl:mr-auto': position === 'left' },
-        'hidden md:self-center md:flex items-center md:mb-0 fixed w-full md:w-auto md:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 md:p-0 md:justify-self-end',
+        'hidden lg:self-center lg:flex items-center lg:mb-0 fixed w-full lg:w-auto lg:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 lg:p-0 lg:justify-self-end',
       ]}
     >
-      <div class="items-center flex justify-between w-full md:w-auto">
+      <div class="items-center flex justify-between w-full lg:w-auto">
         <div class="flex">
-          {showToggleTheme && <ToggleTheme iconClass="w-6 h-6 md:w-5 md:h-5 md:inline-block" />}
+          {showToggleTheme && <ToggleTheme iconClass="w-6 h-6 lg:w-5 lg:h-5 lg:inline-block" />}
         </div>
         {
           actions?.length ? (
             <span class="ml-4 rtl:ml-0 rtl:mr-4">
               {actions.map((btnProps) => (
-                <Button {...btnProps} class="ml-2 py-2.5 px-8 md:px-10 font-semibold shadow-none text-sm min-w-[200px] md:min-w-[220px]" />
+                <Button {...btnProps} class="ml-2 py-2.5 px-6 lg:px-8 font-semibold shadow-none text-sm min-w-0 whitespace-nowrap" />
               ))}
             </span>
           ) : (

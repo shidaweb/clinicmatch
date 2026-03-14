@@ -32,7 +32,7 @@ export const headerData = {
       ],
     },
   ],
-  actions: [{ text: 'LINEで売買を相談する', href: 'https://lin.ee/vepVhWc', variant: 'line', target: '_blank' }],
+  actions: [{ text: 'LINEで相談する', href: 'https://lin.ee/vepVhWc', variant: 'line', target: '_blank' }],
 };
 
 export const footerData = {
