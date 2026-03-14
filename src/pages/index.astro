@@ -67,9 +67,9 @@ const categories = [
         「売りたい」と「買いたい」をつなぐ
       </span>
       <!-- 実績数字（Inter で数字を目立たせる） -->
-      <div class="mt-6 flex flex-wrap justify-center gap-6 sm:gap-10 text-left sm:text-center">
+      <div class="mt-6 grid grid-cols-3 gap-4 sm:gap-10 text-center">
         {heroStats.map(({ amount, label }) => (
-          <div class="flex items-baseline gap-2 sm:flex-col sm:gap-0">
+          <div class="flex flex-col items-center gap-0 sm:gap-0">
             <span class="font-sans text-3xl sm:text-4xl font-bold text-primary dark:text-white tabular-nums">
               {amount}
             </span>
@@ -108,7 +108,7 @@ const categories = [
     id="features"
     tagline="強み"
     title="クリニックマッチでできること"
-    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading' } }}
+    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-2xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading' } }}
     subtitle="「相場が分かりにくい」「比較が大変」「条件交渉が煩雑」になりがちな中古機器取引を、分かりやすく整流化します。"
     items={[
       {
