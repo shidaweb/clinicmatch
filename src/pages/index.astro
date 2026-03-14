@@ -1,5 +1,6 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
+import { Icon } from 'astro-icon/components';
 
 import Hero from '~/components/widgets/Hero.astro';
 import Note from '~/components/widgets/Note.astro';
@@ -16,6 +17,21 @@ const metadata = {
   title: 'クリニックマッチ｜美容医療機器の売買を もっと 安心・透明に',
   ignoreTitleTemplate: true,
 };
+
+const heroStats = [
+  { amount: '38件', label: '累計取引の実績' },
+  { amount: '14日', label: '平均でマッチング' },
+  { amount: 'OK', label: '匿名相談' },
+];
+
+const categories = [
+  { slug: 'hair-removal', label: '脱毛', icon: 'tabler:scissors' },
+  { slug: 'pico-laser', label: 'ピコ', icon: 'tabler:focus-2' },
+  { slug: 'ipl', label: 'IPL', icon: 'tabler:sun' },
+  { slug: 'hifu', label: 'HIFU', icon: 'tabler:wave-saw-tool' },
+  { slug: 'rf', label: 'RF', icon: 'tabler:radio' },
+  { slug: 'body', label: '痩身', icon: 'tabler:user-circle' },
+];
 ---
 
 <Layout metadata={metadata}>
@@ -25,14 +41,19 @@ const metadata = {
     actions={[
       {
         variant: 'primary',
-        text: '購入希望フォーム',
+        text: 'まずは相場をチェック（無料）',
+        href: 'https://lin.ee/vepVhWc',
+        target: '_blank',
+        rel: 'noopener noreferrer',
+      },
+      {
+        variant: 'secondary',
+        text: '売買の相談をする',
         href: 'https://form.fillout.com/t/afCsAehK2qus',
         'data-open-as-popup': '1',
       },
-      { text: '売却希望フォーム', href: 'https://form.fillout.com/t/bXT2fHZkgtus', 'data-open-as-popup': '1' },
-      { text: 'ブログを見る', href: '/blog' },
     ]}
-    image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}  // TODO: クリニックマッチ用に差し替え
+    image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}
   >
     <Fragment slot="title">
       美容医療機器の売買を<br />
@@ -41,11 +62,36 @@ const metadata = {
     </Fragment>
 
     <Fragment slot="subtitle">
-      クリニックマッチは、クリニック/事業者向けの中古美容医療機器マッチングを支援します。
-      条件整理から候補提示、取引に必要な実務の段取りまで、スムーズに進められる導線を用意します。
-      <span class="block mt-2 text-sm text-slate-500 dark:text-slate-400">
-        ※対応範囲（仲介/紹介/手数料）は取引形態により異なります。詳細は個別にご案内します。
+      <span class="block">
+        中古の脱毛機・ピコ・HIFU・RF・痩身機器を<br class="sm:hidden" />
+        「売りたい」と「買いたい」をつなぐ
       </span>
+      <!-- 実績数字（Inter で数字を目立たせる） -->
+      <div class="mt-6 flex flex-wrap justify-center gap-6 sm:gap-10 text-left sm:text-center">
+        {heroStats.map(({ amount, label }) => (
+          <div class="flex items-baseline gap-2 sm:flex-col sm:gap-0">
+            <span class="font-sans text-3xl sm:text-4xl font-bold text-primary dark:text-white tabular-nums">
+              {amount}
+            </span>
+            <span class="text-sm sm:text-base text-muted dark:text-slate-400">{label}</span>
+          </div>
+        ))}
+      </div>
+    </Fragment>
+
+    <Fragment slot="content">
+      <p class="text-sm font-medium uppercase tracking-wider text-muted dark:text-slate-400 mt-10 mb-3">取扱機器</p>
+      <div class="flex flex-wrap justify-center gap-2 sm:gap-3">
+        {categories.map(({ slug, label, icon }) => (
+          <a
+            href={`/cases/?category=${slug}`}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary border border-slate-200 dark:border-slate-600 transition-colors"
+          >
+            <Icon name={icon} class="w-4 h-4 shrink-0" />
+            {label}
+          </a>
+        ))}
+      </div>
     </Fragment>
   </Hero>
 

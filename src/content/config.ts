@@ -65,6 +65,59 @@ const postCollection = defineCollection({
   }),
 });
 
+// Content Collection スキーマ定義（セクション7）
+const casesCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // slug は Astro が予約しておりスキーマに含めない（frontmatterの slug はそのまま使用可）
+    category: z.enum([
+      'hair-removal', 'pico-laser', 'ipl', 'hifu', 'rf', 'body', 'others'
+    ]),
+    categoryLabel: z.string(),
+    manufacturer: z.string(),
+    model: z.string(),
+    manufacturedDate: z.string(),           // "YYYY-MM" 形式
+    maintenanceContract: z.string(),
+    usage: z.string(),
+    transactionDate: z.string(),            // "YYYY-MM" 形式
+    priceRange: z.string(),
+    status: z.enum(['取引完了', '取引中', '売却受付中', '購入希望受付中']),
+    images: z.array(z.string()).optional(),
+  }),
+});
+
+const categoriesCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    accentColor: z.string(),               // Tailwind or hex
+    machines: z.array(z.object({
+      name: z.string(),
+      manufacturer: z.string(),
+      priceRange: z.string().optional(),
+      image: z.string().optional(),
+    })),
+    checkpoints: z.array(z.string()),
+  }),
+});
+
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    publishedDate: z.string(),
+    category: z.string(),
+    tags: z.array(z.string()),
+    image: z.string().optional(),
+  }),
+});
+
 export const collections = {
   post: postCollection,
+  cases: casesCollection,
+  categories: categoriesCollection,
+  blog: blogCollection,
 };

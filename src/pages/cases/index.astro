@@ -1,0 +1,127 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import { getPermalink } from '~/utils/permalinks';
+
+export const prerender = true;
+
+const allCases = await getCollection('cases');
+const cases = allCases.sort(
+  (a, b) => new Date(b.data.transactionDate).getTime() - new Date(a.data.transactionDate).getTime()
+);
+
+const categoryLabels: Record<string, string> = {};
+cases.forEach((c) => {
+  if (c.data.category && !categoryLabels[c.data.category]) {
+    categoryLabels[c.data.category] = c.data.categoryLabel;
+  }
+});
+const categories = Object.entries(categoryLabels).sort(([, a], [, b]) => a.localeCompare(b));
+
+function formatDateYMD(ym: string): string {
+  if (!ym || ym.length < 6) return ym;
+  const y = ym.slice(0, 4);
+  const m = ym.slice(5, 7);
+  const mNum = parseInt(m, 10);
+  return `${y}年${mNum}月`;
+}
+
+const metadata = {
+  title: '取引事例',
+  description:
+    '美容医療機器の取引事例一覧。脱毛機・ピコレーザー・IPL・HIFU・RF・痩身機器など、実際の取引条件と機器情報をご紹介します。',
+};
+---
+
+<Layout metadata={metadata}>
+  <WidgetWrapper containerClass="max-w-5xl mx-auto">
+    <header class="mb-8 md:mb-12 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading text-default">
+        取引事例
+      </h1>
+      <p class="mt-3 text-xl text-muted dark:text-slate-400 max-w-2xl mx-auto">
+        中古美容医療機器の実際の取引事例です。機器名・年式・状態の概要をご覧いただけます。
+      </p>
+    </header>
+
+    <!-- カテゴリフィルタ -->
+    {categories.length > 0 && (
+      <div class="flex flex-wrap justify-center gap-2 mb-8" data-case-filter>
+        <a
+          href="/cases/"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-primary text-white hover:opacity-90"
+          data-category=""
+        >
+          すべて
+        </a>
+        {categories.map(([slug, label]) => (
+          <a
+            href={`/cases/?category=${slug}`}
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+            data-category={slug}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    )}
+
+    <!-- 事例カード一覧 -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {cases.map((entry) => {
+        const { data } = entry;
+        const slug = entry.id.replace(/\.mdx?$/, '');
+        const href = getPermalink(`cases/${slug}`);
+        return (
+          <a
+            href={href}
+            class="block p-5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:border-primary/30 dark:hover:border-primary/40 transition-all"
+            data-case-category={data.category}
+          >
+            <span class="inline-block px-2.5 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
+              {data.categoryLabel}
+            </span>
+            <h2 class="mt-2 text-lg font-bold font-heading text-default">{data.title}</h2>
+            <dl class="mt-3 space-y-1 text-sm text-muted dark:text-slate-400">
+              <div class="flex justify-between">
+                <dt class="font-medium text-slate-600 dark:text-slate-500">製造</dt>
+                <dd>{formatDateYMD(data.manufacturedDate)}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="font-medium text-slate-600 dark:text-slate-500">取引時期</dt>
+                <dd>{formatDateYMD(data.transactionDate)}</dd>
+              </div>
+            </dl>
+            <p class="mt-3 text-sm text-primary font-medium">詳細を見る →</p>
+          </a>
+        );
+      })}
+    </div>
+  </WidgetWrapper>
+
+  <script define:vars={{ categories: categories.map(([slug]) => slug) }}>
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get('category') || '';
+      const cards = document.querySelectorAll('[data-case-category]');
+      const filterLinks = document.querySelectorAll('[data-case-filter] a');
+      filterLinks.forEach((link) => {
+        const linkCategory = link.getAttribute('data-category') ?? '';
+        if (linkCategory === category) {
+          link.classList.add('bg-primary', 'text-white');
+          link.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-300');
+        } else {
+          link.classList.remove('bg-primary', 'text-white');
+          link.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-300');
+        }
+      });
+      if (category) {
+        cards.forEach((card) => {
+          const cardCategory = card.getAttribute('data-case-category');
+          (card as HTMLElement).style.display = cardCategory === category ? '' : 'none';
+        });
+      }
+    });
+  </script>
+</Layout>

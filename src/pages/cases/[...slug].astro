@@ -1,0 +1,234 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Button from '~/components/ui/Button.astro';
+import { getPermalink, getHomePermalink } from '~/utils/permalinks';
+import type { MetaData } from '~/types';
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const cases = await getCollection('cases');
+  return cases.map((entry) => {
+    const slug = entry.id.replace(/\.mdx?$/, '');
+    return {
+      params: { slug },
+      props: { entry },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Props = { entry: Awaited<ReturnType<typeof getCollection<'cases'>>>[number] };
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const { data } = entry;
+
+function formatDateYMD(ym: string): string {
+  if (!ym || ym.length < 6) return ym;
+  const y = ym.slice(0, 4);
+  const m = ym.slice(5, 7);
+  const mNum = parseInt(m, 10);
+  return `${y}年${mNum}月`;
+}
+
+const specItems = [
+  { label: 'メーカー', value: data.manufacturer },
+  { label: '製造年月', value: formatDateYMD(data.manufacturedDate) },
+  { label: '保守状態', value: data.maintenanceContract },
+  { label: '使用状況', value: data.usage },
+  { label: '取引時期', value: formatDateYMD(data.transactionDate) },
+  { label: '価格帯', value: data.priceRange },
+];
+
+const INQUIRY_BUY_URL = 'https://form.fillout.com/t/afCsAehK2qus';
+const INQUIRY_SELL_URL = 'https://form.fillout.com/t/bXT2fHZkgtus';
+
+function getCtaDescription(categoryLabel: string): string {
+  const map: Record<string, string> = {
+    '脱毛機': '脱毛機の購入・売却は、相場や保守状況の確認が重要です。まずはお気軽にご相談ください。',
+    'ピコレーザー': 'ピコレーザー機器の導入・入れ替えをご検討の方は、実績豊富な当社にご相談ください。',
+    'IPL': 'IPL機器の購入・売却について、相場や条件のご相談を承ります。',
+    'HIFU': 'HIFU機器の取引実績が多数あります。購入・売却のご希望をお聞かせください。',
+    'RF': 'RF機器の導入・売却をご検討の方は、お気軽にご相談ください。',
+    'ボディ系': 'ボディ系機器の取引事例を多数ご用意。購入・売却のご相談を承ります。',
+  };
+  return map[categoryLabel] ?? 'この機器の購入・売却について、相場や条件のご相談を承ります。';
+}
+
+const metadata: MetaData = {
+  title: data.title,
+  description: `${data.categoryLabel}の取引事例。${data.manufacturer} ${data.model}（${formatDateYMD(data.manufacturedDate)}製造）。${data.usage}。`,
+  openGraph: {
+    type: 'article',
+  },
+};
+
+const PRIMARY_GREEN = '#2ECC71';
+const SURFACE = '#F8F9FA';
+---
+
+<Layout metadata={metadata}>
+  <!-- パンくず: ページ最上部・小さめ・グレー -->
+  <div class="border-b border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900">
+    <div class="max-w-3xl mx-auto px-4 py-3">
+      <nav class="text-xs text-slate-500 dark:text-slate-400" aria-label="パンくず">
+        <ol class="flex flex-wrap items-center gap-1">
+          <li><a href={getHomePermalink()} class="hover:text-primary transition-colors">トップ</a></li>
+          <li aria-hidden="true"> &gt; </li>
+          <li><a href={getPermalink('cases')} class="hover:text-primary transition-colors">取引事例</a></li>
+          <li aria-hidden="true"> &gt; </li>
+          <li class="text-slate-700 dark:text-slate-300 font-medium" aria-current="page">{data.title}</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <WidgetWrapper containerClass="max-w-3xl mx-auto">
+    <article>
+      <!-- 1. ページ上部: 機器情報カード（Surface色・角丸・カテゴリバッジ・グリッド） -->
+      <section class="mt-6 mb-10 rounded-2xl overflow-hidden" style={{ backgroundColor: SURFACE }} aria-labelledby="machine-info-heading">
+        <div class="p-6 md:p-8">
+          <h2 id="machine-info-heading" class="sr-only">機器情報</h2>
+          <div class="flex flex-wrap items-start gap-3 mb-6">
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
+              style={{ backgroundColor: PRIMARY_GREEN }}
+            >
+              {data.categoryLabel}
+            </span>
+            {data.status && (
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-200/80 dark:bg-slate-600/80 text-slate-700 dark:text-slate-200">
+                {data.status}
+              </span>
+            )}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+            <div class="sm:col-span-2 lg:col-span-3">
+              <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">機器名</p>
+              <p class="mt-0.5 text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-white">
+                {data.manufacturer} {data.model}
+              </p>
+            </div>
+            {specItems.map(({ label, value }) => (
+              <div>
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
+                <p class="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 本文エリア: Markdown スタイリング（h2左ボーダー・太字アクセント・リスト・インフォボックス） -->
+      <section class="cases-prose mb-12">
+        <Content />
+      </section>
+    </article>
+  </WidgetWrapper>
+
+  <!-- 3. ページ下部: CTA セクション（Surface色・全幅） -->
+  <section
+    class="py-12 md:py-16"
+    style={{ backgroundColor: SURFACE }}
+    aria-labelledby="cta-heading"
+  >
+    <div class="max-w-3xl mx-auto px-4">
+      <h2 id="cta-heading" class="text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-white mb-3">
+        この機器の購入・売却をご検討の方
+      </h2>
+      <p class="text-slate-600 dark:text-slate-300 mb-8 max-w-2xl">
+        {getCtaDescription(data.categoryLabel)}
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <Button href={INQUIRY_BUY_URL} variant="primary" target="_blank" rel="noopener noreferrer">
+          この機器の購入を相談する
+        </Button>
+        <Button href={INQUIRY_SELL_URL} variant="secondary" target="_blank" rel="noopener noreferrer">
+          この機器を売却したい
+        </Button>
+      </div>
+    </div>
+  </section>
+
+  <style is:global>
+    /* 既存サイトのデザイントーン: 白基調・グリーンアクセント・Noto Sans JP */
+    .cases-prose {
+      @apply prose lg:prose-lg dark:prose-invert max-w-none;
+      @apply prose-headings:font-heading prose-headings:font-bold;
+      @apply prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed;
+      @apply prose-a:text-primary dark:prose-a:text-primary prose-a:no-underline hover:prose-a:underline;
+      @apply prose-img:rounded-lg;
+    }
+    .cases-prose h2 {
+      margin-top: 3rem;
+      padding-left: 1rem;
+      border-left: 4px solid #2ECC71;
+      font-size: 1.25rem;
+      line-height: 1.4;
+      color: rgb(15 23 42);
+    }
+    .dark .cases-prose h2 {
+      color: rgb(248 250 251);
+    }
+    .cases-prose strong {
+      color: #2ECC71;
+    }
+    .dark .cases-prose strong {
+      color: #34d399;
+    }
+    .cases-prose ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .cases-prose ul li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.7;
+    }
+    .cases-prose ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #2ECC71;
+    }
+    /* 「中古購入を検討する方へ」セクション = 最後の h2 以降を1つのインフォボックスに */
+    .cases-prose h2:last-of-type,
+    .cases-prose h2:last-of-type ~ * {
+      margin-left: 0;
+      margin-right: 0;
+      background-color: rgba(46, 204, 113, 0.08);
+      border: 1px solid rgba(46, 204, 113, 0.2);
+      border-top: none;
+    }
+    .cases-prose h2:last-of-type {
+      margin-bottom: 0;
+      padding: 1.25rem 1.5rem 1rem;
+      border-radius: 0.75rem 0.75rem 0 0;
+      border-top: 1px solid rgba(46, 204, 113, 0.2);
+    }
+    .cases-prose h2:last-of-type ~ * {
+      margin-top: 0;
+      padding: 0.5rem 1.5rem 1.25rem;
+    }
+    .cases-prose h2:last-of-type ~ *:last-child {
+      border-radius: 0 0 0.75rem 0.75rem;
+    }
+    .dark .cases-prose h2:last-of-type,
+    .dark .cases-prose h2:last-of-type ~ * {
+      background-color: rgba(52, 211, 153, 0.12);
+      border-color: rgba(52, 211, 153, 0.25);
+    }
+    .dark .cases-prose h2:last-of-type {
+      border-top-color: rgba(52, 211, 153, 0.25);
+    }
+  </style>
+</Layout>
