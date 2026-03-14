@@ -10,13 +10,27 @@ export const headerData = {
       ],
     },
     {
+      text: '取扱機器',
+      href: getPermalink('categories'),
+      links: [
+        { text: 'カテゴリ一覧', href: getPermalink('categories') },
+        { text: '脱毛機', href: getPermalink('categories/hair-removal') },
+        { text: 'ピコレーザー', href: getPermalink('categories/pico-laser') },
+        { text: 'IPL・光治療', href: getPermalink('categories/ipl') },
+        { text: 'HIFU', href: getPermalink('categories/hifu') },
+        { text: 'RF・高周波', href: getPermalink('categories/rf') },
+        { text: '痩身・ボディ', href: getPermalink('categories/body') },
+      ],
+    },
+    { text: '取引事例', href: getPermalink('cases') },
+    { text: 'ブログ', href: getBlogPermalink() },
+    {
       text: 'よくある質問',
       links: [
         { text: '相談例', href: getHomePermalink() + '#sodanrei' },
         { text: 'FAQ', href: getHomePermalink() + '#faq' },
       ],
     },
-    { text: 'ブログ', href: getBlogPermalink() },
   ],
   actions: [{ text: 'LINEで売買を相談する', href: 'https://lin.ee/vepVhWc', variant: 'line', target: '_blank' }],
 };
@@ -28,6 +42,18 @@ export const footerData = {
       links: [
         { text: 'クリニックマッチの強み', href: getHomePermalink() + '#features' },
         { text: '取引の考え方', href: getHomePermalink() + '#torihiki' },
+        { text: 'ご利用の流れ', href: '#' },
+      ],
+    },
+    {
+      title: '取扱機器',
+      links: [
+        { text: '脱毛機', href: getPermalink('categories/hair-removal') },
+        { text: 'ピコレーザー', href: getPermalink('categories/pico-laser') },
+        { text: 'IPL・光治療', href: getPermalink('categories/ipl') },
+        { text: 'HIFU', href: getPermalink('categories/hifu') },
+        { text: 'RF・高周波', href: getPermalink('categories/rf') },
+        { text: '痩身・ボディ', href: getPermalink('categories/body') },
       ],
     },
     {
@@ -42,7 +68,7 @@ export const footerData = {
       title: '会社概要',
       links: [
         { text: '株式会社キラックについて', href: getPermalink('/about') },
-        { text: 'ブログ：美容医療の中古市場を整備する人', href: getBlogPermalink() },
+        { text: 'ブログ', href: getBlogPermalink() },
       ],
     },
   ],
