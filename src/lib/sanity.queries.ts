@@ -3,7 +3,7 @@
  * Drafts are excluded: !(_id in path("drafts.**"))
  */
 
-/** Fields used in list and detail. bodyPlain for Phase1 (plain-text body). */
+/** Fields used in list and detail. body as raw Portable Text for HTML conversion. */
 const postProjection = `{
   _id,
   title,
@@ -12,10 +12,9 @@ const postProjection = `{
   _updatedAt,
   excerpt,
   "mainImage": mainImage.asset->url,
-  "category": category->{"slug": slug.current, "title": title},
-  "tags": tags[]->{"slug": slug.current, "title": title},
-  "author": coalesce(author->name, author),
-  "bodyPlain": pt::text(body)
+  category,
+  tags,
+  body
 }`;
 
 /** List: for /blog, /blog/category/..., /blog/tag/... (draft 除外, slug 必須) */

@@ -46,14 +46,121 @@ const generatePermalink = ({
     .join('/');
 };
 
-/** Phase1: turn plain text into minimal HTML for prose container. */
-function plainToSimpleHtml(text: string | null | undefined): string {
-  if (!text || typeof text !== 'string') return '';
-  const Esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const t = Esc(text);
-  const inner = t.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br />');
-  return `<p>${inner}</p>`;
+/** ── Portable Text → HTML converter ────────────────────── */
+
+type PTSpan = {
+  _type: 'span';
+  text?: string;
+  marks?: string[];
+};
+
+type PTBlock = {
+  _type: 'block';
+  _key?: string;
+  style?: string;
+  listItem?: 'bullet' | 'number';
+  level?: number;
+  markDefs?: Array<{ _key: string; _type: string; href?: string }>;
+  children?: PTSpan[];
+};
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+
+function renderSpans(children: PTSpan[], markDefs: Array<{ _key: string; _type: string; href?: string }> = []): string {
+  return (children || [])
+    .map((span) => {
+      if (span._type !== 'span') return '';
+      let text = esc(span.text || '');
+      const marks = span.marks || [];
+      for (const mark of marks) {
+        if (mark === 'strong') text = `<strong>${text}</strong>`;
+        else if (mark === 'em') text = `<em>${text}</em>`;
+        else if (mark === 'underline') text = `<u>${text}</u>`;
+        else if (mark === 'strike-through') text = `<s>${text}</s>`;
+        else if (mark === 'code') text = `<code>${text}</code>`;
+        else {
+          const def = markDefs.find((d) => d._key === mark);
+          if (def && def._type === 'link' && def.href) {
+            text = `<a href="${esc(def.href)}" rel="noopener noreferrer">${text}</a>`;
+          }
+        }
+      }
+      return text;
+    })
+    .join('');
+}
+
+function portableTextToHtml(blocks: PTBlock[] | null | undefined): string {
+  if (!blocks || !Array.isArray(blocks)) return '';
+
+  const html: string[] = [];
+  let openList: 'bullet' | 'number' | null = null;
+
+  function closeList() {
+    if (openList === 'bullet') html.push('</ul>');
+    else if (openList === 'number') html.push('</ol>');
+    openList = null;
+  }
+
+  for (const block of blocks) {
+    if (block._type !== 'block') continue;
+
+    const inner = renderSpans(block.children || [], block.markDefs || []);
+
+    // List items
+    if (block.listItem) {
+      if (openList !== block.listItem) {
+        closeList();
+        openList = block.listItem;
+        html.push(block.listItem === 'bullet' ? '<ul>' : '<ol>');
+      }
+      html.push(`<li>${inner}</li>`);
+      continue;
+    }
+
+    // Close any open list before non-list block
+    closeList();
+
+    const style = block.style || 'normal';
+    switch (style) {
+      case 'h1':
+        html.push(`<h1>${inner}</h1>`);
+        break;
+      case 'h2':
+        html.push(`<h2>${inner}</h2>`);
+        break;
+      case 'h3':
+        html.push(`<h3>${inner}</h3>`);
+        break;
+      case 'h4':
+        html.push(`<h4>${inner}</h4>`);
+        break;
+      case 'blockquote':
+        html.push(`<blockquote><p>${inner}</p></blockquote>`);
+        break;
+      default:
+        if (inner.trim()) html.push(`<p>${inner}</p>`);
+        break;
+    }
+  }
+
+  closeList();
+  return html.join('\n');
+}
+
+/** Category value → {slug, title} mapping */
+const CATEGORY_MAP: Record<string, string> = {
+  'hair-removal': '脱毛',
+  'pico': 'ピコ',
+  'ipl': 'IPL',
+  'hifu': 'HIFU',
+  'rf': 'RF・高周波',
+  'body': '痩身・ボディ',
+  'ops': '運用・設置',
+  'pricing': '相場・査定',
+};
 
 type SanityPost = {
   _id: string;
@@ -63,10 +170,9 @@ type SanityPost = {
   _updatedAt?: string | null;
   excerpt?: string | null;
   mainImage?: string | { _ref?: string } | null;
-  category?: { slug?: string | null; title?: string | null } | null;
-  tags?: Array<{ slug?: string | null; title?: string | null }> | null;
-  author?: string | null;
-  bodyPlain?: string | null;
+  category?: string | null;
+  tags?: string[] | null;
+  body?: PTBlock[] | null;
 };
 
 function sanityPostToPost(p: SanityPost): Post {
@@ -74,14 +180,13 @@ function sanityPostToPost(p: SanityPost): Post {
   const publishDate = p.publishedAt ? new Date(p.publishedAt) : new Date();
   const updateDate = p._updatedAt ? new Date(p._updatedAt) : undefined;
 
-  const category =
-    p.category && (p.category.slug || p.category.title)
-      ? { slug: cleanSlug(p.category.slug || p.category.title || ''), title: p.category.title || p.category.slug || '' }
-      : undefined;
+  const category = p.category
+    ? { slug: cleanSlug(p.category), title: CATEGORY_MAP[p.category] || p.category }
+    : undefined;
 
   const tags = (p.tags || [])
-    .filter((t) => t && (t.slug || t.title))
-    .map((t) => ({ slug: cleanSlug(t!.slug || t!.title || ''), title: t!.title || t!.slug || '' }));
+    .filter((t) => !!t)
+    .map((t) => ({ slug: cleanSlug(t), title: t }));
 
   const image = getSanityImageUrl(typeof p.mainImage === 'string' ? p.mainImage : undefined);
 
@@ -105,14 +210,14 @@ function sanityPostToPost(p: SanityPost): Post {
 
     category,
     tags,
-    author: p.author ?? undefined,
+    author: undefined,
 
     draft: false,
 
     metadata: {},
 
     Content: undefined,
-    content: plainToSimpleHtml(p.bodyPlain),
+    content: portableTextToHtml(p.body),
 
     readingTime: undefined,
   };
