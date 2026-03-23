@@ -1,5 +1,15 @@
 ---
 import { SITE } from 'astrowind:config';
+
+const verificationIds = Array.from(
+  new Set(
+    [SITE.googleSiteVerificationId, ...(SITE.googleSiteVerificationIds ?? [])]
+      .map((id) => (typeof id === 'string' ? id.trim() : ''))
+      .filter(Boolean)
+  )
+);
 ---
 
-{SITE.googleSiteVerificationId && <meta name="google-site-verification" content={SITE.googleSiteVerificationId} />}
+{
+  verificationIds.map((id) => <meta name="google-site-verification" content={id} />)
+}
