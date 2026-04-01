@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { trackGaEvent } from '~/utils/analytics';
 
 const PRIMARY_GREEN = '#2ECC71';
 const LINE_URL = 'https://lin.ee/vepVhWc';
@@ -119,6 +120,10 @@ export default function SellForm() {
         const errData = await res.json().catch(() => ({}));
         throw new Error((errData as { error?: string })?.error || '送信に失敗しました');
       }
+      trackGaEvent('sell_form_submit', {
+        form_type: 'sell',
+        category: data.category || 'unknown',
+      });
       setSubmitted(true);
     } catch (err) {
       console.error(err);
