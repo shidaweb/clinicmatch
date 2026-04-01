@@ -17,16 +17,36 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function normalizeApiKey(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 export const POST: APIRoute = async ({ request, locals }) => {
   const data = (await request.json()) as Record<string, unknown>;
 
   // Cloudflare adapter の場合は runtime.env、それ以外は import.meta.env
-  const resendApiKey =
+  const resendApiKey = normalizeApiKey(
     (locals as { runtime?: { env?: { RESEND_API_KEY?: string } } }).runtime?.env?.RESEND_API_KEY ??
-    import.meta.env.RESEND_API_KEY;
+      import.meta.env.RESEND_API_KEY
+  );
 
   if (!resendApiKey) {
     console.error('RESEND_API_KEY is not set');
+    return new Response(JSON.stringify({ success: false, error: 'Server configuration error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (!resendApiKey.startsWith('re_')) {
+    console.error('RESEND_API_KEY format looks invalid (must start with "re_")');
     return new Response(JSON.stringify({ success: false, error: 'Server configuration error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
