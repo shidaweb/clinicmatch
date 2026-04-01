@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { trackGaEvent } from '~/utils/analytics';
 
 const PRIMARY_GREEN = '#2ECC71';
-const LINE_URL = 'https://lin.ee/vepVhWc';
 
 const CATEGORY_OPTIONS = [
   { value: 'hair-removal', label: '脱毛' },
@@ -65,7 +64,6 @@ export default function BuyForm() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<BuyFormData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
 
   const update = (key: keyof BuyFormData, value: string | string[]) => {
@@ -130,7 +128,7 @@ export default function BuyForm() {
         form_type: 'buy',
         categories_count: data.categories.length,
       });
-      setSubmitted(true);
+      window.location.assign('/contact/buy/thanks');
     } catch (err) {
       console.error(err);
       setErrors({
@@ -141,25 +139,6 @@ export default function BuyForm() {
       setSending(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-8 text-center">
-        <p className="text-lg text-slate-800 dark:text-slate-200 mb-6">
-          ご相談ありがとうございます。通常1営業日以内にご連絡します。
-        </p>
-        <a
-          href={LINE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center rounded-full px-6 py-3 text-white font-semibold transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#06C755' }}
-        >
-          LINEで友だち追加
-        </a>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
