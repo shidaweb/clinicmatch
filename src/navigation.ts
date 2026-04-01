@@ -59,8 +59,8 @@ export const footerData = {
     {
       title: 'お問い合わせ',
       links: [
-        { text: '購入希望のお問い合わせ', href: getPermalink('contact/buy') },
         { text: '売却希望のお問い合わせ', href: getPermalink('contact/sell') },
+        { text: '購入希望のお問い合わせ', href: getPermalink('contact/buy') },
         { text: 'LINEで売買をご相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
       ],
     },

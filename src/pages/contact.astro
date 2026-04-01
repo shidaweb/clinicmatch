@@ -17,16 +17,16 @@ const metadata = {
       <p class="text-muted dark:text-slate-400 mb-6">ご希望のフォームをお選びください。</p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
-          href={getPermalink('contact/buy')}
+          href={getPermalink('contact/sell')}
           class="btn btn-primary inline-block py-3 px-6 rounded-full"
         >
-          購入希望フォーム
+          売却希望フォーム
         </a>
         <a
-          href={getPermalink('contact/sell')}
+          href={getPermalink('contact/buy')}
           class="btn btn-secondary inline-block py-3 px-6 rounded-full border"
         >
-          売却希望フォーム
+          購入希望フォーム
         </a>
       </div>
     </div>
@@ -50,7 +50,7 @@ const metadata = {
       </div>
       <h2 class="text-xl font-bold mb-4">売却希望のお問い合わせ</h2>
       <p class="text-muted dark:text-slate-400 mb-6">売却希望フォームは以下のページでご利用いただけます。</p>
-      <a href={getPermalink('contact/sell')} class="btn btn-secondary inline-block py-3 px-6 rounded-full border">
+      <a href={getPermalink('contact/sell')} class="btn btn-primary inline-block py-3 px-6 rounded-full">
         売却希望フォームを開く
       </a>
     </div>

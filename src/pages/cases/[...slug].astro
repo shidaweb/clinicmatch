@@ -42,8 +42,8 @@ const specItems = [
   { label: '価格帯', value: data.priceRange },
 ];
 
-const INQUIRY_BUY_URL = '/contact/buy/';
-const INQUIRY_SELL_URL = '/contact/sell/';
+const INQUIRY_SELL_URL = getPermalink('contact/sell');
+const INQUIRY_BUY_URL = getPermalink('contact/buy');
 
 function getCtaDescription(categoryLabel: string): string {
   const map: Record<string, string> = {
@@ -142,11 +142,11 @@ const SURFACE = '#F8F9FA';
         {getCtaDescription(data.categoryLabel)}
       </p>
       <div class="flex flex-wrap gap-4">
-        <Button href={INQUIRY_BUY_URL} variant="primary">
-          この機器の購入を相談する
-        </Button>
-        <Button href={INQUIRY_SELL_URL} variant="secondary">
+        <Button href={INQUIRY_SELL_URL} variant="primary">
           この機器を売却したい
+        </Button>
+        <Button href={INQUIRY_BUY_URL} variant="secondary">
+          この機器の購入を相談する
         </Button>
       </div>
     </div>
