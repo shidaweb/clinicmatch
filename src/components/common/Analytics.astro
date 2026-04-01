@@ -2,17 +2,27 @@
 import { ANALYTICS } from 'astrowind:config';
 
 const gaId = ANALYTICS?.vendors?.googleAnalytics?.id;
+
+/** DebugView 用（公式は gtag config の debug_mode 推奨）。Cloudflare の環境変数 or ビルド時 PUBLIC_GA_DEBUG */
+const runtimeEnv = (Astro.locals as { runtime?: { env?: Record<string, unknown> } }).runtime?.env;
+const rawDebug = runtimeEnv?.PUBLIC_GA_DEBUG ?? runtimeEnv?.GA_DEBUG;
+const gaDebug =
+  rawDebug === true ||
+  rawDebug === 'true' ||
+  rawDebug === '1' ||
+  import.meta.env.PUBLIC_GA_DEBUG === 'true' ||
+  import.meta.env.PUBLIC_GA_DEBUG === '1';
 ---
 
 {
   gaId && (
     <>
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-      <script is:inline define:vars={{ gaId: String(gaId) }}>
+      <script is:inline define:vars={{ gaId: String(gaId), gaDebug }}>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', gaId);
+        gtag('config', gaId, gaDebug ? { debug_mode: true } : {});
       </script>
     </>
   )
