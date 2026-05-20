@@ -2,9 +2,11 @@
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import { getPermalink } from '~/utils/permalinks';
+import Breadcrumb from '~/components/seo/Breadcrumb.astro';
+import { getCanonical, getHomePermalink, getPermalink } from '~/utils/permalinks';
 
-export const prerender = true;
+/** クエリ付き URL は SSR で canonical / robots を出し分ける */
+export const prerender = false;
 
 const allCases = await getCollection('cases');
 const cases = allCases.sort(
@@ -27,15 +29,27 @@ function formatDateYMD(ym: string): string {
   return `${y}年${mNum}月`;
 }
 
+const categoryFilter = Astro.url.searchParams.get('category')?.trim() || '';
+const casesCanonical = String(getCanonical(getPermalink('cases')));
+
 const metadata = {
   title: '取引事例',
   description:
     '美容医療機器の取引事例一覧。脱毛機・ピコレーザー・IPL・HIFU・RF・痩身機器など、実際の取引条件と機器情報をご紹介します。',
+  canonical: categoryFilter ? casesCanonical : String(getCanonical(Astro.url.pathname)),
+  robots: categoryFilter ? { index: false, follow: true } : undefined,
 };
 ---
 
 <Layout metadata={metadata}>
   <WidgetWrapper containerClass="max-w-5xl mx-auto">
+    <Breadcrumb
+      class="mb-6 text-sm"
+      items={[
+        { name: 'トップ', url: getHomePermalink() },
+        { name: '取引事例' },
+      ]}
+    />
     <header class="mb-8 md:mb-12 text-center">
       <h1 class="text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading text-default">
         取引事例

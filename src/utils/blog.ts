@@ -173,6 +173,7 @@ type SanityPost = {
   category?: string | null;
   tags?: string[] | null;
   body?: PTBlock[] | null;
+  faqs?: Array<{ q?: string | null; a?: string | null }> | null;
 };
 
 function sanityPostToPost(p: SanityPost): Post {
@@ -220,6 +221,10 @@ function sanityPostToPost(p: SanityPost): Post {
     content: portableTextToHtml(p.body),
 
     readingTime: undefined,
+
+    faqs: (p.faqs || [])
+      .filter((f) => f?.q && f?.a)
+      .map((f) => ({ q: String(f.q), a: String(f.a) })),
   };
 }
 

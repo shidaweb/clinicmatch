@@ -1,0 +1,37 @@
+---
+import faviconPng from '~/assets/favicons/favicon.png';
+import { SITE } from 'astrowind:config';
+
+const siteUrl = SITE?.site ?? 'https://clinicmatch.org';
+const logoUrl = new URL(faviconPng.src, siteUrl).toString();
+
+const orgJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'クリニックマッチ',
+  alternateName: '株式会社キラック',
+  url: siteUrl,
+  logo: logoUrl,
+  description: '美容医療機器の中古売買・仲介サービス',
+  foundingDate: '2025-07',
+  founder: {
+    '@type': 'Person',
+    name: '志田 麻記',
+  },
+  address: {
+    '@type': 'PostalAddress',
+    addressRegion: '千葉県',
+    addressLocality: '長生郡一宮町',
+    streetAddress: '一宮9264-11',
+    addressCountry: 'JP',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    areaServed: 'JP',
+    availableLanguage: ['ja'],
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)} />

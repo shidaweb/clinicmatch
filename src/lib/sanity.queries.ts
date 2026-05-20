@@ -14,7 +14,8 @@ const postProjection = `{
   "mainImage": mainImage.asset->url,
   category,
   tags,
-  body
+  body,
+  faqs
 }`;
 
 /** List: for /blog, /blog/category/..., /blog/tag/... (draft 除外, slug 必須) */

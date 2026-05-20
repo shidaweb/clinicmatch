@@ -3,7 +3,8 @@ import Features2 from '~/components/widgets/Features2.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import { getPermalink } from '~/utils/permalinks';
+import Breadcrumb from '~/components/seo/Breadcrumb.astro';
+import { getPermalink, getHomePermalink } from '~/utils/permalinks';
 
 const metadata = {
   title: '運営会社概要',
@@ -26,6 +27,15 @@ const companyTable = [
 ---
 
 <Layout metadata={metadata}>
+  <WidgetWrapper containerClass="max-w-4xl mx-auto pt-6">
+    <Breadcrumb
+      items={[
+        { name: 'トップ', url: getHomePermalink() },
+        { name: '運営会社概要' },
+      ]}
+    />
+  </WidgetWrapper>
+
   <!-- Hero Widget ******************* -->
 
   <Hero

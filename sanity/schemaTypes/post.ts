@@ -65,5 +65,22 @@ export default defineType({
       type: 'array',
       of: [{ type: 'block' }],
     }),
+    defineField({
+      name: 'faqs',
+      title: 'FAQ（記事末）',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'q', title: '質問', type: 'string' },
+            { name: 'a', title: '回答', type: 'text', rows: 3 },
+          ],
+          preview: {
+            select: { title: 'q' },
+          },
+        },
+      ],
+    }),
   ],
 });

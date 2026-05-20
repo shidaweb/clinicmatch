@@ -33,7 +33,14 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false,
     }),
-    sitemap(),
+    sitemap({
+      i18n: {
+        defaultLocale: 'ja',
+        locales: {
+          ja: 'ja-JP',
+        },
+      },
+    }),
     mdx(),
     icon({
       include: {

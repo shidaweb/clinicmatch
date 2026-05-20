@@ -42,6 +42,9 @@ export interface Post {
 
   /**  */
   readingTime?: number;
+
+  /** 記事末 FAQ（任意） */
+  faqs?: Array<{ q: string; a: string }>;
 }
 
 export interface Taxonomy {

@@ -1,0 +1,56 @@
+---
+import Button from '~/components/ui/Button.astro';
+import FAQPageJsonLd from '~/components/seo/FAQPageJsonLd.astro';
+import RelatedPosts from '~/components/blog/RelatedPosts.astro';
+import type { Post } from '~/types';
+import { getPermalink } from '~/utils/permalinks';
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+interface Props {
+  post: Post;
+  faqs?: FaqItem[];
+}
+
+const { post, faqs = post.faqs ?? [] } = Astro.props;
+
+const FORM_SELL = getPermalink('contact/sell');
+const FORM_BUY = getPermalink('contact/buy');
+const LINE_URL = 'https://lin.ee/vepVhWc';
+---
+
+<section class="mx-auto px-6 sm:px-6 max-w-3xl mt-12 pt-10 border-t border-slate-200 dark:border-slate-700" aria-labelledby="article-footer-heading">
+  <h2 id="article-footer-heading" class="text-xl font-bold font-heading text-default mb-6">
+    この記事に関するご相談
+  </h2>
+
+  <div class="flex flex-wrap gap-4 mb-10">
+    <Button href={FORM_SELL} variant="primary">売却を相談する</Button>
+    <Button href={FORM_BUY} variant="secondary">購入を相談する</Button>
+    <Button href={LINE_URL} variant="secondary" target="_blank" rel="noopener noreferrer">LINEで相談</Button>
+  </div>
+
+  {
+    faqs.length > 0 && (
+      <>
+        <FAQPageJsonLd faqs={faqs} />
+        <div class="mb-10">
+          <h3 class="text-lg font-bold font-heading text-default mb-4">よくある質問</h3>
+          <dl class="space-y-4">
+            {faqs.map((faq) => (
+              <div class="rounded-lg border border-slate-200 dark:border-slate-600 p-4">
+                <dt class="font-semibold text-default">{faq.q}</dt>
+                <dd class="mt-2 text-muted dark:text-slate-400 text-sm leading-relaxed">{faq.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </>
+    )
+  }
+
+  <RelatedPosts post={post} />
+</section>

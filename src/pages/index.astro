@@ -13,6 +13,8 @@ import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import FAQPageJsonLd from '~/components/seo/FAQPageJsonLd.astro';
+import { homeFaqs } from '~/data/homeFaq';
 
 const metadata = {
   title: 'クリニックマッチ｜美容医療機器の売買を もっと 安心・透明に',
@@ -227,6 +229,7 @@ const categories = [
   <!-- Steps Widget ****************** -->
 
   <Steps
+    id="flow"
     title="取引の進め方（最小ステップ）"
     items={[
       {
@@ -314,44 +317,15 @@ const categories = [
 
   <!-- FAQs Widget ******************* -->
 
+  <FAQPageJsonLd faqs={[...homeFaqs]} />
+
   <FAQs
     id="faq"
     title="よくある質問"
     subtitle="検討の初期段階で気になりやすい点をまとめました。"
     tagline="FAQ"
     classes={{ container: 'max-w-6xl', headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase' } }}
-    items={[
-      {
-        title: '手数料はかかりますか？',
-        description:
-          '取引形態（紹介/仲介/付帯支援など）や案件内容により異なります。まずは条件を伺い、個別にご案内します。',
-      },
-      {
-        title: 'どんな機器が対象ですか？',
-        description:
-          '美容医療領域の主要カテゴリを想定しています。メーカー/型番/年式/状態などにより可否が変わるため、フォームからご相談ください。',
-      },
-      {
-        title: '匿名で相談できますか？',
-        description:
-          '初期相談は匿名/限定情報での相談も可能な場合があります（状況によりお願い事項があるため、個別にご案内します）。',
-      },
-      {
-        title: 'どのくらいの期間で決まりますか？',
-        description:
-          '条件の明確さと市場在庫により異なります。早いケースでは数日〜、通常は条件整理後に候補提示→比較検討の流れになります。',
-      },
-      {
-        title: '守秘・情報管理は大丈夫ですか？',
-        description:
-          '検討段階の情報が不用意に拡散しないように配慮し、必要な範囲で情報を取り扱います。必要に応じて個別の取り決めも検討します。',
-      },
-      {
-        title: '動作確認や検品はどうなりますか？',
-        description:
-          '案件により異なります。検品/動作確認/搬出入/設置の論点を整理し、段取りとして詰めていきます。',
-      },
-    ]}
+    items={homeFaqs.map((faq) => ({ title: faq.q, description: faq.a }))}
   />
 
   <!-- Stats Widget ****************** -->

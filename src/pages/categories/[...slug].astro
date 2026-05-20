@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Button from '~/components/ui/Button.astro';
+import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getPermalink, getHomePermalink } from '~/utils/permalinks';
 import type { MetaData } from '~/types';
 
@@ -46,15 +47,14 @@ const FORM_SELL = getPermalink('contact/sell');
 <Layout metadata={metadata}>
   <WidgetWrapper containerClass="max-w-4xl mx-auto">
     <!-- パンくず: トップ > 取扱機器 > [カテゴリ名] -->
-    <nav class="mb-6 text-sm text-muted dark:text-slate-400" aria-label="パンくず">
-      <ol class="flex flex-wrap items-center gap-1">
-        <li><a href={getHomePermalink()} class="hover:text-primary">トップ</a></li>
-        <li aria-hidden="true"> &gt; </li>
-        <li><a href={getPermalink('categories')} class="hover:text-primary">取扱機器</a></li>
-        <li aria-hidden="true"> &gt; </li>
-        <li class="text-default font-medium" aria-current="page">{data.title}</li>
-      </ol>
-    </nav>
+    <Breadcrumb
+      class="mb-6 text-sm"
+      items={[
+        { name: 'トップ', url: getHomePermalink() },
+        { name: '取扱機器', url: getPermalink('categories') },
+        { name: data.title },
+      ]}
+    />
 
     <article>
       <header class="mb-8">

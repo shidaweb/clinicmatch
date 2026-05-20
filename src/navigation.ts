@@ -42,7 +42,7 @@ export const footerData = {
       links: [
         { text: 'クリニックマッチの強み', href: getHomePermalink() + '#features' },
         { text: '取引の考え方', href: getHomePermalink() + '#torihiki' },
-        { text: 'ご利用の流れ', href: '#' },
+        { text: 'ご利用の流れ', href: getHomePermalink() + '#flow' },
       ],
     },
     {

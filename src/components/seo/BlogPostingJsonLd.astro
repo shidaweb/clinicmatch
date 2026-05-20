@@ -1,0 +1,65 @@
+---
+import type { ImageMetadata } from 'astro';
+import faviconPng from '~/assets/favicons/favicon.png';
+import { SITE } from 'astrowind:config';
+
+interface Props {
+  title: string;
+  description?: string;
+  url: string | URL;
+  publishDate: Date;
+  updateDate?: Date;
+  author?: string;
+  image?: ImageMetadata | string;
+}
+
+const {
+  title,
+  description,
+  url,
+  publishDate,
+  updateDate,
+  author = 'クリニックマッチ編集部',
+  image,
+} = Astro.props;
+
+const siteUrl = SITE?.site ?? 'https://clinicmatch.org';
+const pageUrl = url instanceof URL ? url.toString() : new URL(url, siteUrl).toString();
+
+const logoUrl = new URL(faviconPng.src, siteUrl).toString();
+
+const imageUrl = (() => {
+  if (!image) return logoUrl;
+  if (typeof image === 'string') return new URL(image, siteUrl).toString();
+  return new URL(image.src, siteUrl).toString();
+})();
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description ?? title,
+  image: imageUrl,
+  datePublished: publishDate.toISOString(),
+  dateModified: (updateDate ?? publishDate).toISOString(),
+  author: {
+    '@type': 'Organization',
+    name: author,
+    url: new URL('/about', siteUrl).toString(),
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'クリニックマッチ',
+    logo: {
+      '@type': 'ImageObject',
+      url: logoUrl,
+    },
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': pageUrl,
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

@@ -8,6 +8,7 @@ import Pagination from '~/components/blog/Pagination.astro';
 // import PostTags from "~/components/blog/Tags.astro";
 
 import { blogListRobots, getStaticPathsBlogList } from '~/utils/blog';
+import { getCanonical, getBlogPermalink } from '~/utils/permalinks';
 
 export const prerender = true;
 
@@ -23,8 +24,14 @@ const currentPage = page.currentPage ?? 1;
 // const allCategories = await findCategories();
 // const allTags = await findTags();
 
+const listCanonical =
+  currentPage === 1
+    ? String(getCanonical(getBlogPermalink()))
+    : String(getCanonical(page.url?.pathname ?? Astro.url.pathname));
+
 const metadata = {
   title: `Blog${currentPage > 1 ? ` — Page ${currentPage}` : ''}`,
+  canonical: listCanonical,
   robots: {
     index: blogListRobots?.index && currentPage === 1,
     follow: blogListRobots?.follow,
