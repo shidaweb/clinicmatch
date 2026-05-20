@@ -23,3 +23,6 @@ pnpm-debug.log*
 pnpm-lock.yaml
 
 .astro
+
+# Sanity import backups (scripts/import-drafts.cjs)
+backups/*.json

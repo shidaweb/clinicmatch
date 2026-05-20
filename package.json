@@ -21,7 +21,9 @@
     "fix:eslint": "eslint --fix .",
     "fix:prettier": "prettier -w .",
     "sanity:dev": "npm --prefix sanity run dev",
-    "sanity:deploy": "npm --prefix sanity run deploy"
+    "sanity:deploy": "npm --prefix sanity run deploy",
+    "sanity:import-drafts": "node scripts/import-drafts.cjs",
+    "sanity:import-drafts:apply": "node scripts/import-drafts.cjs --apply"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.13",
