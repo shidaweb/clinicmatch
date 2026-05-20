@@ -2,10 +2,14 @@
 title: Candela製品の電源・設置・保管チェックリスト｜200V要件と保管時の注意点
 slug: candela-power-storage
 description: Candela（シネロンキャンデラ）の主要機種はほぼ全てが200V電源を要求する。中古購入で見落とされやすい電源工事の論点、保管時の劣化リスク、搬入前後のチェック項目を整理。
-publishedAt: 2026-06-02T09:00:00+09:00
-updatedAt: 2026-06-02T09:00:00+09:00
+publishedAt: '2026-05-15T15:30:00+09:00'
+updatedAt: '2026-05-15T15:30:00+09:00'
 category: ops
-tags: [candela, installation, power, storage]
+tags:
+  - candela
+  - installation
+  - power
+  - storage
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -24,6 +28,7 @@ faqs:
 seoTitle: Candelaの200V電源・設置・保管チェックリスト｜搬入前に確認すべき項目
 ogTitle: Candela製品の電源・設置・保管チェックリスト｜200V要件と保管時の注意点
 ogDescription: 中古でCandela機を導入する前に必ず確認したい電源仕様、テナント工事の費用感、保管時の劣化リスクを実務目線で整理。
+
 ---
 
 Candela（シネロンキャンデラ）の主要機種は、ほぼ全てが200V電源を要求する。これは中古購入時の見落とされやすい論点で、「機器は手に入ったが電源工事で数十万円かかった」「保管期間中の劣化で動作不良になった」といったトラブルが後を絶たない。本記事ではCandela機の電源・設置・保管のチェック項目を、実務に直結する粒度でまとめる。

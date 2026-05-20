@@ -2,10 +2,14 @@
 title: Candelaの保守契約は加入すべきか｜保守なしで修理代が2倍になる現実と判断基準
 slug: candela-maintenance-cost
 description: Candela（シネロンキャンデラ）の正規保守契約に未加入だと、修理見積が定価ベースの1.5〜2倍になるケースがある。加入すべきか、機種別の費用相場と判断軸を整理する。
-publishedAt: 2026-05-21T09:00:00+09:00
-updatedAt: 2026-05-21T09:00:00+09:00
+publishedAt: '2026-05-13T02:41:00+09:00'
+updatedAt: '2026-05-13T02:41:00+09:00'
 category: ops
-tags: [candela, maintenance, hair-removal, pico-laser]
+tags:
+  - candela
+  - maintenance
+  - hair-removal
+  - pico-laser
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -24,6 +28,7 @@ faqs:
 seoTitle: Candelaの保守契約は加入すべき？修理代2倍の現実と判断基準
 ogTitle: Candelaの保守契約は加入すべきか｜保守なしで修理代が2倍になる現実
 ogDescription: 中古でCandela機を買ったクリニック向けに、保守契約の費用相場・加入判断軸・売却査定への影響を実務目線で整理。
+
 ---
 
 Candela（シネロンキャンデラ）の正規保守契約に加入していない機器は、修理見積もりが定価ベースの1.5〜2倍になるケースがある。中古でCandela機を購入したクリニックや、保守費用に悩む既存ユーザーにとって、保守契約は「入るべきか」「いくらまでなら妥当か」を冷静に判断するための材料が必要だ。本記事では保守契約の中身と、加入／非加入の判断軸を、実務の数値感とともに整理する。

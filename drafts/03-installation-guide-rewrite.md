@@ -2,10 +2,14 @@
 title: 中古医療機器の搬入・設置・電源・保管 完全ガイド
 slug: installation-guide
 description: 美容医療機器の搬入から設置、200V電源工事、保管時の劣化対策まで、購入前後で確認すべき項目を実務目線で網羅。トラブル回避と機器寿命の最大化に直結するチェックリスト。
-publishedAt: 2026-03-15T09:00:00+09:00
-updatedAt: 2026-06-08T09:00:00+09:00
+publishedAt: '2026-02-18T12:31:00+09:00'
+updatedAt: '2026-02-18T12:31:00+09:00'
 category: ops
-tags: [installation, power, storage, logistics]
+tags:
+  - installation
+  - power
+  - storage
+  - logistics
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -27,6 +31,7 @@ faqs:
 seoTitle: 中古医療機器の搬入・設置・電源・保管 完全ガイド
 ogTitle: 中古医療機器の搬入・設置・電源・保管 完全ガイド
 ogDescription: 美容医療機器の搬入から200V電源工事、保管時の劣化対策まで実務目線で網羅。
+
 ---
 
 中古の美容医療機器を導入する際、機器そのものの状態確認に意識が向きがちだが、現場のトラブルは **搬入経路・電源工事・設置環境・保管状態** という周辺論点で起こることが圧倒的に多い。

@@ -2,10 +2,12 @@
 title: Candela（シネロンキャンデラ）製品の中古購入・売却 完全ガイド
 slug: candela-overview
 description: ジェントルマックスプロ・Vbeam・PicoWay・CO2REなどCandela（シネロンキャンデラ）製品の中古購入・売却に必要な情報を、機種別ガイド・保守・電源・並行輸入リスクまで網羅。
-publishedAt: 2026-06-22T09:00:00+09:00
-updatedAt: 2026-06-22T09:00:00+09:00
+publishedAt: '2026-05-18T04:19:00+09:00'
+updatedAt: '2026-05-18T04:19:00+09:00'
 category: ops
-tags: [candela, manufacturer-hub]
+tags:
+  - candela
+  - manufacturer-hub
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -24,6 +26,7 @@ faqs:
 seoTitle: Candela（シネロンキャンデラ）中古完全ガイド｜機種別・保守・売却の総合情報
 ogTitle: Candela（シネロンキャンデラ）製品の中古購入・売却 完全ガイド
 ogDescription: ジェントルマックスプロ・Vbeam・PicoWay・CO2REなどCandela製品の中古情報をワンストップで整理。
+
 ---
 
 Candela（シネロンキャンデラ）は、美容医療機器の中古市場で最も流通量の多いメーカーのひとつである。ジェントルマックスプロ、Vbeam、PicoWay、CO2RE といった主要機種は、新品価格が高い分、中古流通が活発で、選択肢も豊富だ。

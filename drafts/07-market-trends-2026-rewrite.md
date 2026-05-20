@@ -2,10 +2,14 @@
 title: 美容医療機器の市場動向2026｜国内相場と海外需要から読む
 slug: market-trends-2025
 description: 2026年の美容医療機器中古市場の動向。値上がり機種・値下がり機種、ドバイ・中東を中心とした海外需要の影響、新モデル発表の影響まで、売却・購入判断に直結する情報を整理。
-publishedAt: 2026-03-15T09:00:00+09:00
-updatedAt: 2026-07-20T09:00:00+09:00
+publishedAt: '2026-03-08T06:14:00+09:00'
+updatedAt: '2026-03-08T06:14:00+09:00'
 category: pricing
-tags: [market, trends, pricing, export]
+tags:
+  - market
+  - trends
+  - pricing
+  - export
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -27,6 +31,7 @@ faqs:
 seoTitle: 美容医療機器の市場動向2026｜国内相場と海外需要から読む
 ogTitle: 美容医療機器の市場動向2026｜国内相場と海外需要から読む
 ogDescription: 2026年の美容医療機器中古市場の動向を、値上がり機種・値下がり機種・海外需要の影響から整理。
+
 ---
 
 2026年に入り、美容医療機器の中古市場は **国内需給に加えて海外需要が無視できない要因** となる新たなフェーズに入っている。本記事では、2026年時点の市場動向を、値上がり機種・値下がり機種・海外需要・新モデル発表の4軸で整理する。売却・購入の判断材料として参照してほしい。

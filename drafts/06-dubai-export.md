@@ -2,10 +2,14 @@
 title: ドバイ・中東で動く日本製の中古美容医療機器｜2026年の市場動向と国内相場への影響
 slug: dubai-export-trends
 description: ドバイ・UAEを中心とした中東圏で日本製中古美容医療機器の需要が高まっている。背景・対象機種・国内相場への影響・売却検討時の論点を、薬機法と並行輸出の境界を踏まえて整理。
-publishedAt: 2026-07-08T09:00:00+09:00
-updatedAt: 2026-07-08T09:00:00+09:00
+publishedAt: '2026-05-20T17:08:00+09:00'
+updatedAt: '2026-05-20T17:08:00+09:00'
 category: pricing
-tags: [market, export, middle-east, dubai]
+tags:
+  - market
+  - export
+  - middle-east
+  - dubai
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -24,6 +28,7 @@ faqs:
 seoTitle: ドバイ・中東で動く日本製中古美容医療機器｜2026年の市場動向
 ogTitle: ドバイ・中東で動く日本製の中古美容医療機器｜2026年の市場動向と国内相場への影響
 ogDescription: 中東圏での日本製中古機器需要の背景と、国内相場・売却判断への影響を実務目線で整理。
+
 ---
 
 ドバイを中心とした中東圏で、日本製の中古美容医療機器の需要が高まっている。背景には医療観光ハブとしての地位確立、富裕層人口の増加、認証制度の柔軟性、円安――複数の要因が重なり、国内の中古相場にも影響が及び始めている。

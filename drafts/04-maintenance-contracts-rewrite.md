@@ -2,10 +2,17 @@
 title: 医療機器の保守契約とは｜中古購入後のメーカー対応【メーカー別早見表】
 slug: maintenance-contracts
 description: 美容医療機器の保守契約は、メーカーごとに仕組み・費用感・受入条件が大きく異なる。中古購入後の保守継承の論点と、Candela/Cynosure/Lumenis/Allergan/Alma/BTL の主要メーカー比較を整理。
-publishedAt: 2026-03-15T09:00:00+09:00
-updatedAt: 2026-06-15T09:00:00+09:00
+publishedAt: '2026-03-05T17:25:00+09:00'
+updatedAt: '2026-03-05T17:25:00+09:00'
 category: ops
-tags: [maintenance, candela, cynosure, lumenis, allergan, alma, btl]
+tags:
+  - maintenance
+  - candela
+  - cynosure
+  - lumenis
+  - allergan
+  - alma
+  - btl
 author: clinicmatch-editorial
 supervisor: TBD
 heroImage: null
@@ -27,6 +34,7 @@ faqs:
 seoTitle: 医療機器の保守契約とは｜メーカー別早見表＆中古購入後の対応
 ogTitle: 医療機器の保守契約とは｜中古購入後のメーカー対応【メーカー別早見表】
 ogDescription: Candela/Cynosure/Lumenis/Allergan/Alma/BTLの保守契約比較と、中古購入後の継承論点を整理。
+
 ---
 
 美容医療機器の保守契約は、機器の安定稼働を支える「もうひとつの本体価格」と言える。新品購入時は意識せずに契約しているクリニックでも、中古購入になると **「保守を引き継げるのか」「いくらかかるのか」「入らないとどうなるのか」** という論点に直面する。
