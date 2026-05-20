@@ -22,6 +22,7 @@
     "fix:prettier": "prettier -w .",
     "sanity:dev": "npm --prefix sanity run dev",
     "sanity:deploy": "npm --prefix sanity run deploy",
+    "sanity:import": "node scripts/import-drafts-interactive.cjs",
     "sanity:import-drafts": "node scripts/import-drafts.cjs",
     "sanity:import-drafts:apply": "node scripts/import-drafts.cjs --apply"
   },
