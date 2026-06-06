@@ -64,7 +64,7 @@ const {
             panel: 'max-w-none',
             title: 'text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2',
             description: 'text-muted dark:text-slate-400 ml-2 rtl:ml-0 rtl:mr-2',
-            icon: 'flex h-7 w-7 items-center justify-center rounded-full bg-green-600 dark:bg-green-700 text-gray-50 p-1',
+            icon: 'flex h-7 w-7 items-center justify-center rounded-full bg-rose/15 text-rose p-1',
             action: 'text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2',
           }}
         />
@@ -72,12 +72,12 @@ const {
       <div aria-hidden="true" class="mt-10 md:mt-0 md:basis-1/2">
         {
           image && (
-            <div class="relative m-auto max-w-4xl aspect-square overflow-hidden rounded-lg">
+            <div class="relative m-auto max-w-4xl aspect-square overflow-hidden rounded-2xl shadow-card">
               {typeof image === 'string' ? (
                 <Fragment set:html={image} />
               ) : (
                 <Image
-                  class="mx-auto h-full w-full rounded-lg bg-gray-500 object-cover shadow-lg"
+                  class="mx-auto h-full w-full rounded-2xl bg-cream object-cover shadow-card"
                   width={500}
                   height={500}
                   widths={[400, 768]}

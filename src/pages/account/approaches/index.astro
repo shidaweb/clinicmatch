@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 
@@ -18,21 +18,16 @@ const { data: approaches } = await supabase
 const metadata = { title: 'アプローチ' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6">
-      <h1 class="text-2xl font-bold text-text mb-6">アプローチ</h1>
-      <ul class="space-y-3">
-        {(approaches ?? []).map((item) => (
-          <li class="rounded-xl border border-border p-4">
-            <div class="flex justify-between text-sm">
-              <span class="font-medium">{item.kind === 'interest' ? '関心（買い手→出品）' : '提案（売り手→買いたい）'}</span>
-              <span class="text-text-muted">{item.status}</span>
-            </div>
-            {item.message && <p class="mt-2 text-sm text-text-muted">{item.message}</p>}
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-</Layout>
+<AccountLayout metadata={metadata} title="アプローチ" maxWidth="4xl">
+  <ul class="space-y-3">
+    {(approaches ?? []).map((item) => (
+      <li class="cm-list-item">
+        <div class="flex justify-between text-sm">
+          <span class="font-medium text-plum">{item.kind === 'interest' ? '関心（買い手→出品）' : '提案（売り手→買いたい）'}</span>
+          <span class="text-plum-soft">{item.status}</span>
+        </div>
+        {item.message && <p class="mt-2 text-sm text-plum-soft">{item.message}</p>}
+      </li>
+    ))}
+  </ul>
+</AccountLayout>

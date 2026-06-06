@@ -22,8 +22,8 @@ const FORM_BUY = getPermalink('contact/buy');
 const LINE_URL = 'https://lin.ee/vepVhWc';
 ---
 
-<section class="mx-auto px-6 sm:px-6 max-w-3xl mt-12 pt-10 border-t border-slate-200 dark:border-slate-700" aria-labelledby="article-footer-heading">
-  <h2 id="article-footer-heading" class="text-xl font-bold font-heading text-default mb-6">
+<section class="mx-auto px-6 sm:px-6 max-w-3xl mt-12 pt-10 border-t border-line" aria-labelledby="article-footer-heading">
+  <h2 id="article-footer-heading" class="text-xl font-bold font-heading text-plum mb-6">
     この記事に関するご相談
   </h2>
 
@@ -38,12 +38,12 @@ const LINE_URL = 'https://lin.ee/vepVhWc';
       <>
         <FAQPageJsonLd faqs={faqs} />
         <div class="mb-10">
-          <h3 class="text-lg font-bold font-heading text-default mb-4">よくある質問</h3>
+          <h3 class="text-lg font-bold font-heading text-plum mb-4">よくある質問</h3>
           <dl class="space-y-4">
             {faqs.map((faq) => (
-              <div class="rounded-lg border border-slate-200 dark:border-slate-600 p-4">
-                <dt class="font-semibold text-default">{faq.q}</dt>
-                <dd class="mt-2 text-muted dark:text-slate-400 text-sm leading-relaxed">{faq.a}</dd>
+              <div class="cm-card p-4">
+                <dt class="font-semibold text-plum">{faq.q}</dt>
+                <dd class="mt-2 text-plum-soft text-sm leading-relaxed">{faq.a}</dd>
               </div>
             ))}
           </dl>

@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
 
@@ -52,19 +52,13 @@ const stats = [
 const metadata = { title: '分析ダッシュボード' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <a href="/admin" class="text-sm text-brand-600 hover:underline">← 管理画面</a>
-      <h1 class="text-2xl font-bold text-text mt-4 mb-8">分析ダッシュボード</h1>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map(({ label, value }) => (
-          <div class="rounded-xl border border-border bg-surface p-5">
-            <p class="text-sm text-text-muted">{label}</p>
-            <p class="text-2xl font-bold text-text mt-1">{value}</p>
-          </div>
-        ))}
+<AdminLayout metadata={metadata} title="分析ダッシュボード" maxWidth="5xl">
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {stats.map(({ label, value }) => (
+      <div class="cm-card p-5">
+        <p class="text-sm text-plum-soft">{label}</p>
+        <p class="text-2xl font-heading font-bold text-plum mt-1 tabular-nums">{value}</p>
       </div>
-    </div>
-  </section>
-</Layout>
+    ))}
+  </div>
+</AdminLayout>

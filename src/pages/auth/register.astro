@@ -8,49 +8,62 @@ const metadata = { title: '会員登録' };
 ---
 
 <Layout metadata={metadata}>
-  <section class="py-12 md:py-16 bg-surface-muted">
+  <section class="py-12 md:py-16 bg-cream">
     <div class="max-w-lg mx-auto px-4 sm:px-6">
-      <h1 class="text-3xl font-bold text-text mb-2">会員登録</h1>
-      <p class="text-text-muted mb-8">法人番号（13桁）と所在地で、数ステップで登録完了。売り手・買い手の兼任が可能です。</p>
+      <p class="cm-eyebrow mb-2">Register</p>
+      <h1 class="cm-heading text-3xl font-bold mb-2">会員登録</h1>
+      <p class="text-plum-soft mb-8">法人番号（13桁）と所在地で、数ステップで登録完了。売り手・買い手の兼任が可能です。</p>
 
-      <form id="register-form" class="rounded-xl border border-border bg-surface p-6 space-y-4 shadow-sm">
+      <form id="register-form" class="cm-card p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1" for="email">メールアドレス</label>
-          <input id="email" name="email" type="email" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="email">メールアドレス</label>
+          <input id="email" name="email" type="email" required class="cm-input" />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="password">パスワード</label>
-          <input id="password" name="password" type="password" required minlength="8" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="password">パスワード</label>
+          <input id="password" name="password" type="password" required minlength="8" class="cm-input" />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="corporate_number">法人番号（13桁）</label>
-          <input id="corporate_number" name="corporate_number" required pattern="\d{13}" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="corporate_number">法人番号（13桁）</label>
+          <input
+            id="corporate_number"
+            name="corporate_number"
+            required
+            inputmode="numeric"
+            maxlength="15"
+            autocomplete="off"
+            placeholder="例：8040001139883"
+            pattern="\d{13}"
+            title="13桁の法人番号（ハイフンなし）"
+            class="cm-input font-mono"
+          />
+          <p class="mt-1 text-xs text-plum-soft">13桁の数字（ハイフン可）。国税庁の法人番号を入力してください。</p>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="name">組織名（非公開）</label>
-          <input id="name" name="name" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="name">組織名（非公開）</label>
+          <input id="name" name="name" required class="cm-input" />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="full_name">担当者名</label>
-          <input id="full_name" name="full_name" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="full_name">担当者名</label>
+          <input id="full_name" name="full_name" class="cm-input" />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="prefecture">都道府県</label>
-          <select id="prefecture" name="prefecture" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+          <label class="cm-label" for="prefecture">都道府県</label>
+          <select id="prefecture" name="prefecture" required class="cm-input">
             <option value="">選択してください</option>
             {PREFECTURES.map((pref) => <option value={pref}>{pref}</option>)}
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" for="city">市区町村</label>
-          <input id="city" name="city" required placeholder="例：渋谷区" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          <label class="cm-label" for="city">市区町村</label>
+          <input id="city" name="city" required placeholder="例：渋谷区" class="cm-input" />
         </div>
-        <button type="submit" class="btn-market-primary w-full">登録する</button>
-        <p id="register-status" class="text-sm text-text-muted hidden"></p>
+        <button type="submit" class="cm-btn-primary w-full">登録する</button>
+        <p id="register-status" class="text-sm text-plum-soft hidden"></p>
       </form>
 
-      <p class="mt-6 text-sm text-text-muted text-center">
-        すでにアカウントをお持ちの方は <a href="/auth/login" class="text-brand-600 hover:underline">ログイン</a>
+      <p class="mt-6 text-sm text-plum-soft text-center">
+        すでにアカウントをお持ちの方は <a href="/auth/login" class="text-rose hover:underline">ログイン</a>
       </p>
     </div>
   </section>
@@ -60,13 +73,27 @@ const metadata = { title: '会員登録' };
   const form = document.getElementById('register-form') as HTMLFormElement;
   const status = document.getElementById('register-status');
 
+  function normalizeCorporateNumber(value: string) {
+    return value.replace(/[\s-]/g, '');
+  }
+
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
-    status.classList.remove('hidden');
-    status.textContent = '登録中…';
+    status.classList.remove('hidden', 'text-red-600');
 
-    const payload = Object.fromEntries(new FormData(form));
+    const raw = new FormData(form);
+    const corporateNumber = normalizeCorporateNumber(String(raw.get('corporate_number') ?? ''));
+
+    if (!/^\d{13}$/.test(corporateNumber)) {
+      status.textContent = '法人番号は13桁の数字で入力してください';
+      status.classList.add('text-red-600');
+      return;
+    }
+
+    status.textContent = '登録中…';
+    const payload = Object.fromEntries(raw);
+    payload.corporate_number = corporateNumber;
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -78,11 +105,6 @@ const metadata = { title: '会員登録' };
       return;
     }
     status.textContent = json.error ?? '登録に失敗しました';
+    status.classList.add('text-red-600');
   });
 </script>
-
-<style>
-  .btn-market-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
-  }
-</style>

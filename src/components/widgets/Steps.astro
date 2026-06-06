@@ -33,7 +33,7 @@ const {
           ...((classes?.headline as object) ?? {}),
         }}
       />
-      <Timeline items={items} classes={classes?.items as Record<string, never>} />
+      <Timeline items={items} classes={{ icon: 'text-rose border-rose/40 bg-rose/10', ...(classes?.items as object) }} />
     </div>
     {
       image && (
@@ -41,7 +41,7 @@ const {
           {typeof image === 'string' ? (
             <Fragment set:html={image} />
           ) : (
-            <div class="w-full max-w-[432px] aspect-[9/16] overflow-hidden rounded-md shadow-lg bg-gray-400 dark:bg-slate-700">
+            <div class="w-full max-w-[432px] aspect-[9/16] overflow-hidden rounded-2xl shadow-card bg-cream">
               <Image
                 class="h-full w-full object-contain"
                 widths={[400, 768]}

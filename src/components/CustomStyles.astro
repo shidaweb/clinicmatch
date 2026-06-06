@@ -1,5 +1,7 @@
 ---
-import '@fontsource-variable/inter';
+import '@fontsource/noto-sans-jp/400.css';
+import '@fontsource/noto-sans-jp/500.css';
+import '@fontsource/noto-sans-jp/700.css';
 
 // 'DM Sans'
 // Nunito
@@ -21,44 +23,43 @@ import '@fontsource-variable/inter';
 
 <style is:inline>
   :root {
-    --aw-font-sans: 'Inter Variable';
-    --aw-font-serif: 'Inter Variable';
-    --aw-font-heading: 'Inter Variable';
+    --aw-font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+    --aw-font-serif: 'Shippori Mincho', 'Noto Serif JP', ui-serif, serif;
+    --aw-font-heading: 'Shippori Mincho', 'Noto Serif JP', ui-serif, serif;
 
-    /* クリニックマッチ ブランド（第A章） */
-    --aw-color-primary: rgb(46 108 168);
-    --aw-color-secondary: rgb(31 58 95);
-    --aw-color-accent: rgb(14 124 107);
+    --aw-color-primary: rgb(201 139 151);
+    --aw-color-secondary: rgb(168 106 119);
+    --aw-color-accent: rgb(143 169 155);
 
-    --aw-color-text-heading: rgb(68 68 68);
-    --aw-color-text-default: rgb(68 68 68);
-    --aw-color-text-muted: rgb(68 68 68 / 66%);
-    --aw-color-bg-page: #f8fafb;
+    --aw-color-text-heading: rgb(70 52 58);
+    --aw-color-text-default: rgb(70 52 58);
+    --aw-color-text-muted: rgb(122 92 99 / 85%);
+    --aw-color-bg-page: #fbf5f1;
 
-    --aw-color-bg-page-dark: rgb(15 23 42);
+    --aw-color-bg-page-dark: rgb(70 52 58);
 
     ::selection {
-      background-color: #a1e0eb;
+      background-color: rgb(244 220 226);
     }
   }
 
   .dark {
-    --aw-font-sans: 'Inter Variable';
-    --aw-font-serif: 'Inter Variable';
-    --aw-font-heading: 'Inter Variable';
+    --aw-font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+    --aw-font-serif: 'Shippori Mincho', 'Noto Serif JP', ui-serif, serif;
+    --aw-font-heading: 'Shippori Mincho', 'Noto Serif JP', ui-serif, serif;
 
-    --aw-color-primary: rgb(46 108 168);
-    --aw-color-secondary: rgb(31 58 95);
-    --aw-color-accent: rgb(14 124 107);
+    --aw-color-primary: rgb(201 139 151);
+    --aw-color-secondary: rgb(168 106 119);
+    --aw-color-accent: rgb(143 169 155);
 
-    --aw-color-text-heading: rgb(248 250 251);
-    --aw-color-text-default: rgb(229 236 246);
-    --aw-color-text-muted: rgb(229 236 246 / 66%);
-    --aw-color-bg-page: #0f172a;
+    --aw-color-text-heading: rgb(251 245 241);
+    --aw-color-text-default: rgb(251 245 241);
+    --aw-color-text-muted: rgb(251 245 241 / 70%);
+    --aw-color-bg-page: rgb(70 52 58);
 
     ::selection {
-      background-color: rgb(34 153 204 / 0.35);
-      color: rgb(248 250 251);
+      background-color: rgb(168 106 119 / 35%);
+      color: rgb(251 245 241);
     }
   }
 </style>

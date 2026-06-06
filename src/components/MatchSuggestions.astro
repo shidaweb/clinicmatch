@@ -12,14 +12,14 @@ const { title, matches } = Astro.props;
 
 {
   matches.length > 0 && (
-    <section class="mt-10 rounded-xl border border-border bg-surface-muted p-5">
-      <h2 class="text-lg font-semibold text-text mb-1">{title}</h2>
-      <p class="text-sm text-text-muted mb-4">カテゴリ・予算・エリア等から自動提案（Phase 3）</p>
+    <section class="mt-10 cm-card p-5">
+      <h2 class="text-lg font-heading font-semibold text-plum mb-1">{title}</h2>
+      <p class="text-sm text-plum-soft mb-4">カテゴリ・予算・エリア等から自動提案（Phase 3）</p>
       <div class="grid sm:grid-cols-2 gap-3">
         {matches.map(({ kind, post, reasons }) => (
           <div>
             <PostCard post={post} {kind} />
-            <p class="mt-1 text-xs text-text-muted">{reasons.join(' · ')}</p>
+            <p class="mt-1 text-xs text-plum-soft">{reasons.join(' · ')}</p>
           </div>
         ))}
       </div>

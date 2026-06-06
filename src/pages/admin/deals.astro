@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
 import { DEAL_STATUS_LABELS, INVOICE_STATUS_LABELS, CONTRACT_TEMPLATES } from '~/lib/deals';
@@ -25,84 +25,79 @@ const invoiceByDeal = new Map((invoices ?? []).map((i) => [i.deal_id, i]));
 const metadata = { title: '売買契約・請求管理' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <a href="/admin" class="text-sm text-brand-600 hover:underline">← 管理画面</a>
-      <h1 class="text-2xl font-bold text-text mt-4 mb-2">売買契約・請求管理</h1>
-      <p class="text-sm text-text-muted mb-6">
-        成約処理で手数料7.5%の請求が自動発行されます。中古通知の運営チェックリストは成約前に確認してください。
-      </p>
+<AdminLayout
+  metadata={metadata}
+  title="売買契約・請求管理"
+  subtitle="成約処理で手数料7.5%の請求が自動発行されます。中古通知の運営チェックリストは成約前に確認してください。"
+  maxWidth="5xl"
+>
+  <details class="cm-card p-4 mb-8">
+    <summary class="font-heading font-semibold text-plum cursor-pointer">運営チェックリスト（薬機法・中古通知）</summary>
+    <ul class="mt-3 text-sm text-plum-soft space-y-1 list-disc pl-5">
+      <li>売り手の販売業許可・営業所管理者の確認</li>
+      <li>製造販売業者への中古通知（売り手へのリマインド）</li>
+      <li>特定保守管理医療機器に該当する場合の追加確認</li>
+    </ul>
+  </details>
 
-      <details class="rounded-xl border border-border bg-surface-muted p-4 mb-8">
-        <summary class="font-semibold text-text cursor-pointer">運営チェックリスト（薬機法・中古通知）</summary>
-        <ul class="mt-3 text-sm text-text-muted space-y-1 list-disc pl-5">
-          <li>売り手の販売業許可・営業所管理者の確認</li>
-          <li>製造販売業者への中古通知（売り手へのリマインド）</li>
-          <li>特定保守管理医療機器に該当する場合の追加確認</li>
-        </ul>
-      </details>
+  <form id="deal-form" class="cm-card p-5 mb-8 space-y-3">
+    <h2 class="font-heading font-semibold text-plum">売買契約作成（仲介契約 signed 必須）</h2>
+    <select name="mediation_agreement_id" required class="cm-input">
+      <option value="">仲介契約を選択</option>
+      {(signedMediations ?? []).map((m) => (
+        <option value={m.id}>{m.id.slice(0, 8)}… / 売り手 {m.seller_org_id.slice(0, 8)}…</option>
+      ))}
+    </select>
+    <input name="buyer_org_id" placeholder="買い手 org UUID" required class="cm-input" />
+    <input name="seller_org_id" placeholder="売り手 org UUID" required class="cm-input" />
+    <input name="agreed_price" type="number" placeholder="成約額（円）" required class="cm-input" />
+    <select name="contract_template_key" class="cm-input">
+      {CONTRACT_TEMPLATES.map((t) => (
+        <option value={t.key}>{t.label}</option>
+      ))}
+    </select>
+    <button type="submit" class="cm-btn-primary text-sm !px-4 !py-2">売買契約を作成</button>
+  </form>
 
-      <form id="deal-form" class="rounded-xl border border-border bg-surface p-5 mb-8 space-y-3">
-        <h2 class="font-semibold text-text">売買契約作成（仲介契約 signed 必須）</h2>
-        <select name="mediation_agreement_id" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-          <option value="">仲介契約を選択</option>
-          {(signedMediations ?? []).map((m) => (
-            <option value={m.id}>{m.id.slice(0, 8)}… / 売り手 {m.seller_org_id.slice(0, 8)}…</option>
-          ))}
-        </select>
-        <input name="buyer_org_id" placeholder="買い手 org UUID" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-        <input name="seller_org_id" placeholder="売り手 org UUID" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-        <input name="agreed_price" type="number" placeholder="成約額（円）" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-        <select name="contract_template_key" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-          {CONTRACT_TEMPLATES.map((t) => (
-            <option value={t.key}>{t.label}</option>
-          ))}
-        </select>
-        <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm text-white">売買契約を作成</button>
-      </form>
-
-      <ul class="space-y-4">
-        {(deals ?? []).map((d) => {
-          const inv = invoiceByDeal.get(d.id);
-          return (
-            <li class="rounded-xl border border-border p-4">
-              <div class="flex flex-wrap justify-between gap-3 mb-2">
-                <span class="font-semibold">{d.agreed_price?.toLocaleString()}円</span>
-                <span class="text-sm text-text-muted">{DEAL_STATUS_LABELS[d.status] ?? d.status}</span>
-              </div>
-              {inv && (
-                <div class="text-sm text-text-muted space-y-2">
-                  <p>
-                    請求: {inv.amount?.toLocaleString()}円（{INVOICE_STATUS_LABELS[inv.status] ?? inv.status}）
-                  </p>
-                  {inv.status === 'issued' && (
-                    <button class="paid-btn rounded-xl border border-border px-3 py-1 text-xs" data-invoice-id={inv.id}>
-                      入金消込
-                    </button>
-                  )}
-                </div>
-              )}
-              <div class="mt-3 flex flex-wrap gap-2">
-                <button class="preview-btn rounded-xl border border-border px-3 py-1 text-xs" data-deal-id={d.id}>
-                  契約ひな形プレビュー
+  <ul class="space-y-4">
+    {(deals ?? []).map((d) => {
+      const inv = invoiceByDeal.get(d.id);
+      return (
+        <li class="cm-list-item">
+          <div class="flex flex-wrap justify-between gap-3 mb-2">
+            <span class="font-semibold text-plum">{d.agreed_price?.toLocaleString()}円</span>
+            <span class="text-sm text-plum-soft">{DEAL_STATUS_LABELS[d.status] ?? d.status}</span>
+          </div>
+          {inv && (
+            <div class="text-sm text-plum-soft space-y-2">
+              <p>
+                請求: {inv.amount?.toLocaleString()}円（{INVOICE_STATUS_LABELS[inv.status] ?? inv.status}）
+              </p>
+              {inv.status === 'issued' && (
+                <button class="paid-btn rounded-xl border border-line px-3 py-1 text-xs text-plum" data-invoice-id={inv.id}>
+                  入金消込
                 </button>
-                {
-                  d.status === 'negotiating' && (
-                    <button class="conclude-btn rounded-xl bg-accent-market px-4 py-2 text-sm text-white" data-id={d.id}>
-                      成約処理（請求自動発行）
-                    </button>
-                  )
-                }
-              </div>
-              <pre class="preview-text hidden mt-3 text-xs whitespace-pre-wrap rounded-xl bg-surface-muted p-3 max-h-64 overflow-y-auto"></pre>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  </section>
-</Layout>
+              )}
+            </div>
+          )}
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button class="preview-btn rounded-xl border border-line px-3 py-1 text-xs text-plum" data-deal-id={d.id}>
+              契約ひな形プレビュー
+            </button>
+            {
+              d.status === 'negotiating' && (
+                <button class="conclude-btn cm-btn-primary text-sm !px-4 !py-2" data-id={d.id}>
+                  成約処理（請求自動発行）
+                </button>
+              )
+            }
+          </div>
+          <pre class="preview-text hidden mt-3 text-xs whitespace-pre-wrap rounded-xl bg-cream p-3 max-h-64 overflow-y-auto text-plum"></pre>
+        </li>
+      );
+    })}
+  </ul>
+</AdminLayout>
 
 <script>
   document.getElementById('deal-form')?.addEventListener('submit', async (e) => {

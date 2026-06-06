@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { POST_STATUS_LABELS } from '~/lib/marketplace';
@@ -19,26 +19,19 @@ const { data: listings } = await supabase
 const metadata = { title: '売りたい一覧' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-text">売りたい一覧</h1>
-        <a href="/account/listings/new" class="text-sm text-sell font-medium">+ 新規出品</a>
-      </div>
-      <ul class="space-y-3">
-        {(listings ?? []).map((item) => (
-          <li class="rounded-xl border border-border p-4 flex justify-between items-center gap-3">
-            <span>{item.maker} {item.model}</span>
-            <div class="flex items-center gap-3">
-              <span class="text-sm text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
-              {item.status !== 'published' && (
-                <a href={`/account/listings/${item.id}/edit`} class="text-sm text-brand-600 hover:underline">編集</a>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-</Layout>
+<AccountLayout metadata={metadata} title="売りたい一覧" maxWidth="4xl">
+  <a href="/account/listings/new" slot="actions" class="cm-btn-primary text-sm !px-4 !py-2">+ 新規出品</a>
+  <ul class="space-y-3">
+    {(listings ?? []).map((item) => (
+      <li class="cm-list-item flex justify-between items-center gap-3">
+        <span class="text-plum">{item.maker} {item.model}</span>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+          {item.status !== 'published' && (
+            <a href={`/account/listings/${item.id}/edit`} class="cm-link">編集</a>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+</AccountLayout>

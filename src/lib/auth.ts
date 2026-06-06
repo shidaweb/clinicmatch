@@ -29,8 +29,25 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
   return profile;
 }
 
+/** Normalize: strip spaces and hyphens */
+export function normalizeCorporateNumber(value: string): string {
+  return value.replace(/[\s-]/g, '');
+}
+
+/** 13 digits + modulus-9 check digit (国税庁法人番号) */
+export function isValidCorporateNumberCheckDigit(value: string): boolean {
+  let total = 0;
+  for (let i = 0; i < 13; i++) {
+    let n = Number(value[i]) * (i % 2 === 1 ? 2 : 1);
+    total += Math.floor(n / 10) + (n % 10);
+  }
+  return total % 9 === 0;
+}
+
 export function isValidCorporateNumber(value: string): boolean {
-  return /^\d{13}$/.test(value);
+  const normalized = normalizeCorporateNumber(value);
+  if (!/^\d{13}$/.test(normalized)) return false;
+  return isValidCorporateNumberCheckDigit(normalized);
 }
 
 export function requireAuthRedirect(loginPath = '/auth/login') {

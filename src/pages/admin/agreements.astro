@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
 import { MEDIATION_STATUS_LABELS } from '~/lib/deals';
@@ -18,40 +18,33 @@ const { data: agreements } = await admin
 const metadata = { title: '仲介契約管理' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <a href="/admin" class="text-sm text-brand-600 hover:underline">← 管理画面</a>
-      <h1 class="text-2xl font-bold text-text mt-4 mb-6">仲介契約管理</h1>
+<AdminLayout metadata={metadata} title="仲介契約管理" maxWidth="5xl">
+  <form id="agreement-form" class="cm-card p-5 mb-8 space-y-3">
+    <h2 class="font-heading font-semibold text-plum">新規仲介契約</h2>
+    <input name="seller_org_id" placeholder="売り手 org UUID" required class="cm-input" />
+    <input name="listing_id" placeholder="listing UUID（任意）" class="cm-input" />
+    <textarea name="terms" rows="2" placeholder="条項（任意）" class="cm-input"></textarea>
+    <button type="submit" class="cm-btn-primary text-sm !px-4 !py-2">作成・送付</button>
+  </form>
 
-      <form id="agreement-form" class="rounded-xl border border-border bg-surface p-5 mb-8 space-y-3">
-        <h2 class="font-semibold text-text">新規仲介契約</h2>
-        <input name="seller_org_id" placeholder="売り手 org UUID" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-        <input name="listing_id" placeholder="listing UUID（任意）" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-        <textarea name="terms" rows="2" placeholder="条項（任意）" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
-        <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm text-white">作成・送付</button>
-      </form>
-
-      <ul class="space-y-3">
-        {(agreements ?? []).map((a) => (
-          <li class="rounded-xl border border-border p-4 flex flex-wrap justify-between items-center gap-3">
-            <div class="text-sm">
-              <p>ID: {a.id.slice(0, 8)}…</p>
-              <p class="text-text-muted">{MEDIATION_STATUS_LABELS[a.status] ?? a.status}</p>
-            </div>
-            {
-              a.status === 'sent' && (
-                <button class="sign-btn rounded-xl border border-border px-4 py-2 text-sm" data-id={a.id}>
-                  売り手合意（signed）
-                </button>
-              )
-            }
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-</Layout>
+  <ul class="space-y-3">
+    {(agreements ?? []).map((a) => (
+      <li class="cm-list-item flex flex-wrap justify-between items-center gap-3">
+        <div class="text-sm">
+          <p class="text-plum">ID: {a.id.slice(0, 8)}…</p>
+          <p class="text-plum-soft">{MEDIATION_STATUS_LABELS[a.status] ?? a.status}</p>
+        </div>
+        {
+          a.status === 'sent' && (
+            <button class="sign-btn rounded-xl border border-line px-4 py-2 text-sm text-plum" data-id={a.id}>
+              売り手合意（signed）
+            </button>
+          )
+        }
+      </li>
+    ))}
+  </ul>
+</AdminLayout>
 
 <script>
   document.getElementById('agreement-form')?.addEventListener('submit', async (e) => {

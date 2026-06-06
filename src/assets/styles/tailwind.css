@@ -2,6 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .cm-eyebrow {
+    @apply text-xs font-medium tracking-[0.22em] uppercase text-ink-muted;
+  }
+
+  .cm-heading {
+    @apply font-heading text-plum leading-tight;
+  }
+
+  .cm-card {
+    @apply rounded-2xl border border-line bg-ivory;
+    box-shadow: var(--shadow-card);
+  }
+
+  .cm-btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-rose px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition;
+  }
+
+  .cm-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-line bg-ivory px-6 py-2.5 text-sm font-semibold text-plum hover:bg-cream transition;
+  }
+
+  .cm-tag-sell {
+    @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background-color: var(--color-sell-bg);
+    color: var(--color-sell-text);
+  }
+
+  .cm-tag-buy {
+    @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background-color: var(--color-buy-bg);
+    color: var(--color-buy-text);
+  }
+
+  .cm-tag-done {
+    @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background-color: var(--color-done-bg);
+    color: var(--color-done-text);
+  }
+
+  .cm-tag-sage {
+    @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium text-sage;
+    background-color: rgb(143 169 155 / 0.15);
+  }
+
+  .cm-segment-active {
+    @apply rounded-full bg-rose px-4 py-2 text-sm font-semibold text-white shadow-sm;
+  }
+
+  .cm-segment {
+    @apply rounded-full border border-line bg-ivory px-4 py-2 text-sm font-medium text-plum-soft hover:bg-cream transition;
+  }
+
+  .cm-input {
+    @apply w-full rounded-2xl border border-line bg-ivory px-4 py-2.5 text-sm text-plum placeholder:text-ink-muted focus:border-rose focus:outline-none transition;
+  }
+
+  .cm-input:focus {
+    box-shadow: 0 0 0 2px rgb(201 139 151 / 0.2);
+  }
+
+  .cm-label {
+    @apply block text-sm font-medium text-plum mb-1;
+  }
+
+  .cm-stat-value {
+    @apply font-heading text-3xl md:text-4xl font-bold text-rose tabular-nums;
+  }
+
+  .cm-stat-label {
+    @apply mt-1 text-sm text-plum-soft;
+  }
+
+  .cm-list-item {
+    @apply cm-card p-4;
+  }
+
+  .cm-link {
+    @apply text-sm text-rose hover:underline;
+  }
+}
+
 @layer utilities {
   .bg-page {
     background-color: var(--aw-color-bg-page);
@@ -42,21 +124,29 @@
   }
 
   .btn-sell-header {
-    @apply bg-sell text-white border-sell hover:opacity-90;
+    @apply bg-rose text-white border-rose hover:bg-rose-deep hover:border-rose-deep;
   }
 
   .btn-buy-header {
-    @apply bg-buy text-white border-buy hover:opacity-90;
+    @apply bg-gold text-white border-gold hover:opacity-90;
   }
 }
 
 #header.scroll > div:first-child {
-  @apply bg-page md:bg-white/90 md:backdrop-blur-md;
-  box-shadow: 0 0.375rem 1.5rem 0 rgb(140 152 164 / 13%);
+  @apply bg-page md:backdrop-blur-md;
+  background-color: var(--color-cream);
+  box-shadow: 0 10px 26px rgba(70, 52, 58, 0.08);
+}
+@media (min-width: 768px) {
+  #header.scroll > div:first-child {
+    background-color: rgb(255 255 255 / 0.9);
+  }
 }
 .dark #header.scroll > div:first-child,
 #header.scroll.dark > div:first-child {
-  @apply bg-page md:bg-[#0f172ae6] border-b border-gray-500/20;
+  @apply bg-page border-b;
+  border-color: rgb(234 220 212 / 0.2);
+  background-color: rgb(70 52 58 / 0.95);
   box-shadow: none;
 }
 /* #header.scroll > div:last-child {

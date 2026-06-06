@@ -1,13 +1,33 @@
 :root {
-  --brand-600: #2e6ca8;
-  --brand-800: #1f3a5f;
-  --accent-600: #0e7c6b;
-  --color-sell: #2e6ca8;
-  --color-buy: #b25e00;
-  --color-done: #5b6b7b;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f2f4f7;
-  --color-border: #c9d2dc;
-  --color-text: #222222;
-  --color-text-muted: #5b6b7b;
+  /* 美容医療トーン（第4章） */
+  --color-cream: #fbf5f1;
+  --color-ivory: #ffffff;
+  --color-rose: #c98b97;
+  --color-rose-deep: #a86a77;
+  --color-plum: #46343a;
+  --color-plum-soft: #7a5c63;
+  --color-muted: #9b848a;
+  --color-line: #eadcd4;
+  --color-gold: #c2a36b;
+  --color-sage: #8fa99b;
+  --color-sell-bg: #f4dce2;
+  --color-sell-text: #993556;
+  --color-buy-bg: #fbefe2;
+  --color-buy-text: #9a6312;
+  --color-done-bg: #ede8ea;
+  --color-done-text: #7a5c63;
+
+  /* 互換エイリアス */
+  --brand-600: var(--color-rose);
+  --brand-800: var(--color-rose-deep);
+  --accent-600: var(--color-sage);
+  --color-sell: var(--color-rose-deep);
+  --color-buy: var(--color-buy-text);
+  --color-done: var(--color-done-text);
+  --color-surface: var(--color-ivory);
+  --color-surface-muted: var(--color-cream);
+  --color-border: var(--color-line);
+  --color-text: var(--color-plum);
+  --color-text-muted: var(--color-plum-soft);
+  --shadow-card: 0 10px 26px rgba(70, 52, 58, 0.1);
 }

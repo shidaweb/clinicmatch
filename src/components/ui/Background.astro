@@ -1,11 +1,15 @@
 ---
 export interface Props {
   isDark?: boolean;
+  tone?: 'cream' | 'ivory' | 'plum';
 }
 
-const { isDark = false } = Astro.props;
+const { isDark = false, tone = 'cream' } = Astro.props;
+
+const lightBg =
+  tone === 'ivory' ? 'bg-ivory' : tone === 'plum' ? 'bg-plum' : 'bg-cream';
 ---
 
-<div class:list={['absolute inset-0', { 'bg-dark dark:bg-transparent': isDark }]}>
+<div class:list={['absolute inset-0', isDark ? 'bg-dark dark:bg-transparent' : lightBg]}>
   <slot />
 </div>

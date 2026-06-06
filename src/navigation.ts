@@ -7,8 +7,8 @@ export const headerData = {
     { text: '成約事例', href: '/cases?view=done' },
   ],
   actions: [
-    { text: '売りたい', href: '/account/listings/new', variant: 'primary' as const },
-    { text: '買いたい', href: '/account/wanted/new', variant: 'secondary' as const },
+    { text: '売りたい', href: '/account/listings/new', variant: 'primary' as const, class: 'btn-sell-header !rounded-full !py-2 !px-5 !text-sm' },
+    { text: '買いたい', href: '/account/wanted/new', variant: 'secondary' as const, class: 'btn-buy-header !rounded-full !py-2 !px-5 !text-sm !text-white' },
   ],
   showConsult: true,
   accountHref: '/account',

@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { PREFECTURES } from '~/lib/marketplace';
 
@@ -12,70 +12,64 @@ const org = profile.organizations as { prefecture?: string; city?: string } | nu
 const metadata = { title: '買いたいを出す' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-2xl mx-auto px-4 sm:px-6">
-      <h1 class="text-3xl font-bold text-buy mb-6">買いたいを出す</h1>
-
-      <form id="wanted-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">カテゴリ（必須）</label>
-          <select name="category_slug" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-            <option value="hair-removal">脱毛</option>
-            <option value="pico-laser">ピコレーザー</option>
-            <option value="ipl">IPL・光治療</option>
-            <option value="hifu">HIFU</option>
-            <option value="rf">RF・高周波</option>
-            <option value="body">痩身・ボディ</option>
-          </select>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">メーカー（任意）</label>
-            <input name="maker" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">型番（任意）</label>
-            <input name="model" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">予算（円）</label>
-            <input name="budget" type="number" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">希望時期</label>
-            <input name="desired_timing" placeholder="例：3ヶ月以内" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">希望エリア（都道府県）</label>
-            <select name="area_prefecture" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-              {PREFECTURES.map((pref) => (
-                <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">市区町村</label>
-            <input name="area_city" value={org?.city ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">要件・補足</label>
-          <textarea name="requirements" rows="4" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
-        </div>
-        <div class="flex gap-3">
-          <button type="submit" name="action" value="draft" class="rounded-xl border border-border px-5 py-2.5 text-sm">下書き保存</button>
-          <button type="submit" name="action" value="submit" class="btn-market-buy px-5 py-2.5 text-sm">審査に提出</button>
-        </div>
-        <p id="wanted-status" class="text-sm text-text-muted hidden"></p>
-      </form>
+<AccountLayout metadata={metadata} title="買いたいを出す" maxWidth="2xl">
+  <form id="wanted-form" class="cm-card p-6 space-y-4">
+    <div>
+      <label class="cm-label">カテゴリ（必須）</label>
+      <select name="category_slug" required class="cm-input">
+        <option value="hair-removal">脱毛</option>
+        <option value="pico-laser">ピコレーザー</option>
+        <option value="ipl">IPL・光治療</option>
+        <option value="hifu">HIFU</option>
+        <option value="rf">RF・高周波</option>
+        <option value="body">痩身・ボディ</option>
+      </select>
     </div>
-  </section>
-</Layout>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">メーカー（任意）</label>
+        <input name="maker" class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">型番（任意）</label>
+        <input name="model" class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">予算（円）</label>
+        <input name="budget" type="number" class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">希望時期</label>
+        <input name="desired_timing" placeholder="例：3ヶ月以内" class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">希望エリア（都道府県）</label>
+        <select name="area_prefecture" class="cm-input">
+          {PREFECTURES.map((pref) => (
+            <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label class="cm-label">市区町村</label>
+        <input name="area_city" value={org?.city ?? ''} class="cm-input" />
+      </div>
+    </div>
+    <div>
+      <label class="cm-label">要件・補足</label>
+      <textarea name="requirements" rows="4" class="cm-input"></textarea>
+    </div>
+    <div class="flex gap-3">
+      <button type="submit" name="action" value="draft" class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">下書き保存</button>
+      <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
+    </div>
+    <p id="wanted-status" class="text-sm text-plum-soft hidden"></p>
+  </form>
+</AccountLayout>
 
 <script>
   const form = document.getElementById('wanted-form') as HTMLFormElement;
@@ -101,9 +95,3 @@ const metadata = { title: '買いたいを出す' };
     if (res.ok) window.location.href = '/account';
   });
 </script>
-
-<style>
-  .btn-market-buy {
-    @apply inline-flex items-center justify-center rounded-xl bg-buy font-semibold text-white hover:opacity-90 transition;
-  }
-</style>

@@ -1,0 +1,29 @@
+---
+const links = [
+  { href: '/admin', label: 'トップ', exact: true },
+  { href: '/admin/consultations', label: '相談' },
+  { href: '/admin/posts', label: '投稿審査' },
+  { href: '/admin/approaches', label: 'アプローチ' },
+  { href: '/admin/threads', label: 'ワークスペース' },
+  { href: '/admin/agreements', label: '仲介契約' },
+  { href: '/admin/deals', label: '売買・請求' },
+  { href: '/admin/members', label: '会員' },
+  { href: '/admin/analytics', label: '分析' },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/admin';
+---
+
+<nav class="mb-8 flex flex-wrap gap-2" aria-label="運営管理">
+  {
+    links.map(({ href, label, exact }) => {
+      const normalized = href.replace(/\/$/, '') || href;
+      const active = exact ? path === normalized : path.startsWith(normalized);
+      return (
+        <a href={href} class:list={[active ? 'cm-segment-active' : 'cm-segment', 'text-sm']}>
+          {label}
+        </a>
+      );
+    })
+  }
+</nav>

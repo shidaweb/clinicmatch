@@ -2,7 +2,7 @@
 interface Props {
   href?: string;
   label?: string;
-  variant?: 'default' | 'inline';
+  variant?: 'default' | 'inline' | 'primary';
   relatedListingId?: string;
   relatedWantedId?: string;
   class?: string;
@@ -24,9 +24,11 @@ const query = params.toString();
 const consultHref = href ?? `/contact${query ? `?${query}` : ''}`;
 
 const baseClass =
-  variant === 'inline'
-    ? 'inline-flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted transition'
-    : 'inline-flex items-center justify-center rounded-xl border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-text shadow-sm hover:bg-surface-muted transition';
+  variant === 'primary'
+    ? 'cm-btn-primary'
+    : variant === 'inline'
+      ? 'inline-flex items-center justify-center rounded-full border border-line bg-ivory px-4 py-2 text-sm font-medium text-plum hover:bg-cream transition'
+      : 'inline-flex items-center justify-center rounded-full border border-rose/40 bg-ivory px-5 py-2.5 text-sm font-semibold text-rose shadow-sm hover:bg-cream transition';
 ---
 
 <a href={consultHref} class:list={[baseClass, className]}>

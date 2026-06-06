@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
 
@@ -19,22 +19,17 @@ const topicLabels: Record<string, string> = { sell: '出品', buy: '購入', oth
 const metadata = { title: '相談管理' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <h1 class="text-2xl font-bold text-text mb-6">相談一覧</h1>
-      <ul class="space-y-4">
-        {(consultations ?? []).map((item) => (
-          <li class="rounded-xl border border-border p-4">
-            <div class="flex justify-between text-sm mb-2">
-              <span class="font-medium">{topicLabels[item.topic] ?? item.topic}</span>
-              <span class="text-text-muted">{item.status}</span>
-            </div>
-            <p class="text-sm text-text whitespace-pre-wrap">{item.body}</p>
-            {item.contact_email && <p class="mt-2 text-xs text-text-muted">{item.contact_email}</p>}
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-</Layout>
+<AdminLayout metadata={metadata} title="相談一覧">
+  <ul class="space-y-4">
+    {(consultations ?? []).map((item) => (
+      <li class="cm-list-item">
+        <div class="flex justify-between text-sm mb-2">
+          <span class="font-medium text-plum">{topicLabels[item.topic] ?? item.topic}</span>
+          <span class="text-plum-soft">{item.status}</span>
+        </div>
+        <p class="text-sm text-plum whitespace-pre-wrap">{item.body}</p>
+        {item.contact_email && <p class="mt-2 text-xs text-plum-soft">{item.contact_email}</p>}
+      </li>
+    ))}
+  </ul>
+</AdminLayout>

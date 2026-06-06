@@ -19,53 +19,53 @@ const { disclosed, counterpart, label = '取引先の連絡先' } = Astro.props;
 
 {
   !disclosed ? (
-    <div class="rounded-xl border border-dashed border-border bg-surface-muted p-5 text-sm text-text-muted">
+    <div class="rounded-2xl border border-dashed border-line bg-cream p-5 text-sm text-plum-soft">
       連絡先は双方の合意成立後に表示されます。
     </div>
   ) : counterpart ? (
-    <div class="rounded-xl border border-accent-market/30 bg-surface p-5 shadow-sm">
-      <p class="text-xs font-semibold text-accent-market mb-3">{label}</p>
+    <div class="cm-card p-5 border-sage/30">
+      <p class="text-xs font-semibold text-sage mb-3">{label}</p>
       <dl class="space-y-2 text-sm">
         <div>
-          <dt class="text-text-muted">組織名</dt>
-          <dd class="font-medium text-text">{counterpart.name}</dd>
+          <dt class="text-plum-soft">組織名</dt>
+          <dd class="font-medium text-plum">{counterpart.name}</dd>
         </div>
         {
           counterpart.full_name && (
             <div>
-              <dt class="text-text-muted">担当者</dt>
-              <dd class="text-text">{counterpart.full_name}</dd>
+              <dt class="text-plum-soft">担当者</dt>
+              <dd class="text-plum">{counterpart.full_name}</dd>
             </div>
           )
         }
         {
           counterpart.phone && (
             <div>
-              <dt class="text-text-muted">電話</dt>
-              <dd class="text-text">{counterpart.phone}</dd>
+              <dt class="text-plum-soft">電話</dt>
+              <dd class="text-plum">{counterpart.phone}</dd>
             </div>
           )
         }
         {
           counterpart.contact_email && (
             <div>
-              <dt class="text-text-muted">メール</dt>
-              <dd class="text-text">{counterpart.contact_email}</dd>
+              <dt class="text-plum-soft">メール</dt>
+              <dd class="text-plum">{counterpart.contact_email}</dd>
             </div>
           )
         }
         {
           counterpart.prefecture && counterpart.city && (
             <div>
-              <dt class="text-text-muted">所在地</dt>
-              <dd class="text-text">{counterpart.prefecture}{counterpart.city}</dd>
+              <dt class="text-plum-soft">所在地</dt>
+              <dd class="text-plum">{counterpart.prefecture}{counterpart.city}</dd>
             </div>
           )
         }
       </dl>
     </div>
   ) : (
-    <div class="rounded-xl border border-border bg-surface-muted p-5 text-sm text-text-muted">
+    <div class="rounded-2xl border border-line bg-cream p-5 text-sm text-plum-soft">
       連絡先情報を取得できませんでした。
     </div>
   )

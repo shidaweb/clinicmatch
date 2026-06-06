@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { trackGaEvent } from '~/utils/analytics';
 
-const PRIMARY_GREEN = '#2ECC71';
+const PRIMARY = '#C98B97';
+const PRIMARY_DEEP = '#A86A77';
 
 const CATEGORY_OPTIONS = [
   { value: '', label: '選択してください' },
@@ -55,9 +56,9 @@ const initialData: SellFormData = {
 };
 
 const inputBase =
-  'w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
-const inputFocus = 'focus:border-[#2ECC71] focus:ring-[#2ECC71]/30';
-const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
+  'w-full rounded-2xl border border-[#EADCD4] bg-white px-4 py-2.5 text-[#46343A] placeholder:text-[#9B848A] focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
+const inputFocus = 'focus:border-[#C98B97] focus:ring-[#C98B97]/30';
+const labelClass = 'block text-sm font-medium text-[#46343A] mb-1';
 const errorClass = 'text-red-600 dark:text-red-400 text-sm mt-1';
 
 export default function SellForm() {
@@ -139,7 +140,7 @@ export default function SellForm() {
       {/* Progress bar */}
       <div className="flex items-center gap-2">
         <div
-          className="h-2 flex-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"
+          className="h-2 flex-1 rounded-full bg-[#EADCD4] overflow-hidden"
           role="progressbar"
           aria-valuenow={step}
           aria-valuemin={1}
@@ -147,10 +148,10 @@ export default function SellForm() {
         >
           <div
             className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${(step / 3) * 100}%`, backgroundColor: PRIMARY_GREEN }}
+            style={{ width: `${(step / 3) * 100}%`, backgroundColor: PRIMARY }}
           />
         </div>
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+        <span className="text-sm font-medium text-[#7A5C63] whitespace-nowrap">
           Step {step}/3
         </span>
       </div>
@@ -238,7 +239,7 @@ export default function SellForm() {
             <label htmlFor="sell-usageNotes" className={labelClass}>
               ショット数・使用状況（任意）
             </label>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">分かる範囲でOK</p>
+            <p className="text-xs text-[#9B848A] mb-1">分かる範囲でOK</p>
             <input
               id="sell-usageNotes"
               type="text"
@@ -265,7 +266,7 @@ export default function SellForm() {
                     value={opt.value}
                     checked={data.maintenance === opt.value}
                     onChange={(e) => update('maintenance', e.target.value)}
-                    className="border-slate-300 text-[#2ECC71] focus:ring-[#2ECC71]"
+                    className="border-slate-300 text-[#C98B97] focus:ring-[#C98B97]"
                   />
                   <span className="text-slate-700 dark:text-slate-300">{opt.label}</span>
                 </label>
@@ -276,7 +277,7 @@ export default function SellForm() {
             <label htmlFor="sell-desiredPrice" className={labelClass}>
               希望売却価格（任意）
             </label>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">目安でOK</p>
+            <p className="text-xs text-[#9B848A] mb-1">目安でOK</p>
             <input
               id="sell-desiredPrice"
               type="text"
@@ -371,7 +372,7 @@ export default function SellForm() {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="px-6 py-2.5 rounded-full border border-[#EADCD4] text-[#46343A] hover:bg-[#FBF5F1] transition-colors"
           >
             戻る
           </button>
@@ -381,7 +382,7 @@ export default function SellForm() {
             type="button"
             onClick={handleNext}
             className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: PRIMARY_GREEN }}
+            style={{ backgroundColor: PRIMARY }}
           >
             次へ
           </button>
@@ -390,7 +391,7 @@ export default function SellForm() {
             type="submit"
             disabled={sending}
             className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: PRIMARY_GREEN }}
+            style={{ backgroundColor: PRIMARY }}
           >
             {sending ? '送信中...' : '送信する'}
           </button>

@@ -1,0 +1,26 @@
+---
+const links = [
+  { href: '/account', label: 'ダッシュボード', exact: true },
+  { href: '/account/listings', label: '売りたい' },
+  { href: '/account/wanted', label: '買いたい' },
+  { href: '/account/threads', label: 'メッセージ' },
+  { href: '/account/deals', label: '契約・請求' },
+  { href: '/account/settings', label: '設定' },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/account';
+---
+
+<nav class="mb-8 flex flex-wrap gap-2" aria-label="マイページ">
+  {
+    links.map(({ href, label, exact }) => {
+      const normalized = href.replace(/\/$/, '') || href;
+      const active = exact ? path === normalized : path.startsWith(normalized);
+      return (
+        <a href={href} class:list={[active ? 'cm-segment-active' : 'cm-segment', 'text-sm']}>
+          {label}
+        </a>
+      );
+    })
+  }
+</nav>

@@ -3,23 +3,23 @@ import { Icon } from 'astro-icon/components';
 ---
 
 <nav
-  class="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-surface/95 backdrop-blur lg:hidden"
+  class="fixed bottom-0 inset-x-0 z-50 border-t border-line bg-ivory/95 backdrop-blur lg:hidden"
   aria-label="モバイルアクション"
 >
   <div class="grid grid-cols-4 text-xs">
-    <a href="/cases?view=active" class="flex flex-col items-center gap-1 py-3 text-text-muted hover:text-brand-600">
+    <a href="/cases?view=active" class="flex flex-col items-center gap-1 py-3 text-plum-soft hover:text-rose">
       <Icon name="tabler:search" class="w-5 h-5" />
       さがす
     </a>
-    <a href="/contact/sell" class="flex flex-col items-center gap-1 py-3 text-sell hover:opacity-80">
+    <a href="/contact/sell" class="flex flex-col items-center gap-1 py-3 text-rose hover:text-rose-deep">
       <Icon name="tabler:tag" class="w-5 h-5" />
       出す
     </a>
-    <a href="/contact" class="flex flex-col items-center gap-1 py-3 text-brand-600 hover:opacity-80">
+    <a href="/contact" class="flex flex-col items-center gap-1 py-3 text-rose font-medium">
       <Icon name="tabler:message-circle" class="w-5 h-5" />
       相談
     </a>
-    <a href="/account" class="flex flex-col items-center gap-1 py-3 text-text-muted hover:text-brand-600">
+    <a href="/account" class="flex flex-col items-center gap-1 py-3 text-plum-soft hover:text-rose">
       <Icon name="tabler:user" class="w-5 h-5" />
       マイページ
     </a>

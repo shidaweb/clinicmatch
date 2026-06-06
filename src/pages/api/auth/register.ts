@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
-import { isValidCorporateNumber } from '~/lib/auth';
+import { normalizeCorporateNumber } from '~/lib/auth';
 import { hasSupabaseConfig } from '~/lib/env';
-import { verifyCorporateNumber } from '~/lib/hojin-bango';
 
 export const prerender = false;
 
@@ -14,18 +13,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const body = (await request.json()) as Record<string, unknown>;
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
-  const corporateNumber = String(body.corporate_number ?? '').trim();
+  const corporateNumber = normalizeCorporateNumber(String(body.corporate_number ?? ''));
   const name = String(body.name ?? '').trim();
   const prefecture = String(body.prefecture ?? '').trim();
   const city = String(body.city ?? '').trim();
   const fullName = String(body.full_name ?? '').trim();
 
   if (!email || !password) return json({ error: 'メールとパスワードを入力してください' }, 400);
-  if (!isValidCorporateNumber(corporateNumber)) return json({ error: '法人番号は13桁の数字で入力してください' }, 400);
+  if (!/^\d{13}$/.test(corporateNumber)) {
+    return json({ error: '法人番号は13桁の数字で入力してください' }, 400);
+  }
   if (!name || !prefecture || !city) return json({ error: '組織名・都道府県・市区町村を入力してください' }, 400);
-
-  const hojin = await verifyCorporateNumber(corporateNumber, locals as never);
-  if (!hojin.verified) return json({ error: hojin.message ?? '法人番号を確認できません' }, 400);
 
   const admin = createSupabaseAdminClient(locals as never);
 
@@ -46,7 +44,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       name,
       prefecture,
       city,
-      verified_at: hojin.name ? new Date().toISOString() : null,
+      verified_at: null,
     })
     .select('id')
     .single();

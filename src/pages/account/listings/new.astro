@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { PREFECTURES } from '~/lib/marketplace';
 
@@ -12,15 +12,11 @@ const org = profile.organizations as { prefecture?: string; city?: string } | nu
 const metadata = { title: '売りたいを出す' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-2xl mx-auto px-4 sm:px-6">
-      <h1 class="text-3xl font-bold text-sell mb-6">売りたいを出す</h1>
-
-      <form id="listing-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
+<AccountLayout metadata={metadata} title="売りたいを出す" maxWidth="2xl">
+      <form id="listing-form" class="cm-card p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1">カテゴリ</label>
-          <select name="category_slug" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+          <label class="cm-label">カテゴリ</label>
+          <select name="category_slug" required class="cm-input">
             <option value="hair-removal">脱毛</option>
             <option value="pico-laser">ピコレーザー</option>
             <option value="ipl">IPL・光治療</option>
@@ -31,50 +27,50 @@ const metadata = { title: '売りたいを出す' };
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">メーカー</label>
-            <input name="maker" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+            <label class="cm-label">メーカー</label>
+            <input name="maker" required class="cm-input" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">型番</label>
-            <input name="model" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">希望価格（円）</label>
-            <input name="asking_price" type="number" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">年式</label>
-            <input name="manufacture_year" type="number" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+            <label class="cm-label">型番</label>
+            <input name="model" required class="cm-input" />
           </div>
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">都道府県</label>
-            <select name="location_prefecture" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            <label class="cm-label">希望価格（円）</label>
+            <input name="asking_price" type="number" class="cm-input" />
+          </div>
+          <div>
+            <label class="cm-label">年式</label>
+            <input name="manufacture_year" type="number" class="cm-input" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="cm-label">都道府県</label>
+            <select name="location_prefecture" required class="cm-input">
               {PREFECTURES.map((pref) => (
                 <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
               ))}
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">市区町村</label>
-            <input name="location_city" required value={org?.city ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+            <label class="cm-label">市区町村</label>
+            <input name="location_city" required value={org?.city ?? ''} class="cm-input" />
           </div>
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">メーカー保守</label>
-            <select name="maker_maintenance" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            <label class="cm-label">メーカー保守</label>
+            <select name="maker_maintenance" class="cm-input">
               <option value="unknown">不明</option>
               <option value="yes">あり</option>
               <option value="no">なし</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">保守引継ぎ</label>
-            <select name="maintenance_transferable" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            <label class="cm-label">保守引継ぎ</label>
+            <select name="maintenance_transferable" class="cm-input">
               <option value="unknown">不明</option>
               <option value="yes">可</option>
               <option value="no">不可</option>
@@ -88,22 +84,20 @@ const metadata = { title: '売りたいを出す' };
           </label>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">付属品詳細</label>
-          <textarea name="accessories_detail" rows="2" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
+          <label class="cm-label">付属品詳細</label>
+          <textarea name="accessories_detail" rows="2" class="cm-input"></textarea>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">説明</label>
-          <textarea name="description" rows="4" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
+          <label class="cm-label">説明</label>
+          <textarea name="description" rows="4" class="cm-input"></textarea>
         </div>
         <div class="flex gap-3">
-          <button type="submit" name="action" value="draft" class="btn-secondary rounded-xl border border-border px-5 py-2.5 text-sm">下書き保存</button>
-          <button type="submit" name="action" value="submit" class="btn-market-sell px-5 py-2.5 text-sm">審査に提出</button>
+          <button type="submit" name="action" value="draft" class="cm-btn-secondary text-sm">下書き保存</button>
+          <button type="submit" name="action" value="submit" class="cm-btn-primary text-sm">審査に提出</button>
         </div>
-        <p id="listing-status" class="text-sm text-text-muted hidden"></p>
+        <p id="listing-status" class="text-sm text-plum-soft hidden"></p>
       </form>
-    </div>
-  </section>
-</Layout>
+</AccountLayout>
 
 <script>
   const form = document.getElementById('listing-form') as HTMLFormElement;
@@ -130,9 +124,3 @@ const metadata = { title: '売りたいを出す' };
     if (res.ok) window.location.href = '/account';
   });
 </script>
-
-<style>
-  .btn-market-sell {
-    @apply inline-flex items-center justify-center rounded-xl bg-sell font-semibold text-white hover:opacity-90 transition;
-  }
-</style>

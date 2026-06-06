@@ -138,7 +138,7 @@ const staticSpecItems = staticData
 
 {mode === 'wanted' && wanted && (
   <Layout metadata={metadata}>
-    <section class="py-12 md:py-16 pb-28 lg:pb-16">
+    <section class="py-12 md:py-16 pb-28 lg:pb-16 bg-cream">
       <div class="max-w-5xl mx-auto px-4 sm:px-6">
         <Breadcrumb
           class="mb-6 text-sm"
@@ -149,45 +149,45 @@ const staticSpecItems = staticData
           ]}
         />
         <div class="mb-6 flex flex-wrap items-center gap-3">
-          <span class="inline-flex rounded-full bg-buy px-3 py-1 text-xs font-semibold text-white">買いたい</span>
-          <span class="text-sm text-text-muted">{anonymousOrgLabel(wanted.area_city ?? '')}</span>
+          <span class="cm-tag-buy">買いたい</span>
+          <span class="text-sm text-plum-soft">{anonymousOrgLabel(wanted.area_city ?? '')}</span>
         </div>
-        <div class="rounded-xl border border-border bg-surface p-6 shadow-sm">
-          <p class="text-sm text-text-muted">{wanted.categories?.name}</p>
-          <h1 class="text-3xl font-bold text-text mt-1">{wantedTitle}</h1>
+        <div class="cm-card p-6">
+          <p class="text-sm text-plum-soft">{wanted.categories?.name}</p>
+          <h1 class="font-heading text-3xl font-bold text-plum mt-1">{wantedTitle}</h1>
           <dl class="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-            <div>
-              <dt class="text-text-muted text-xs">予算</dt>
-              <dd class="text-2xl font-bold text-buy tabular-nums">{formatPriceYen(wanted.budget)}</dd>
+            <div class="rounded-2xl bg-cream p-4">
+              <dt class="text-plum-soft text-xs">予算</dt>
+              <dd class="text-2xl font-bold text-rose tabular-nums">{formatPriceYen(wanted.budget)}</dd>
             </div>
             <div>
-              <dt class="text-text-muted text-xs">希望時期</dt>
-              <dd class="text-text font-medium">{wanted.desired_timing ?? '—'}</dd>
+              <dt class="text-plum-soft text-xs">希望時期</dt>
+              <dd class="text-plum font-medium">{wanted.desired_timing ?? '—'}</dd>
             </div>
             <div>
-              <dt class="text-text-muted text-xs">希望エリア</dt>
-              <dd class="text-text font-medium">
+              <dt class="text-plum-soft text-xs">希望エリア</dt>
+              <dd class="text-plum font-medium">
                 {wanted.area_prefecture && wanted.area_city
                   ? formatLocation(wanted.area_prefecture, wanted.area_city)
                   : '—'}
               </dd>
             </div>
             <div>
-              <dt class="text-text-muted text-xs">希望状態</dt>
-              <dd class="text-text font-medium">{wanted.condition_pref ?? '—'}</dd>
+              <dt class="text-plum-soft text-xs">希望状態</dt>
+              <dd class="text-plum font-medium">{wanted.condition_pref ?? '—'}</dd>
             </div>
           </dl>
           {wanted.requirements && (
-            <div class="mt-6 rounded-xl bg-surface-muted p-4">
-              <p class="font-medium text-text mb-2">要件・補足</p>
-              <p class="text-sm text-text-muted whitespace-pre-wrap">{wanted.requirements}</p>
+            <div class="mt-6 rounded-xl bg-cream p-4">
+              <p class="font-medium text-plum mb-2">要件・補足</p>
+              <p class="text-sm text-plum-soft whitespace-pre-wrap">{wanted.requirements}</p>
             </div>
           )}
         </div>
         <MatchSuggestions title="マッチする売りたい出品" matches={matchListings} />
       </div>
     </section>
-    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
+    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
       <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
         {profile ? (
           <button id="offer-btn" class="btn-market-offer flex-1 sm:flex-none" data-wanted-id={wanted.id}>該当機器を提案する</button>
@@ -196,7 +196,7 @@ const staticSpecItems = staticData
         )}
         <ConsultButton label="この件を相談する" relatedWantedId={wanted.id} class="flex-1 sm:flex-none justify-center" />
       </div>
-      <p id="offer-status" class="max-w-5xl mx-auto mt-2 text-sm text-text-muted hidden"></p>
+      <p id="offer-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
     </div>
     <script>
       document.getElementById('offer-btn')?.addEventListener('click', async (e) => {
@@ -216,7 +216,7 @@ const staticSpecItems = staticData
     </script>
     <style>
       .btn-market-offer {
-        @apply inline-flex items-center justify-center rounded-xl bg-buy px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+        @apply inline-flex items-center justify-center rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
       }
     </style>
   </Layout>
@@ -224,7 +224,7 @@ const staticSpecItems = staticData
 
 {mode === 'listing' && listing && (
   <Layout metadata={metadata}>
-    <section class="py-12 md:py-16 pb-28 lg:pb-16">
+    <section class="py-12 md:py-16 pb-28 lg:pb-16 bg-cream">
       <div class="max-w-5xl mx-auto px-4 sm:px-6">
         <Breadcrumb
           class="mb-6 text-sm"
@@ -235,32 +235,35 @@ const staticSpecItems = staticData
           ]}
         />
         <div class="mb-6 flex flex-wrap items-center gap-3">
-          <span class="inline-flex rounded-full bg-sell px-3 py-1 text-xs font-semibold text-white">売りたい</span>
-          <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">審査済</span>
-          <span class="text-sm text-text-muted">{anonymousOrgLabel(listing.location_city)}</span>
+          <span class="cm-tag-sell">売りたい</span>
+          <span class="cm-tag-sage">審査済</span>
+          <span class="text-sm text-plum-soft">{anonymousOrgLabel(listing.location_city)}</span>
         </div>
         <div class="grid lg:grid-cols-2 gap-8">
           <div class="space-y-3">
             {images.length ? (
               images.map((img) =>
-                img.url ? <img src={img.url} alt="" class="w-full rounded-xl object-cover bg-surface-muted" loading="lazy" /> : null
+                img.url ? <img src={img.url} alt="" class="w-full rounded-xl object-cover bg-cream" loading="lazy" /> : null
               )
             ) : (
-              <div class="h-64 rounded-xl bg-surface-muted flex items-center justify-center text-text-muted">画像なし</div>
+              <div class="h-64 rounded-xl bg-cream flex items-center justify-center text-plum-soft">画像なし</div>
             )}
           </div>
           <div>
-            <p class="text-sm text-text-muted">{listing.categories?.name}</p>
-            <h1 class="text-3xl font-bold text-text mt-1">{listing.maker} {listing.model}</h1>
-            <p class="mt-4 text-2xl font-bold text-brand-600 tabular-nums">{formatPriceYen(listing.asking_price)}</p>
-            <p class="mt-2 text-sm text-text-muted">所在地：{formatLocation(listing.location_prefecture, listing.location_city)}</p>
-            <dl class="mt-6 grid grid-cols-2 gap-4 text-sm rounded-xl border border-border p-4">
+            <p class="text-sm text-plum-soft">{listing.categories?.name}</p>
+            <h1 class="font-heading text-3xl font-bold text-plum mt-1">{listing.maker} {listing.model}</h1>
+            <div class="mt-4 rounded-2xl bg-cream p-4">
+              <p class="text-xs text-plum-soft">希望価格</p>
+              <p class="text-2xl font-bold text-rose tabular-nums">{formatPriceYen(listing.asking_price)}</p>
+            </div>
+            <p class="mt-2 text-sm text-plum-soft">所在地：{formatLocation(listing.location_prefecture, listing.location_city)}</p>
+            <dl class="mt-6 grid grid-cols-2 gap-4 text-sm rounded-2xl border border-line p-4 bg-ivory">
               <div>
-                <dt class="text-text-muted text-xs">年式</dt>
+                <dt class="text-plum-soft text-xs">年式</dt>
                 <dd class="font-semibold tabular-nums">{listing.manufacture_year ? `${listing.manufacture_year}年` : '—'}</dd>
               </div>
               <div>
-                <dt class="text-text-muted text-xs">状態</dt>
+                <dt class="text-plum-soft text-xs">状態</dt>
                 <dd class="font-semibold">{listing.condition ?? '—'}</dd>
               </div>
             </dl>
@@ -272,18 +275,18 @@ const staticSpecItems = staticData
               />
             </div>
             {listing.accessories_detail && (
-              <div class="mt-4 rounded-xl bg-surface-muted p-4 text-sm">
-                <p class="font-medium text-text mb-1">付属品</p>
-                <p class="text-text-muted whitespace-pre-wrap">{listing.accessories_detail}</p>
+              <div class="mt-4 rounded-xl bg-cream p-4 text-sm">
+                <p class="font-medium text-plum mb-1">付属品</p>
+                <p class="text-plum-soft whitespace-pre-wrap">{listing.accessories_detail}</p>
               </div>
             )}
-            {listing.description && <div class="mt-4 text-sm text-text-muted whitespace-pre-wrap">{listing.description}</div>}
+            {listing.description && <div class="mt-4 text-sm text-plum-soft whitespace-pre-wrap">{listing.description}</div>}
           </div>
         </div>
         <MatchSuggestions title="マッチする買いたいリクエスト" matches={matchWanted} />
       </div>
     </section>
-    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
+    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
       <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
         {profile ? (
           <>
@@ -295,8 +298,8 @@ const staticSpecItems = staticData
         )}
         <ConsultButton label="この件を相談する" relatedListingId={listing.id} class="flex-1 sm:flex-none justify-center" />
       </div>
-      <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-text-muted hidden"></p>
-      <p id="qa-status" class="max-w-5xl mx-auto mt-1 text-sm text-text-muted hidden"></p>
+      <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
+      <p id="qa-status" class="max-w-5xl mx-auto mt-1 text-sm text-plum-soft hidden"></p>
     </div>
     <script>
       document.getElementById('interest-btn')?.addEventListener('click', async (e) => {
@@ -336,10 +339,10 @@ const staticSpecItems = staticData
     </script>
     <style>
       .btn-market-primary {
-        @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+        @apply inline-flex items-center justify-center rounded-full bg-rose px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition;
       }
       .btn-market-secondary {
-        @apply inline-flex items-center justify-center rounded-xl border border-brand-600 text-brand-600 px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted transition;
+        @apply inline-flex items-center justify-center rounded-full border border-rose text-rose px-5 py-2.5 text-sm font-semibold hover:bg-cream transition;
       }
     </style>
   </Layout>
@@ -347,7 +350,7 @@ const staticSpecItems = staticData
 
 {mode === 'static' && staticData && StaticContent && (
   <Layout metadata={metadata}>
-    <div class="border-b border-border bg-surface">
+    <div class="border-b border-line bg-ivory">
       <div class="max-w-3xl mx-auto px-4 py-3">
         <Breadcrumb
           class="text-xs"
@@ -359,19 +362,19 @@ const staticSpecItems = staticData
         />
       </div>
     </div>
-    <section class="py-12 md:py-16">
+    <section class="py-12 md:py-16 bg-cream">
       <div class="max-w-3xl mx-auto px-4 sm:px-6">
-        <section class="mb-10 rounded-xl border border-border bg-surface-muted p-6 md:p-8">
+        <section class="mb-10 cm-card p-6 md:p-8">
           <div class="flex flex-wrap items-start gap-3 mb-6">
-            <span class="inline-flex rounded-full bg-done px-3 py-1 text-xs font-semibold text-white">成約済</span>
-            <span class="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-medium text-text border border-border">{staticData.categoryLabel}</span>
+            <span class="cm-tag-done">成約済</span>
+            <span class="cm-tag-sage">{staticData.categoryLabel}</span>
           </div>
-          <h1 class="text-2xl md:text-3xl font-bold text-text">{staticData.manufacturer} {staticData.model}</h1>
+          <h1 class="font-heading text-2xl md:text-3xl font-bold text-plum">{staticData.manufacturer} {staticData.model}</h1>
           <dl class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
             {staticSpecItems.map(({ label, value }) => (
-              <div>
-                <dt class="text-text-muted text-xs">{label}</dt>
-                <dd class="mt-0.5 font-semibold text-text">{value}</dd>
+              <div class="rounded-xl bg-cream p-3">
+                <dt class="text-plum-soft text-xs">{label}</dt>
+                <dd class="mt-0.5 font-semibold text-plum">{value}</dd>
               </div>
             ))}
           </dl>
@@ -381,10 +384,10 @@ const staticSpecItems = staticData
         </section>
       </div>
     </section>
-    <section class="py-12 bg-surface-muted border-t border-border">
+    <section class="py-12 bg-ivory border-t border-line">
       <div class="max-w-3xl mx-auto px-4">
-        <h2 class="text-xl font-bold text-text mb-3">この機器の購入・売却をご検討の方</h2>
-        <p class="text-text-muted mb-6 text-sm">写真・型番だけでも相談OK。匿名でもご利用いただけます。</p>
+        <h2 class="font-heading text-xl font-bold text-plum mb-3">この機器の購入・売却をご検討の方</h2>
+        <p class="text-plum-soft mb-6 text-sm">写真・型番だけでも相談OK。匿名でもご利用いただけます。</p>
         <div class="flex flex-wrap gap-3">
           <Button href={getPermalink('contact/sell')} variant="primary">売却を相談する</Button>
           <Button href={getPermalink('contact/buy')} variant="secondary">購入を相談する</Button>
@@ -394,13 +397,13 @@ const staticSpecItems = staticData
     </section>
     <style is:global>
       .cases-prose {
-        @apply prose lg:prose-lg max-w-none prose-headings:font-bold prose-p:text-text-muted prose-p:leading-relaxed;
+        @apply prose lg:prose-lg max-w-none prose-headings:font-heading prose-p:text-plum-soft prose-p:leading-relaxed;
       }
       .cases-prose h2 {
-        @apply mt-12 pl-4 border-l-4 border-accent-market text-xl text-text;
+        @apply mt-12 pl-4 border-l-4 border-rose text-xl text-plum;
       }
       .cases-prose strong {
-        @apply text-accent-market;
+        @apply text-rose;
       }
     </style>
   </Layout>

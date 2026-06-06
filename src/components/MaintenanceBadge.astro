@@ -13,21 +13,21 @@ const { makerMaintenance, maintenanceTransferable, hasAccessories } = Astro.prop
 <div class="flex flex-wrap gap-2">
   {
     makerMaintenance && (
-      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+      <span class="cm-tag-sage">
         {MAINTENANCE_LABELS[makerMaintenance] ?? makerMaintenance}
       </span>
     )
   }
   {
     maintenanceTransferable && (
-      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+      <span class="inline-flex rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-medium text-gold" style="background-color: rgb(194 163 107 / 0.15);">
         {TRANSFER_LABELS[maintenanceTransferable] ?? maintenanceTransferable}
       </span>
     )
   }
   {
     hasAccessories != null && (
-      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+      <span class="inline-flex rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-plum-soft">
         {hasAccessories ? '付属品あり' : '付属品なし'}
       </span>
     )

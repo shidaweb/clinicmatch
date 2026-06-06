@@ -27,7 +27,7 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
 };
 ---
 
-<form method="get" action={basePath} class="rounded-xl border border-border bg-surface p-4 space-y-4 shadow-sm">
+<form method="get" action={basePath} class="cm-card p-4 space-y-4">
   <input type="hidden" name="view" value={view} />
 
   <div>
@@ -99,6 +99,6 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
 
 <style>
   .btn-market-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+    @apply inline-flex items-center justify-center rounded-full bg-rose px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition w-full;
   }
 </style>

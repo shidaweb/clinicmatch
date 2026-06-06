@@ -37,7 +37,9 @@ if (hasSupabaseConfig(Astro.locals as never) && view !== 'done') {
 
 const showMarket = view === 'active' || view === 'all';
 const showDone = view === 'done' || view === 'all';
-const totalCount = (showMarket ? marketPosts.length : 0) + (showDone ? staticCases.length : 0);
+const activeCount = marketPosts.length;
+const doneCount = staticCases.length;
+const totalCount = (showMarket ? activeCount : 0) + (showDone ? doneCount : 0);
 
 const casesCanonical = String(getCanonical(getPermalink('cases')));
 const metadata = {
@@ -48,17 +50,14 @@ const metadata = {
   robots: category || view !== 'active' ? { index: false, follow: true } : undefined,
 };
 
-const tabClass = (active: boolean) =>
-  active
-    ? 'rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm'
-    : 'rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-text hover:bg-surface-muted transition';
+const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segment');
 ---
 
 <Layout metadata={metadata}>
-  <section class="py-12 md:py-16 bg-surface-muted">
+  <section class="py-12 md:py-16 bg-cream">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <Breadcrumb
-        class="mb-6 text-sm"
+        class="mb-6 text-sm text-plum-soft"
         items={[
           { name: 'トップ', url: getHomePermalink() },
           { name: '在庫・取引事例' },
@@ -66,8 +65,9 @@ const tabClass = (active: boolean) =>
       />
 
       <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-text">在庫・取引事例</h1>
-        <p class="mt-2 text-text-muted max-w-2xl">
+        <p class="cm-eyebrow mb-2">Marketplace</p>
+        <h1 class="cm-heading text-3xl md:text-4xl font-bold">在庫・取引事例</h1>
+        <p class="mt-2 text-plum-soft max-w-2xl leading-relaxed">
           いま募集中の売りたい・買いたいと、過去の成約事例を同じ画面で探せます。匿名表示・運営仲介です。
         </p>
         <div class="mt-4">
@@ -77,15 +77,14 @@ const tabClass = (active: boolean) =>
 
       <div class="flex flex-wrap items-center gap-2 mb-6">
         <a href={buildCasesUrl({ view: 'active', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'active')}>
-          募集中（在庫）
+          募集中（{activeCount}）
         </a>
         <a href={buildCasesUrl({ view: 'done', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'done')}>
-          成約事例
+          成約事例（{doneCount}）
         </a>
         <a href={buildCasesUrl({ view: 'all', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'all')}>
-          すべて
+          すべて（{totalCount}）
         </a>
-        <span class="ml-auto text-sm text-text-muted tabular-nums">{totalCount}件</span>
       </div>
 
       <div class="grid lg:grid-cols-[280px_1fr] gap-8">
@@ -94,9 +93,9 @@ const tabClass = (active: boolean) =>
             <MarketFilters {view} {type} {category} {prefecture} {city} {minPrice} {maxPrice} {sort} {q} />
           )}
           {view === 'done' && category && (
-            <div class="rounded-xl border border-border bg-surface p-4 text-sm text-text-muted">
+            <div class="cm-card p-4 text-sm text-plum-soft">
               カテゴリ: {category}
-              <a href={buildCasesUrl({ view: 'done' })} class="block mt-2 text-brand-600 hover:underline">フィルタを解除</a>
+              <a href={buildCasesUrl({ view: 'done' })} class="block mt-2 text-rose hover:underline">フィルタを解除</a>
             </div>
           )}
         </aside>
@@ -106,7 +105,7 @@ const tabClass = (active: boolean) =>
             showMarket && (
               <div>
                 {view === 'all' && (
-                  <h2 class="text-lg font-semibold text-text mb-4">募集中</h2>
+                  <h2 class="font-heading text-lg font-semibold text-plum mb-4">募集中</h2>
                 )}
                 {
                   marketPosts.length === 0 ? (
@@ -132,7 +131,7 @@ const tabClass = (active: boolean) =>
             showDone && (
               <div>
                 {view === 'all' && (
-                  <h2 class="text-lg font-semibold text-text mb-4">成約事例</h2>
+                  <h2 class="font-heading text-lg font-semibold text-plum mb-4">成約事例</h2>
                 )}
                 {
                   staticCases.length === 0 ? (
@@ -165,6 +164,12 @@ const tabClass = (active: boolean) =>
               </div>
             )
           }
+
+          <div class="rounded-2xl border border-dashed border-rose/40 bg-ivory p-6 text-center">
+            <p class="font-heading text-lg font-semibold text-plum">条件に合う在庫が見つからない？</p>
+            <p class="mt-2 text-sm text-plum-soft">匿名OK・約2分。運営が仲介してマッチングします。</p>
+            <a href="/contact" class="mt-4 cm-btn-primary">条件で相談する</a>
+          </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ const {
   tagline: taglineClass,
 } = classes;
 
-const taglineCn = taglineClass ?? 'text-base text-secondary dark:text-blue-200 font-bold tracking-wide uppercase';
+const taglineCn = taglineClass ?? 'cm-eyebrow mb-3 block';
 ---
 
 {
@@ -32,7 +32,7 @@ const taglineCn = taglineClass ?? 'text-base text-secondary dark:text-blue-200 f
         />
       )}
 
-      {subtitle && <p class={twMerge('mt-4 text-muted', subtitleClass)} set:html={subtitle} />}
+      {subtitle && <p class={twMerge('mt-4 text-plum-soft leading-relaxed', subtitleClass)} set:html={subtitle} />}
     </div>
   )
 }

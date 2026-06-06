@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import MessageThread from '~/components/MessageThread';
 import ContactCard from '~/components/ContactCard.astro';
 import { getProfile } from '~/lib/auth';
@@ -73,38 +73,30 @@ if (thread.contact_disclosed && isParticipant) {
   }
 }
 
+const threadTitle = thread.kind === 'qa' ? '保守・付属品 Q&A' : '仲介メッセージ';
+const threadSubtitle = thread.kind === 'mediation' ? '運営が仲介中です。匿名のままやり取りできます。' : undefined;
 const metadata = { title: thread.kind === 'qa' ? '保守Q&A' : '仲介メッセージ' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6">
-      <a href="/account/threads" class="text-sm text-brand-600 hover:underline">← メッセージ一覧</a>
-      <h1 class="text-2xl font-bold text-text mt-4 mb-2">
-        {thread.kind === 'qa' ? '保守・付属品 Q&A' : '仲介メッセージ'}
-      </h1>
-      <p class="text-sm text-text-muted mb-6">
-        {thread.kind === 'mediation' && '運営が仲介中です。匿名のままやり取りできます。'}
-      </p>
+<AccountLayout metadata={metadata} title={threadTitle} subtitle={threadSubtitle} maxWidth="3xl">
+  <a href="/account/threads" class="cm-link text-sm mb-6 inline-block">← メッセージ一覧</a>
 
-      {
-        thread.contact_disclosed && (
-          <div class="mb-6">
-            <ContactCard disclosed={true} counterpart={counterpart} />
-          </div>
-        )
-      }
+  {
+    thread.contact_disclosed && (
+      <div class="mb-6">
+        <ContactCard disclosed={true} counterpart={counterpart} />
+      </div>
+    )
+  }
 
-      <MessageThread
-        client:load
-        threadId={id}
-        initialMessages={(messages ?? []) as MessageRow[]}
-        viewerOrgId={profile.org_id}
-        buyerOrgId={thread.buyer_org_id}
-        sellerOrgId={thread.seller_org_id}
-        isAdmin={isAdmin}
-        threadClosed={thread.status === 'closed'}
-      />
-    </div>
-  </section>
-</Layout>
+  <MessageThread
+    client:load
+    threadId={id}
+    initialMessages={(messages ?? []) as MessageRow[]}
+    viewerOrgId={profile.org_id}
+    buyerOrgId={thread.buyer_org_id}
+    sellerOrgId={thread.seller_org_id}
+    isAdmin={isAdmin}
+    threadClosed={thread.status === 'closed'}
+  />
+</AccountLayout>

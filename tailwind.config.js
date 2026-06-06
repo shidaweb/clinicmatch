@@ -16,10 +16,38 @@ export default {
           600: 'var(--brand-600)',
           800: 'var(--brand-800)',
         },
+        cream: 'var(--color-cream)',
+        ivory: 'var(--color-ivory)',
+        rose: {
+          DEFAULT: 'var(--color-rose)',
+          deep: 'var(--color-rose-deep)',
+        },
+        plum: {
+          DEFAULT: 'var(--color-plum)',
+          soft: 'var(--color-plum-soft)',
+        },
+        sage: 'var(--color-sage)',
+        gold: 'var(--color-gold)',
+        line: 'var(--color-line)',
+        ink: {
+          muted: 'var(--color-muted)',
+        },
         'accent-market': 'var(--accent-600)',
         sell: 'var(--color-sell)',
         buy: 'var(--color-buy)',
         done: 'var(--color-done)',
+        sellTag: {
+          bg: 'var(--color-sell-bg)',
+          text: 'var(--color-sell-text)',
+        },
+        buyTag: {
+          bg: 'var(--color-buy-bg)',
+          text: 'var(--color-buy-text)',
+        },
+        doneTag: {
+          bg: 'var(--color-done-bg)',
+          text: 'var(--color-done-text)',
+        },
         surface: {
           DEFAULT: 'var(--color-surface)',
           muted: 'var(--color-surface-muted)',
@@ -29,6 +57,9 @@ export default {
           DEFAULT: 'var(--color-text)',
           muted: 'var(--color-text-muted)',
         },
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
       },
       fontFamily: {
         sans: ['var(--aw-font-sans, ui-sans-serif)', ...defaultTheme.fontFamily.sans],

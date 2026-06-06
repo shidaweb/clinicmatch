@@ -45,7 +45,7 @@ const FORM_SELL = getPermalink('contact/sell');
 ---
 
 <Layout metadata={metadata}>
-  <WidgetWrapper containerClass="max-w-4xl mx-auto">
+  <WidgetWrapper containerClass="max-w-4xl mx-auto" bg='<div class="absolute inset-0 bg-cream"></div>'>
     <!-- パンくず: トップ > 取扱機器 > [カテゴリ名] -->
     <Breadcrumb
       class="mb-6 text-sm"
@@ -64,31 +64,28 @@ const FORM_SELL = getPermalink('contact/sell');
         >
           {data.title}
         </span>
-        <h1 class="mt-2 text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading text-default">
+        <h1 class="mt-2 cm-heading text-4xl md:text-5xl font-bold">
           {data.title}の中古売買
         </h1>
-        <p class="mt-4 text-lg text-muted dark:text-slate-400">{data.description}</p>
+        <p class="mt-4 text-lg text-plum-soft leading-relaxed">{data.description}</p>
       </header>
 
-      <section class="mb-10 rounded-xl border border-border bg-brand-600/5 p-6">
-        <h2 class="text-lg font-semibold text-text mb-2">このカテゴリの在庫を見る</h2>
-        <p class="text-sm text-text-muted mb-4">募集中の売りたい・買いたいを一覧で比較できます。</p>
-        <a
-          href={`/cases?view=active&category=${categorySlug}`}
-          class="inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-        >
+      <section class="mb-10 cm-card p-6 border-rose/20">
+        <h2 class="font-heading text-lg font-semibold text-plum mb-2">このカテゴリの在庫を見る</h2>
+        <p class="text-sm text-plum-soft mb-4">募集中の売りたい・買いたいを一覧で比較できます。</p>
+        <a href={`/cases?view=active&category=${categorySlug}`} class="cm-btn-primary">
           {data.title}の在庫一覧へ
         </a>
       </section>
 
       <!-- 主な取扱機種 -->
       <section class="mb-10" aria-labelledby="machines-heading">
-        <h2 id="machines-heading" class="text-2xl font-bold font-heading text-default mb-4">主な取扱機種</h2>
+        <h2 id="machines-heading" class="font-heading text-2xl font-bold text-plum mb-4">主な取扱機種</h2>
         <ul class="grid gap-3 sm:grid-cols-2">
           {data.machines.map((m) => (
-            <li class="flex items-baseline gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-              <span class="font-medium text-default">{m.name}</span>
-              <span class="text-sm text-muted dark:text-slate-400">{m.manufacturer}</span>
+            <li class="flex items-baseline gap-2 p-3 rounded-xl bg-ivory border border-line">
+              <span class="font-medium text-plum">{m.name}</span>
+              <span class="text-sm text-plum-soft">{m.manufacturer}</span>
             </li>
           ))}
         </ul>
@@ -96,14 +93,14 @@ const FORM_SELL = getPermalink('contact/sell');
 
       <!-- 中古購入で確認すべきポイント -->
       <section class="mb-10" aria-labelledby="checkpoints-heading">
-        <h2 id="checkpoints-heading" class="text-2xl font-bold font-heading text-default mb-4">
+        <h2 id="checkpoints-heading" class="font-heading text-2xl font-bold text-plum mb-4">
           中古購入で確認すべきポイント
         </h2>
         <ul class="space-y-2">
           {data.checkpoints.map((item) => (
             <li class="flex items-start gap-2">
-              <span class="text-primary mt-0.5">✓</span>
-              <span class="text-slate-700 dark:text-slate-300">{item}</span>
+              <span class="text-rose mt-0.5">✓</span>
+              <span class="text-plum-soft">{item}</span>
             </li>
           ))}
         </ul>
@@ -112,19 +109,16 @@ const FORM_SELL = getPermalink('contact/sell');
       <!-- 取引事例 -->
       {categoryCases.length > 0 && (
         <section class="mb-10" aria-labelledby="cases-heading">
-          <h2 id="cases-heading" class="text-2xl font-bold font-heading text-default mb-4">取引事例</h2>
+          <h2 id="cases-heading" class="font-heading text-2xl font-bold text-plum mb-4">取引事例</h2>
           <div class="grid gap-4 sm:grid-cols-2">
             {categoryCases.map((caseEntry) => {
               const caseSlug = caseEntry.id.replace(/\.mdx?$/, '');
               const caseHref = getPermalink(`cases/${caseSlug}`);
               const caseData = caseEntry.data;
               return (
-                <a
-                  href={caseHref}
-                  class="block p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-primary/30 dark:hover:border-primary/40 transition-colors"
-                >
-                  <h3 class="font-bold font-heading text-default">{caseData.title}</h3>
-                  <dl class="mt-2 text-sm text-muted dark:text-slate-400 space-y-0.5">
+                <a href={caseHref} class="cm-card block p-4 hover:shadow-lg transition group">
+                  <h3 class="font-heading font-bold text-plum group-hover:text-rose">{caseData.title}</h3>
+                  <dl class="mt-2 text-sm text-plum-soft space-y-0.5">
                     <div class="flex justify-between">
                       <dt>製造</dt>
                       <dd>{formatDateYMD(caseData.manufacturedDate)}</dd>
@@ -134,7 +128,7 @@ const FORM_SELL = getPermalink('contact/sell');
                       <dd>{formatDateYMD(caseData.transactionDate)}</dd>
                     </div>
                   </dl>
-                  <p class="mt-2 text-sm text-primary font-medium">詳細を見る →</p>
+                  <p class="mt-2 text-sm text-rose font-medium">詳細を見る →</p>
                 </a>
               );
             })}
@@ -143,20 +137,16 @@ const FORM_SELL = getPermalink('contact/sell');
       )}
 
       <!-- CTA -->
-      <section class="pt-8 border-t border-slate-200 dark:border-slate-600" aria-labelledby="cta-heading">
-        <h2 id="cta-heading" class="text-xl font-bold font-heading text-default mb-4">
+      <section class="pt-8 border-t border-line" aria-labelledby="cta-heading">
+        <h2 id="cta-heading" class="font-heading text-xl font-bold text-plum mb-4">
           この機器の購入・売却をご検討の方
         </h2>
-        <p class="text-muted dark:text-slate-400 mb-6">
+        <p class="text-plum-soft mb-6">
           {data.title}の中古購入・売却について、条件の整理からマッチングまでサポートします。お気軽にご相談ください。
         </p>
         <div class="flex flex-wrap gap-4">
-          <Button href={FORM_SELL} variant="primary">
-            この機器を売却したい
-          </Button>
-          <Button href={FORM_BUY} variant="secondary">
-            この機器の購入を相談する
-          </Button>
+          <Button href={FORM_SELL} variant="primary" class="!rounded-full">この機器を売却したい</Button>
+          <Button href={FORM_BUY} variant="secondary" class="!rounded-full">この機器の購入を相談する</Button>
         </div>
       </section>
     </article>

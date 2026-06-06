@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { PREFECTURES, POST_STATUS_LABELS } from '~/lib/marketplace';
@@ -26,90 +26,89 @@ const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const metadata = { title: '出品を編集' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-2xl mx-auto px-4 sm:px-6">
-      <a href="/account/listings" class="text-sm text-brand-600 hover:underline">← 売りたい一覧</a>
-      <h1 class="text-2xl font-bold text-sell mt-4 mb-2">出品を編集</h1>
-      <p class="text-sm text-text-muted mb-6">ステータス: {POST_STATUS_LABELS[listing.status] ?? listing.status}</p>
+<AccountLayout
+  metadata={metadata}
+  title="出品を編集"
+  subtitle={`ステータス: ${POST_STATUS_LABELS[listing.status] ?? listing.status}`}
+  maxWidth="2xl"
+>
+  <a href="/account/listings" class="cm-link text-sm mb-6 inline-block">← 売りたい一覧</a>
 
-      <form id="listing-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
-        <input type="hidden" name="id" value={listing.id} />
-        <div>
-          <label class="block text-sm font-medium mb-1">カテゴリ</label>
-          <select name="category_slug" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-            {['hair-removal','pico-laser','ipl','hifu','rf','body'].map((slug) => (
-              <option value={slug} selected={listing.category_slug === slug}>{slug}</option>
-            ))}
-          </select>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">メーカー</label>
-            <input name="maker" required value={listing.maker} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">型番</label>
-            <input name="model" required value={listing.model} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">希望価格（円）</label>
-            <input name="asking_price" type="number" value={listing.asking_price ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">年式</label>
-            <input name="manufacture_year" type="number" value={listing.manufacture_year ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">都道府県</label>
-            <select name="location_prefecture" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
-              {PREFECTURES.map((pref) => (
-                <option value={pref} selected={pref === listing.location_prefecture}>{pref}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">市区町村</label>
-            <input name="location_city" required value={listing.location_city} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">説明</label>
-          <textarea name="description" rows="4" class="w-full rounded-xl border border-border px-3 py-2 text-sm">{listing.description ?? ''}</textarea>
-        </div>
-        <div class="flex gap-3">
-          <button type="submit" name="action" value="draft" class="rounded-xl border border-border px-5 py-2.5 text-sm">保存</button>
-          <button type="submit" name="action" value="submit" class="rounded-xl bg-sell px-5 py-2.5 text-sm text-white font-semibold">審査に提出</button>
-        </div>
-        <p id="listing-status" class="text-sm text-text-muted hidden"></p>
-      </form>
-
-      <div class="mt-8 rounded-xl border border-border bg-surface p-6">
-        <h2 class="font-semibold text-text mb-4">画像</h2>
-        <div class="grid grid-cols-3 gap-3 mb-4">
-          {(listing.listing_images ?? []).map((img: { storage_path: string }) => (
-            supabaseUrl && (
-              <img
-                src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
-                alt=""
-                class="rounded-lg h-24 w-full object-cover bg-surface-muted"
-              />
-            )
-          ))}
-        </div>
-        <form id="image-form" class="flex gap-3 items-end">
-          <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required class="text-sm" />
-          <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm text-white">アップロード</button>
-        </form>
-        <p id="image-status" class="text-sm text-text-muted mt-2 hidden"></p>
+  <form id="listing-form" class="cm-card p-6 space-y-4">
+    <input type="hidden" name="id" value={listing.id} />
+    <div>
+      <label class="cm-label">カテゴリ</label>
+      <select name="category_slug" required class="cm-input">
+        {['hair-removal','pico-laser','ipl','hifu','rf','body'].map((slug) => (
+          <option value={slug} selected={listing.category_slug === slug}>{slug}</option>
+        ))}
+      </select>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">メーカー</label>
+        <input name="maker" required value={listing.maker} class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">型番</label>
+        <input name="model" required value={listing.model} class="cm-input" />
       </div>
     </div>
-  </section>
-</Layout>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">希望価格（円）</label>
+        <input name="asking_price" type="number" value={listing.asking_price ?? ''} class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">年式</label>
+        <input name="manufacture_year" type="number" value={listing.manufacture_year ?? ''} class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">都道府県</label>
+        <select name="location_prefecture" required class="cm-input">
+          {PREFECTURES.map((pref) => (
+            <option value={pref} selected={pref === listing.location_prefecture}>{pref}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label class="cm-label">市区町村</label>
+        <input name="location_city" required value={listing.location_city} class="cm-input" />
+      </div>
+    </div>
+    <div>
+      <label class="cm-label">説明</label>
+      <textarea name="description" rows="4" class="cm-input">{listing.description ?? ''}</textarea>
+    </div>
+    <div class="flex gap-3">
+      <button type="submit" name="action" value="draft" class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button>
+      <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
+    </div>
+    <p id="listing-status" class="text-sm text-plum-soft hidden"></p>
+  </form>
+
+  <div class="mt-8 cm-card p-6">
+    <h2 class="font-heading font-semibold text-plum mb-4">画像</h2>
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      {(listing.listing_images ?? []).map((img: { storage_path: string }) => (
+        supabaseUrl && (
+          <img
+            src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
+            alt=""
+            class="rounded-2xl h-24 w-full object-cover bg-cream"
+          />
+        )
+      ))}
+    </div>
+    <form id="image-form" class="flex gap-3 items-end">
+      <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required class="text-sm text-plum" />
+      <button type="submit" class="cm-btn-primary text-sm !px-4 !py-2">アップロード</button>
+    </form>
+    <p id="image-status" class="text-sm text-plum-soft mt-2 hidden"></p>
+  </div>
+</AccountLayout>
 
 <script define:vars={{ listingId: listing.id }}>
   const form = document.getElementById('listing-form');

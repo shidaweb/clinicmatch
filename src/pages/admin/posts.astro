@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
 
@@ -17,45 +17,39 @@ const [{ data: listings }, { data: wanted }] = await Promise.all([
 const metadata = { title: '投稿審査' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <h1 class="text-2xl font-bold text-text mb-8">投稿審査</h1>
+<AdminLayout metadata={metadata} title="投稿審査" maxWidth="5xl">
+  <h2 class="text-lg font-semibold text-rose mb-4">売りたい（審査待ち）</h2>
+  <ul class="space-y-3 mb-10">
+    {(listings ?? []).map((item) => (
+      <li class="cm-list-item flex items-center justify-between gap-4">
+        <span class="text-plum">{item.maker} {item.model}</span>
+        <button
+          class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
+          data-type="listings"
+          data-id={item.id}
+        >
+          公開する
+        </button>
+      </li>
+    ))}
+  </ul>
 
-      <h2 class="text-lg font-semibold text-sell mb-4">売りたい（審査待ち）</h2>
-      <ul class="space-y-3 mb-10">
-        {(listings ?? []).map((item) => (
-          <li class="rounded-xl border border-border p-4 flex items-center justify-between gap-4">
-            <span>{item.maker} {item.model}</span>
-            <button
-              class="publish-btn rounded-xl bg-brand-600 px-4 py-2 text-sm text-white"
-              data-type="listings"
-              data-id={item.id}
-            >
-              公開する
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <h2 class="text-lg font-semibold text-buy mb-4">買いたい（審査待ち）</h2>
-      <ul class="space-y-3">
-        {(wanted ?? []).map((item) => (
-          <li class="rounded-xl border border-border p-4 flex items-center justify-between gap-4">
-            <span>{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
-            <button
-              class="publish-btn rounded-xl bg-brand-600 px-4 py-2 text-sm text-white"
-              data-type="wanted"
-              data-id={item.id}
-            >
-              公開する
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-</Layout>
+  <h2 class="text-lg font-semibold text-gold mb-4">買いたい（審査待ち）</h2>
+  <ul class="space-y-3">
+    {(wanted ?? []).map((item) => (
+      <li class="cm-list-item flex items-center justify-between gap-4">
+        <span class="text-plum">{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
+        <button
+          class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
+          data-type="wanted"
+          data-id={item.id}
+        >
+          公開する
+        </button>
+      </li>
+    ))}
+  </ul>
+</AdminLayout>
 
 <script>
   document.querySelectorAll('.publish-btn').forEach((btn) => {

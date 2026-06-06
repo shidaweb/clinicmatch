@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { POST_STATUS_LABELS } from '~/lib/marketplace';
@@ -33,83 +33,78 @@ const metadata = { title: 'マイページ' };
 const org = profile.organizations as { prefecture?: string; city?: string } | null;
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <h1 class="text-3xl font-bold text-text">マイページ</h1>
-      <p class="mt-2 text-text-muted">{org?.prefecture}{org?.city} — {profile.full_name ?? '担当者'}</p>
+<AccountLayout metadata={metadata} showNav={true}>
+  <header class="mb-8">
+    <p class="cm-eyebrow mb-2">My Page</p>
+    <h1 class="cm-heading text-3xl font-bold">マイページ</h1>
+    <p class="mt-2 text-plum-soft">{org?.prefecture}{org?.city} — {profile.full_name ?? '担当者'}</p>
+  </header>
 
-      <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <a href="/account/listings/new" class="rounded-xl border border-sell bg-surface p-5 hover:shadow-sm transition">
-          <p class="text-sm font-semibold text-sell">売りたいを出す</p>
-        </a>
-        <a href="/account/wanted/new" class="rounded-xl border border-buy bg-surface p-5 hover:shadow-sm transition">
-          <p class="text-sm font-semibold text-buy">買いたいを出す</p>
-        </a>
-        <a href="/account/threads" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
-          <p class="text-sm font-semibold text-text">メッセージ</p>
-          <p class="text-2xl font-bold text-brand-600 mt-1">{threadsCount}</p>
-        </a>
-        <a href="/account/deals" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
-          <p class="text-sm font-semibold text-text">契約・請求</p>
-        </a>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <a href="/account/listings/new" class="cm-card p-5 hover:shadow-lg transition border-rose/25">
+      <p class="text-sm font-semibold text-rose">売りたいを出す</p>
+    </a>
+    <a href="/account/wanted/new" class="cm-card p-5 hover:shadow-lg transition border-gold/30">
+      <p class="text-sm font-semibold text-gold">買いたいを出す</p>
+    </a>
+    <a href="/account/threads" class="cm-card p-5 hover:shadow-lg transition">
+      <p class="text-sm font-semibold text-plum">メッセージ</p>
+      <p class="text-2xl font-heading font-bold text-rose mt-1 tabular-nums">{threadsCount}</p>
+    </a>
+    <a href="/account/deals" class="cm-card p-5 hover:shadow-lg transition">
+      <p class="text-sm font-semibold text-plum">契約・請求</p>
+    </a>
+  </div>
+
+  <div class="mt-4">
+    <a href="/account/approaches" class="cm-link">アプローチ一覧（{approachesCount}件）</a>
+  </div>
+
+  <div class="mt-10 grid lg:grid-cols-2 gap-8">
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-heading text-lg font-semibold text-plum">売りたい</h2>
+        <a href="/account/listings" class="cm-link">すべて</a>
       </div>
-
-      <div class="mt-4">
-        <a href="/account/approaches" class="text-sm text-brand-600 hover:underline">
-          アプローチ一覧（{approachesCount}件）
-        </a>
-      </div>
-
-      <div class="mt-10 grid lg:grid-cols-2 gap-8">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-text">売りたい</h2>
-            <a href="/account/listings" class="text-sm text-brand-600">すべて</a>
-          </div>
-          <ul class="space-y-3">
-            {
-              listings.length ? listings.map((item) => (
-                <li class="rounded-xl border border-border p-4 flex justify-between gap-3">
-                  <span class="text-sm text-text">{item.maker} {item.model}</span>
-                  <span class="text-xs text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
-                </li>
-              )) : (
-                <li class="text-sm text-text-muted">まだ出品がありません</li>
-              )
-            }
-          </ul>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-text">買いたい</h2>
-            <a href="/account/wanted" class="text-sm text-brand-600">すべて</a>
-          </div>
-          <ul class="space-y-3">
-            {
-              wanted.length ? wanted.map((item) => (
-                <li class="rounded-xl border border-border p-4 flex justify-between gap-3">
-                  <span class="text-sm text-text">{item.category_slug}</span>
-                  <span class="text-xs text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
-                </li>
-              )) : (
-                <li class="text-sm text-text-muted">まだ買いたいがありません</li>
-              )
-            }
-          </ul>
-        </div>
-      </div>
-
-      {profile.role === 'admin' && (
-        <div class="mt-10 flex flex-wrap gap-4">
-          <a href="/admin" class="text-brand-600 font-medium hover:underline">運営管理画面へ</a>
-        </div>
-      )}
-
-      <div class="mt-6">
-        <a href="/account/settings" class="text-sm text-text-muted hover:text-brand-600">設定・連絡先</a>
-      </div>
+      <ul class="space-y-3">
+        {
+          listings.length ? listings.map((item) => (
+            <li class="cm-list-item flex justify-between gap-3">
+              <span class="text-sm text-plum">{item.maker} {item.model}</span>
+              <span class="text-xs text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+            </li>
+          )) : (
+            <li class="text-sm text-plum-soft">まだ出品がありません</li>
+          )
+        }
+      </ul>
     </div>
-  </section>
-</Layout>
+
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-heading text-lg font-semibold text-plum">買いたい</h2>
+        <a href="/account/wanted" class="cm-link">すべて</a>
+      </div>
+      <ul class="space-y-3">
+        {
+          wanted.length ? wanted.map((item) => (
+            <li class="cm-list-item flex justify-between gap-3">
+              <span class="text-sm text-plum">{item.category_slug}</span>
+              <span class="text-xs text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+            </li>
+          )) : (
+            <li class="text-sm text-plum-soft">まだ買いたいがありません</li>
+          )
+        }
+      </ul>
+    </div>
+  </div>
+
+  {
+    profile.role === 'admin' && (
+      <div class="mt-10">
+        <a href="/admin" class="cm-link font-medium">運営管理画面へ →</a>
+      </div>
+    )
+  }
+</AccountLayout>

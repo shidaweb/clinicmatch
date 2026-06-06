@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import Layout from '~/layouts/PageLayout.astro';
+import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 
@@ -18,41 +18,36 @@ const { data: threads } = await supabase
 const metadata = { title: 'メッセージ' };
 ---
 
-<Layout metadata={metadata}>
-  <section class="py-12 md:py-16">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6">
-      <h1 class="text-2xl font-bold text-text mb-6">メッセージ</h1>
-      <ul class="space-y-3">
-        {
-          (threads ?? []).length ? (
-            threads!.map((t) => (
-              <li>
-                <a href={`/account/threads/${t.id}`} class="block rounded-xl border border-border p-4 hover:shadow-sm transition">
-                  <div class="flex justify-between items-start gap-3">
-                    <div>
-                      <span class:list={[
-                        'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold text-white',
-                        t.kind === 'qa' ? 'bg-brand-600' : 'bg-accent-market',
-                      ]}>
-                        {t.kind === 'qa' ? 'Q&A' : '仲介'}
-                      </span>
-                      <p class="mt-2 text-sm text-text">
-                        {t.subject_type === 'listing' ? '売りたい出品' : '買いたいリクエスト'} に関するスレッド
-                      </p>
-                    </div>
-                    <div class="text-right text-xs text-text-muted">
-                      <p>{t.status === 'open' ? '進行中' : '終了'}</p>
-                      {t.contact_disclosed && <p class="text-accent-market mt-1">連絡先開示済</p>}
-                    </div>
-                  </div>
-                </a>
-              </li>
-            ))
-          ) : (
-            <li class="text-sm text-text-muted">進行中のスレッドはありません</li>
-          )
-        }
-      </ul>
-    </div>
-  </section>
-</Layout>
+<AccountLayout metadata={metadata} title="メッセージ" maxWidth="3xl">
+  <ul class="space-y-3">
+    {
+      (threads ?? []).length ? (
+        threads!.map((t) => (
+          <li>
+            <a href={`/account/threads/${t.id}`} class="block cm-list-item hover:shadow-sm transition">
+              <div class="flex justify-between items-start gap-3">
+                <div>
+                  <span class:list={[
+                    'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold text-white',
+                    t.kind === 'qa' ? 'bg-rose' : 'bg-gold',
+                  ]}>
+                    {t.kind === 'qa' ? 'Q&A' : '仲介'}
+                  </span>
+                  <p class="mt-2 text-sm text-plum">
+                    {t.subject_type === 'listing' ? '売りたい出品' : '買いたいリクエスト'} に関するスレッド
+                  </p>
+                </div>
+                <div class="text-right text-xs text-plum-soft">
+                  <p>{t.status === 'open' ? '進行中' : '終了'}</p>
+                  {t.contact_disclosed && <p class="text-rose mt-1">連絡先開示済</p>}
+                </div>
+              </div>
+            </a>
+          </li>
+        ))
+      ) : (
+        <li class="text-sm text-plum-soft">進行中のスレッドはありません</li>
+      )
+    }
+  </ul>
+</AccountLayout>

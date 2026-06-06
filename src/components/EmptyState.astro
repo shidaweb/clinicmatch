@@ -14,12 +14,12 @@ const {
 } = Astro.props;
 ---
 
-<div class="rounded-xl border border-dashed border-border bg-surface-muted px-6 py-12 text-center">
-  <h3 class="text-lg font-semibold text-text">{title}</h3>
-  <p class="mt-2 text-sm text-text-muted">{message}</p>
+<div class="rounded-2xl border border-dashed border-line bg-cream px-6 py-12 text-center">
+  <h3 class="font-heading text-lg font-semibold text-plum">{title}</h3>
+  <p class="mt-2 text-sm text-plum-soft">{message}</p>
   {
     actionHref && actionLabel && (
-      <a href={actionHref} class="mt-6 inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white">
+      <a href={actionHref} class="mt-6 cm-btn-primary">
         {actionLabel}
       </a>
     )
