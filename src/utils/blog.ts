@@ -4,6 +4,7 @@ import { APP_BLOG } from 'astrowind:config';
 import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
 import { getSanityClient } from '~/lib/sanity';
 import { POSTS_GROQ } from '~/lib/sanity.queries';
+import { resolveBlogHeaderImage } from '~/lib/unsplash-blog-image';
 
 /** Image URL: GROQ uses mainImage.asset->url (string). Pass-through. */
 function getSanityImageUrl(src: string | null | undefined): string | undefined {
@@ -233,10 +234,26 @@ const load = async function (): Promise<Array<Post>> {
     const client = getSanityClient();
     const raw = (await client.fetch<SanityPost[]>(POSTS_GROQ)) || [];
 
-    return raw
-      .filter((p) => p && (p.slug || p._id))
-      .map(sanityPostToPost)
-      .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf());
+    const posts = raw.filter((p) => p && (p.slug || p._id)).map(sanityPostToPost);
+
+    const withImages = await Promise.all(
+      posts.map(async (post) => ({
+        ...post,
+        image: await resolveBlogHeaderImage(
+          {
+            id: post.id,
+            slug: post.slug,
+            title: post.title,
+            excerpt: post.excerpt,
+            category: post.category,
+            tags: post.tags,
+          },
+          post.image
+        ),
+      }))
+    );
+
+    return withImages.sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf());
   } catch (e) {
     console.error('[blog] Failed to fetch posts from Sanity:', e);
     return [];
