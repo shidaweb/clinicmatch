@@ -11,24 +11,41 @@ function json(data: unknown, status = 200) {
   });
 }
 
-function buildListingPayload(body: Record<string, unknown>, org: { prefecture?: string; city?: string } | null) {
-  return {
-    category_slug: String(body.category_slug ?? ''),
-    maker: String(body.maker ?? '').trim(),
-    model: String(body.model ?? '').trim(),
-    manufacture_year: body.manufacture_year ? Number(body.manufacture_year) : null,
-    condition: body.condition ? String(body.condition) : null,
-    asking_price: body.asking_price ? Number(body.asking_price) : null,
-    location_prefecture: String(body.location_prefecture ?? org?.prefecture ?? ''),
-    location_city: String(body.location_city ?? org?.city ?? ''),
-    has_accessories: body.has_accessories === true || body.has_accessories === 'true',
-    accessories_detail: body.accessories_detail ? String(body.accessories_detail) : null,
-    maker_maintenance: body.maker_maintenance ?? 'unknown',
-    maintenance_transferable: body.maintenance_transferable ?? 'unknown',
-    maintenance_notes: body.maintenance_notes ? String(body.maintenance_notes) : null,
-    description: body.description ? String(body.description) : null,
-    ...(body.submit === true || body.submit === 'true' ? { status: 'pending_review' as const } : {}),
-  };
+function buildListingPatchPayload(
+  body: Record<string, unknown>,
+  org: { prefecture?: string; city?: string } | null
+) {
+  const payload: Record<string, unknown> = {};
+
+  if ('category_slug' in body) payload.category_slug = String(body.category_slug ?? '');
+  if ('maker' in body) payload.maker = String(body.maker ?? '').trim();
+  if ('model' in body) payload.model = String(body.model ?? '').trim();
+  if ('manufacture_year' in body) {
+    payload.manufacture_year = body.manufacture_year ? Number(body.manufacture_year) : null;
+  }
+  if ('condition' in body) payload.condition = body.condition ? String(body.condition) : null;
+  if ('asking_price' in body) payload.asking_price = body.asking_price ? Number(body.asking_price) : null;
+  if ('location_prefecture' in body) {
+    payload.location_prefecture = String(body.location_prefecture ?? org?.prefecture ?? '');
+  }
+  if ('location_city' in body) payload.location_city = String(body.location_city ?? org?.city ?? '');
+  if ('has_accessories' in body) {
+    payload.has_accessories = body.has_accessories === true || body.has_accessories === 'true';
+  }
+  if ('accessories_detail' in body) {
+    payload.accessories_detail = body.accessories_detail ? String(body.accessories_detail) : null;
+  }
+  if ('maker_maintenance' in body) payload.maker_maintenance = body.maker_maintenance ?? 'unknown';
+  if ('maintenance_transferable' in body) {
+    payload.maintenance_transferable = body.maintenance_transferable ?? 'unknown';
+  }
+  if ('maintenance_notes' in body) {
+    payload.maintenance_notes = body.maintenance_notes ? String(body.maintenance_notes) : null;
+  }
+  if ('description' in body) payload.description = body.description ? String(body.description) : null;
+  if (body.submit === true || body.submit === 'true') payload.status = 'pending_review';
+
+  return payload;
 }
 
 export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
@@ -40,7 +57,8 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
 
   const body = (await request.json()) as Record<string, unknown>;
   const org = profile.organizations as { prefecture?: string; city?: string } | null;
-  const payload = buildListingPayload(body, org);
+  const payload = buildListingPatchPayload(body, org);
+  if (Object.keys(payload).length === 0) return json({ error: '更新する項目がありません' }, 400);
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
 

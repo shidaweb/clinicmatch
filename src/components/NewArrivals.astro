@@ -1,0 +1,79 @@
+---
+---
+
+<div id="new-arrivals" class="mt-12">
+  <div class="grid md:grid-cols-2 gap-8">
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-text">新着の売りたい</h2>
+        <a href="/cases?view=active&type=listing" class="text-sm text-brand-600 hover:underline">すべて見る</a>
+      </div>
+      <div id="new-listings" class="flex gap-4 overflow-x-auto pb-2 snap-x">
+        <p class="text-sm text-text-muted">読み込み中…</p>
+      </div>
+    </div>
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-text">新着の買いたい</h2>
+        <a href="/cases?view=active&type=wanted" class="text-sm text-brand-600 hover:underline">すべて見る</a>
+      </div>
+      <div id="new-wanted" class="flex gap-4 overflow-x-auto pb-2 snap-x">
+        <p class="text-sm text-text-muted">読み込み中…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function formatPrice(amount: number | null | undefined) {
+    if (amount == null) return '応相談';
+    return `${amount.toLocaleString('ja-JP')}円`;
+  }
+
+  function cardHtml(kind: 'listing' | 'wanted', item: Record<string, unknown>) {
+    const isListing = kind === 'listing';
+    const title = isListing
+      ? `${item.maker} ${item.model}`
+      : item.maker && item.model
+        ? `${item.maker} ${item.model}`
+        : (item.categories as { name?: string } | null)?.name ?? '買いたい';
+    const price = isListing ? formatPrice(item.asking_price as number) : formatPrice(item.budget as number);
+    const tagClass = isListing ? 'bg-sell' : 'bg-buy';
+    const tagLabel = isListing ? '売りたい' : '買いたい';
+    const href = `/cases/${item.id}?type=${kind}`;
+    return `
+      <a href="${href}" class="snap-start shrink-0 w-56 rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md transition block">
+        <span class="inline-flex rounded-full ${tagClass} px-2 py-0.5 text-xs font-semibold text-white">${tagLabel}</span>
+        <p class="mt-2 font-semibold text-sm text-text line-clamp-2">${title}</p>
+        <p class="mt-2 text-sm font-bold text-text tabular-nums">${price}</p>
+      </a>
+    `;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch('/api/market/recent');
+      const data = await res.json();
+      const listingsEl = document.getElementById('new-listings');
+      const wantedEl = document.getElementById('new-wanted');
+
+      if (listingsEl) {
+        listingsEl.innerHTML = data.listings?.length
+          ? data.listings.map((item: Record<string, unknown>) => cardHtml('listing', item)).join('')
+          : '<p class="text-sm text-text-muted">募集中の出品はまだありません</p>';
+      }
+      if (wantedEl) {
+        wantedEl.innerHTML = data.wanted?.length
+          ? data.wanted.map((item: Record<string, unknown>) => cardHtml('wanted', item)).join('')
+          : '<p class="text-sm text-text-muted">募集中の買いたいはまだありません</p>';
+      }
+    } catch {
+      const listingsEl = document.getElementById('new-listings');
+      const wantedEl = document.getElementById('new-wanted');
+      if (listingsEl) listingsEl.innerHTML = '<p class="text-sm text-text-muted">読み込めませんでした</p>';
+      if (wantedEl) wantedEl.innerHTML = '<p class="text-sm text-text-muted">読み込めませんでした</p>';
+    }
+  }
+
+  load();
+</script>

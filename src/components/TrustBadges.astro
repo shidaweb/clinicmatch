@@ -1,0 +1,27 @@
+---
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+
+const badges = [
+  { label: '運営が仲介', icon: 'tabler:shield-check' },
+  { label: '匿名相談OK', icon: 'tabler:user-off' },
+  { label: '累計38件', icon: 'tabler:chart-bar' },
+  { label: '平均14日でマッチ', icon: 'tabler:clock' },
+];
+---
+
+<div class:list={['flex flex-wrap gap-2', compact ? 'justify-center' : '']}>
+  {
+    badges.map(({ label, icon }) => (
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-accent-market shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+        </svg>
+        {label}
+      </span>
+    ))
+  }
+</div>

@@ -3,32 +3,24 @@ export const prerender = true;
 
 import Layout from '~/layouts/PageLayout.astro';
 import { Icon } from 'astro-icon/components';
-import { getPermalink } from '~/utils/permalinks';
 import ConsultButton from '~/components/ConsultButton.astro';
-
-import Hero from '~/components/widgets/Hero.astro';
-import Note from '~/components/widgets/Note.astro';
+import TrustBadges from '~/components/TrustBadges.astro';
+import NewArrivals from '~/components/NewArrivals.astro';
 import Features from '~/components/widgets/Features.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import Steps from '~/components/widgets/Steps.astro';
 import Content from '~/components/widgets/Content.astro';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
-import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import FAQPageJsonLd from '~/components/seo/FAQPageJsonLd.astro';
 import { homeFaqs } from '~/data/homeFaq';
+import { getPermalink } from '~/utils/permalinks';
 
 const metadata = {
   title: 'クリニックマッチ｜美容医療機器の売買を もっと 安心・透明に',
   ignoreTitleTemplate: true,
 };
-
-const heroStats = [
-  { amount: '38件', label: '累計取引の実績' },
-  { amount: '14日', label: '平均でマッチング' },
-  { amount: 'OK', label: '匿名相談' },
-];
 
 const categories = [
   { slug: 'hair-removal', label: '脱毛', icon: 'tabler:scissors' },
@@ -41,374 +33,152 @@ const categories = [
 ---
 
 <Layout metadata={metadata}>
-  <!-- Marketplace Hero -->
   <section class="py-16 md:py-20 bg-surface-muted">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold text-text leading-tight">
-        美容医療機器の<br class="sm:hidden" />売りたい・買いたいをつなぐ
-      </h1>
-      <p class="mt-4 text-lg text-text-muted max-w-2xl mx-auto leading-relaxed">
-        中古の脱毛機・ピコ・HIFU・RF・痩身機器。匿名で探せて、運営が仲介します。
-      </p>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-3xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold text-text leading-tight">
+          美容医療機器の<br class="sm:hidden" />売りたい・買いたいをつなぐ
+        </h1>
+        <p class="mt-4 text-lg text-text-muted leading-relaxed">
+          匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器のマッチングプラットフォーム。
+        </p>
+        <div class="mt-6 flex justify-center">
+          <TrustBadges compact />
+        </div>
+      </div>
 
-      <form action="/market" method="get" class="mt-8 max-w-xl mx-auto flex gap-2">
-        <input
-          type="search"
-          name="q"
-          placeholder="メーカー・型番で検索"
-          class="flex-1 rounded-xl border border-border px-4 py-3 text-sm bg-surface"
-        />
-        <button type="submit" class="rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white">さがす</button>
+      <div class="mt-10 grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+        <a href="/cases?view=active" class="rounded-xl border border-border bg-surface p-6 text-center shadow-sm hover:shadow-md transition group">
+          <Icon name="tabler:search" class="w-8 h-8 mx-auto text-brand-600" />
+          <p class="mt-3 font-semibold text-text group-hover:text-brand-600">在庫をさがす</p>
+          <p class="mt-1 text-xs text-text-muted">募集中の売りたい・買いたい</p>
+        </a>
+        <a href={getPermalink('contact')} class="rounded-xl border border-border bg-surface p-6 text-center shadow-sm hover:shadow-md transition group">
+          <Icon name="tabler:tag" class="w-8 h-8 mx-auto text-sell" />
+          <p class="mt-3 font-semibold text-text">売りたい・買いたいを出す</p>
+          <p class="mt-1 text-xs text-text-muted">会員登録または相談フォーム</p>
+        </a>
+        <a href={getPermalink('contact')} class="rounded-xl border-2 border-brand-600 bg-brand-600 p-6 text-center shadow-sm hover:opacity-95 transition text-white">
+          <Icon name="tabler:message-circle" class="w-8 h-8 mx-auto" />
+          <p class="mt-3 font-semibold">出品・購入を相談する</p>
+          <p class="mt-1 text-xs text-white/80">匿名OK・約2分</p>
+        </a>
+      </div>
+
+      <form action="/cases" method="get" class="mt-10 max-w-2xl mx-auto">
+        <input type="hidden" name="view" value="active" />
+        <div class="flex flex-col sm:flex-row gap-2">
+          <select name="category" class="rounded-xl border border-border px-4 py-3 text-sm bg-surface sm:w-40">
+            <option value="">すべてのカテゴリ</option>
+            {categories.map(({ slug, label }) => (
+              <option value={slug}>{label}</option>
+            ))}
+          </select>
+          <input
+            type="search"
+            name="q"
+            placeholder="メーカー・型番で検索"
+            class="flex-1 rounded-xl border border-border px-4 py-3 text-sm bg-surface"
+          />
+          <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:opacity-90">さがす</button>
+        </div>
       </form>
 
-      <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="/account/listings/new" class="inline-flex rounded-xl bg-sell px-6 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90">
-          売りたいを出す
-        </a>
-        <a href="/account/wanted/new" class="inline-flex rounded-xl bg-buy px-6 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90">
-          買いたいを出す
-        </a>
-        <ConsultButton />
-      </div>
+      <NewArrivals />
 
-      <div class="mt-6 grid grid-cols-3 gap-4 sm:gap-10 max-w-lg mx-auto text-center">
-        {heroStats.map(({ amount, label }) => (
-          <div>
-            <span class="font-sans text-2xl sm:text-3xl font-bold text-brand-600 tabular-nums">{amount}</span>
-            <span class="block text-sm text-text-muted mt-1">{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div class="mt-12 grid md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
-        <a href="/market?type=listing" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
-          <span class="inline-flex rounded-full bg-sell px-2.5 py-0.5 text-xs font-semibold text-white">売りたい</span>
-          <p class="mt-3 font-semibold text-text">新着の売りたい出品を見る</p>
-          <p class="text-sm text-text-muted mt-1">希望価格・保守状況・所在地（市区町村）で比較</p>
-        </a>
-        <a href="/market?type=wanted" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
-          <span class="inline-flex rounded-full bg-buy px-2.5 py-0.5 text-xs font-semibold text-white">買いたい</span>
-          <p class="mt-3 font-semibold text-text">新着の買いたいリクエストを見る</p>
-          <p class="text-sm text-text-muted mt-1">予算・希望時期・エリアでマッチング</p>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Hero Widget (legacy content below) ******************* -->
-
-  <Hero
-    actions={[
-      {
-        variant: 'primary',
-        text: 'マーケットを見る',
-        href: '/market',
-      },
-      {
-        variant: 'secondary',
-        text: '出品・購入を相談する',
-        href: '/consult',
-      },
-    ]}
-    image={{ src: '~/assets/images/hero-image.png', alt: 'クリニックマッチ' }}
-  >
-    <Fragment slot="title">
-      美容医療機器の売買を<br />
-      <span class="hidden xl:inline">もっと</span>
-      <span class="text-accent dark:text-white">安心・透明</span>に
-    </Fragment>
-
-    <Fragment slot="subtitle">
-      <span class="block">
-        中古の脱毛機・ピコ・HIFU・RF・痩身機器を<br class="sm:hidden" />
-        「売りたい」と「買いたい」をつなぐ
-      </span>
-      <!-- 実績数字（Inter で数字を目立たせる） -->
-      <div class="mt-6 grid grid-cols-3 gap-4 sm:gap-10 text-center">
-        {heroStats.map(({ amount, label }) => (
-          <div class="flex flex-col items-center gap-0 sm:gap-0">
-            <span class="font-sans text-3xl sm:text-4xl font-bold text-primary dark:text-white tabular-nums">
-              {amount}
-            </span>
-            <span class="text-sm sm:text-base text-muted dark:text-slate-400">{label}</span>
-          </div>
-        ))}
-      </div>
-    </Fragment>
-
-    <Fragment slot="content">
-      <p class="text-sm font-medium uppercase tracking-wider text-muted dark:text-slate-400 mt-10 mb-3">取扱機器</p>
-      <div class="flex flex-wrap justify-center gap-2 sm:gap-3">
+      <div class="mt-10 flex flex-wrap justify-center gap-2">
         {categories.map(({ slug, label, icon }) => (
           <a
-            href={`/cases/?category=${slug}`}
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary border border-slate-200 dark:border-slate-600 transition-colors"
+            href={`/cases?view=active&category=${slug}`}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-surface border border-border text-text hover:border-brand-600 hover:text-brand-600 transition"
           >
             <Icon name={icon} class="w-4 h-4 shrink-0" />
             {label}
           </a>
         ))}
       </div>
-    </Fragment>
-  </Hero>
-
-  <!-- Note Widget ******************* -->
-
-  <Note
-    title="基本方針"
-    description="清潔感と信頼性を前提に、取引条件を明確化し、情報の非対称性を減らすことで安全な売買を支援します。"
-  />
-
-  <!-- Features Widget *************** -->
+    </div>
+  </section>
 
   <Features
     id="features"
     tagline="強み"
     title="クリニックマッチでできること"
-    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-2xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading' } }}
-    subtitle="「相場が分かりにくい」「比較が大変」「条件交渉が煩雑」になりがちな中古機器取引を、分かりやすく整流化します。"
+    subtitle="「相場が分かりにくい」「比較が大変」な中古機器取引を、分かりやすく整流化します。"
     items={[
-      {
-        title: '条件整理と要件定義',
-        description:
-          'メーカー/型番/年式/状態/付属品/希望価格/設置・搬入条件など、必要情報を漏れなく整理して取引の前提を揃えます。',
-        icon: 'tabler:clipboard-check',
-      },
-      {
-        title: '候補提示と比較検討',
-        description:
-          '目的・予算・運用に合わせて候補を整理し、比較しやすい形で提示します（仕様・状態・価格・リスク観点を含む）。',
-        icon: 'tabler:arrows-exchange',
-      },
-      {
-        title: 'スピード感あるマッチング',
-        description:
-          'タイミング勝負になりやすい在庫情報を、必要条件に沿って素早く絞り込み、意思決定を前に進めます。',
-        icon: 'tabler:bolt',
-      },
-      {
-        title: '取引実務の段取り',
-        description:
-          '検品・動作確認・搬出入・保守/修理の論点など、取引に必要な実務タスクを整理してスムーズな実行を支援します。',
-        icon: 'tabler:truck-delivery',
-      },
-      {
-        title: '情報管理と守秘',
-        description:
-          '検討段階の情報や取引条件が拡散しないように配慮し、必要な範囲で情報を取り扱います。',
-        icon: 'tabler:lock',
-      },
-      {
-        title: '市場理解の発信（ブログ）',
-        description:
-          '中古機器の見極め、注意点、相場感、手続きのポイントなどを記事として整理し、判断材料を提供します。',
-        icon: 'tabler:book',
-      },
+      { title: '条件整理と要件定義', description: 'メーカー/型番/年式/状態/付属品/希望価格など、取引の前提を揃えます。', icon: 'tabler:clipboard-check' },
+      { title: '候補提示と比較検討', description: '目的・予算・運用に合わせて候補を整理し、比較しやすい形で提示します。', icon: 'tabler:arrows-exchange' },
+      { title: 'スピード感あるマッチング', description: '在庫情報を必要条件に沿って素早く絞り込み、意思決定を前に進めます。', icon: 'tabler:bolt' },
+      { title: '取引実務の段取り', description: '検品・搬出入・保守/修理の論点を整理してスムーズな実行を支援します。', icon: 'tabler:truck-delivery' },
+      { title: '情報管理と守秘', description: '検討段階の情報が拡散しないよう配慮し、必要な範囲で取り扱います。', icon: 'tabler:lock' },
+      { title: '市場理解の発信（ブログ）', description: '中古機器の見極め、注意点、相場感を記事として整理します。', icon: 'tabler:book' },
     ]}
   />
-
-  <!-- Content Widget **************** -->
 
   <Content
     id="torihiki"
     isReversed
     tagline="取引の考え方"
     title="意思決定を早め<br />リスクを減らす"
-    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase', title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading leading-snug' } }}
     items={[
-      {
-        title: '論点を先に揃える',
-        description:
-          '価格だけでなく、状態・保証・搬入条件・付属品・点検履歴など、後から揉めやすい論点を先に揃えます。',
-      },
-      {
-        title: '比較できる形に整える',
-        description:
-          '候補ごとに見比べやすい整理を行い、意思決定を前に進めるための情報設計をします。',
-      },
-      {
-        title: '段取りで事故を減らす',
-        description:
-          '検品/動作確認/引渡し/設置などの実務を先回りして整理し、想定外コストや遅延を減らします。',
-      },
+      { title: '論点を先に揃える', description: '価格だけでなく、状態・保証・搬入条件など後から揉めやすい論点を先に揃えます。' },
+      { title: '比較できる形に整える', description: '候補ごとに見比べやすい整理を行い、意思決定を前に進めます。' },
+      { title: '段取りで事故を減らす', description: '検品/引渡し/設置などの実務を先回りして整理します。' },
     ]}
-    image={{
-      src: '~/assets/images/torihiki-joken.png',
-      alt: '取引条件が明確だと、判断が速い',
-    }}
+    image={{ src: '~/assets/images/torihiki-joken.png', alt: '取引条件が明確だと、判断が速い' }}
   >
     <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">取引条件が明確だと、判断が速い</h3>
+      <h3 class="text-2xl font-bold tracking-tight mb-2">取引条件が明確だと、判断が速い</h3>
       クリニックの運用を止めずに、必要な機器を適切に調達・入替できる状態を目指します。
     </Fragment>
-
-    <Fragment slot="bg">
-      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
   </Content>
-
-  <!-- Content Widget **************** -->
-
-  <Content
-    isAfterContent
-    items={[
-      {
-        title: '購入：欲しい条件から逆算',
-        description: `施術メニュー/患者層/運用体制に合わせて、必要要件を定義し、候補の探索と比較を進めます。`,
-      },
-      {
-        title: '売却：状態と条件を整理して価値を最大化',
-        description: `年式・状態・付属品・点検履歴などを整理し、スムーズに検討してもらえる形に整えます。`,
-      },
-      {
-        title: '取引は段取りが9割',
-        description: `搬出入・設置・動作確認・保守/修理の論点を先に押さえ、現場負担を減らします。`,
-      },
-      {
-        title: 'ブログで判断材料を提供',
-        description: `中古機器の注意点や相場感など、検討に必要な情報を継続的に発信します。`,
-      },
-    ]}
-    image={{
-      src: '~/assets/images/medical-equipment.png',
-      alt: '医療機器を用いた顔の施術',
-    }}
-  >
-    <Fragment slot="content"><h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">購入・売却どちらも「条件整理」が最短ルート。</h3></Fragment>
-
-    <Fragment slot="bg">
-      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
-  </Content>
-
-  <!-- Steps Widget ****************** -->
 
   <Steps
     id="flow"
-    title="取引の進め方（最小ステップ）"
+    title="取引の進め方"
     items={[
-      {
-        title: 'Step 1: <span class="font-medium">フォーム送信</span>',
-        description:
-          '購入/売却の希望と、分かる範囲の情報を入力します。匿名相談からでもOKです（条件による）。',
-        icon: 'tabler:forms',
-      },
-      {
-        title: 'Step 2: <span class="font-medium">条件整理と確認</span>',
-        description:
-          '必要情報を整理し、候補提示や売却条件の整備に向けて論点を揃えます。搬出入など実務も含めて確認します。',
-        icon: 'tabler:filter',
-      },
-      {
-        title: 'Step 3: <span class="font-medium">マッチング〜段取り</span>',
-        description:
-          '候補の比較・条件調整を進め、検品/引渡し/設置などの段取りを整理します。',
-        icon: 'tabler:truck',
-      },
-      {
-        title: '完了: <span class="font-medium">取引成立</span>',
-        icon: 'tabler:check',
-      },
+      { title: 'Step 1: <span class="font-medium">相談・登録</span>', description: 'フォームまたは会員登録で、分かる範囲の情報を入力（匿名OK）。', icon: 'tabler:forms' },
+      { title: 'Step 2: <span class="font-medium">条件整理</span>', description: '運営が仲介し、候補提示や売却条件の整備に向けて論点を揃えます。', icon: 'tabler:filter' },
+      { title: 'Step 3: <span class="font-medium">マッチング</span>', description: '候補の比較・条件調整を進め、段取りを整理します。', icon: 'tabler:truck' },
+      { title: '完了: <span class="font-medium">取引成立</span>', icon: 'tabler:check' },
     ]}
-    image={{
-      src: '~/assets/images/torihiki-nagare.png',
-      alt: '取引の流れ',
-    }}
+    image={{ src: '~/assets/images/torihiki-nagare.png', alt: '取引の流れ' }}
   />
-
-  <!-- Features2 Widget ************** -->
 
   <Features2
     id="sodanrei"
     title="よくある相談テーマ"
     subtitle="まずはこの辺りの整理から入ると、判断が早くなります。"
     tagline="相談例"
-    classes={{ headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase' } }}
     items={[
-      {
-        title: '価格の相場感',
-        description: '同型番でも状態や付属品で価格が大きく変わります。比較軸を整理します。',
-        icon: 'tabler:exchange',
-      },
-      {
-        title: '状態・リスクの見極め',
-        description: '点検履歴、使用状況、消耗部品、修理可否などの論点を整理します。',
-        icon: 'tabler:clipboard-check',
-      },
-      {
-        title: '搬出入・設置',
-        description: 'サイズ/重量/電源/搬入経路など、現場で詰まりやすい点を先に確認します。',
-        icon: 'tabler:truck-delivery',
-      },
-      {
-        title: '保証・保守',
-        description: 'メーカー保守、第三者保守、修理業許可の論点など、前提を揃えます。',
-        icon: 'tabler:headset',
-      },
-      {
-        title: '売却時の情報整備',
-        description: '検討者が判断しやすい形に情報を整え、売却のスピードを上げます。',
-        icon: 'tabler:file-text',
-      },
-      {
-        title: '導入後の運用',
-        description: '施術メニュー、スタッフ体制、トレーニングなど運用面も含めて整理します。',
-        icon: 'tabler:users',
-      },
+      { title: '価格の相場感', description: '同型番でも状態や付属品で価格が大きく変わります。', icon: 'tabler:exchange' },
+      { title: '状態・リスクの見極め', description: '点検履歴、消耗部品、修理可否などの論点を整理します。', icon: 'tabler:clipboard-check' },
+      { title: '搬出入・設置', description: 'サイズ/重量/搬入経路など、現場で詰まりやすい点を先に確認します。', icon: 'tabler:truck-delivery' },
+      { title: '保証・保守', description: 'メーカー保守、第三者保守など前提を揃えます。', icon: 'tabler:headset' },
     ]}
-  >
-    <Fragment slot="bg">
-      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
-  </Features2>
-
-  <!-- HighlightedPosts Widget ******* -->
+  />
 
   <BlogLatestPosts
     title="ブログ：美容医療の中古市場を整備する人"
-    information={`中古美容医療機器の「見極め」「注意点」「相場感」「取引の段取り」などを、実務目線で整理します。
-                 初めての購入/売却でも、検討の軸が作れるような記事を掲載していきます。`}
+    information="中古美容医療機器の「見極め」「注意点」「相場感」を、実務目線で整理します。"
   />
 
-  <!-- FAQs Widget ******************* -->
-
   <FAQPageJsonLd faqs={[...homeFaqs]} />
-
   <FAQs
     id="faq"
     title="よくある質問"
     subtitle="検討の初期段階で気になりやすい点をまとめました。"
     tagline="FAQ"
-    classes={{ container: 'max-w-6xl', headline: { tagline: 'text-4xl text-secondary dark:text-blue-200 font-bold tracking-wide uppercase' } }}
     items={homeFaqs.map((faq) => ({ title: faq.q, description: faq.a }))}
   />
 
-  <!-- Stats Widget ****************** -->
-
-  <Stats
-    stats={[
-      { title: '相談受付', amount: '随時' },
-      { title: '対応専門領域', amount: '美容医療' },
-      { title: '進行はおまかせ', amount: '条件整理のプロに' },
-      { title: '情報管理', amount: '匿名・機密に' },
-    ]}
-  />
-
-  <!-- CallToAction Widget *********** -->
-
   <CallToAction
     actions={[
-      { variant: 'primary', text: '売却希望フォーム', href: getPermalink('contact/sell') },
-      { variant: 'secondary', text: '購入希望フォーム', href: getPermalink('contact/buy') },
+      { variant: 'primary', text: '在庫をさがす', href: '/cases?view=active' },
+      { variant: 'secondary', text: '出品・購入を相談する', href: getPermalink('contact') },
     ]}
   >
-    <Fragment slot="title">
-      まずは条件整理から。<br class="block sm:hidden" /><span class="sm:whitespace-nowrap">匿名相談も可</span>
-    </Fragment>
-
-    <Fragment slot="subtitle">
-      購入・売却どちらも、必要条件を揃えると判断が早くなります。<br class="hidden md:inline" />
-      まずはフォームから、分かる範囲で入力してください。
-    </Fragment>
+    <Fragment slot="title">写真・型番だけでも相談OK</Fragment>
+    <Fragment slot="subtitle">匿名相談からでも始められます。まずはお気軽にご連絡ください。</Fragment>
   </CallToAction>
 </Layout>

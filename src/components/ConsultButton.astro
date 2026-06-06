@@ -21,7 +21,7 @@ const params = new URLSearchParams();
 if (relatedListingId) params.set('listing', relatedListingId);
 if (relatedWantedId) params.set('wanted', relatedWantedId);
 const query = params.toString();
-const consultHref = href ?? `/consult${query ? `?${query}` : ''}`;
+const consultHref = href ?? `/contact${query ? `?${query}` : ''}`;
 
 const baseClass =
   variant === 'inline'

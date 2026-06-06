@@ -1,234 +1,407 @@
 ---
-import type { GetStaticPaths } from 'astro';
+export const prerender = false;
+
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Button from '~/components/ui/Button.astro';
+import MaintenanceBadge from '~/components/MaintenanceBadge.astro';
+import ConsultButton from '~/components/ConsultButton.astro';
+import MatchSuggestions from '~/components/MatchSuggestions.astro';
 import Breadcrumb from '~/components/seo/Breadcrumb.astro';
+import Button from '~/components/ui/Button.astro';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import {
+  anonymousOrgLabel,
+  formatLocation,
+  formatPriceYen,
+  PUBLIC_LISTING_SELECT,
+  PUBLIC_WANTED_SELECT,
+  type PublicListing,
+  type PublicWanted,
+} from '~/lib/marketplace';
+import { hasSupabaseConfig } from '~/lib/env';
+import { getProfile } from '~/lib/auth';
+import { matchWantedForListing, matchListingsForWanted } from '~/lib/matching';
+import { isUuid } from '~/lib/cases-page';
 import { getPermalink, getHomePermalink } from '~/utils/permalinks';
 import type { MetaData } from '~/types';
 
-export const prerender = true;
+const slugParam = Astro.params.slug;
+const slug = Array.isArray(slugParam) ? slugParam.join('/') : (slugParam ?? '');
+const detailType = Astro.url.searchParams.get('type') ?? 'listing';
 
-export const getStaticPaths = (async () => {
+if (!slug) return Astro.redirect('/cases');
+
+type PageMode = 'listing' | 'wanted' | 'static' | 'redirect';
+let mode: PageMode = 'redirect';
+
+let listing: PublicListing | null = null;
+let wanted: PublicWanted | null = null;
+let matchWanted: ReturnType<typeof matchWantedForListing> = [];
+let matchListings: ReturnType<typeof matchListingsForWanted> = [];
+let images: Array<{ url: string | null; storage_path: string; is_cover: boolean }> = [];
+let profile: Awaited<ReturnType<typeof getProfile>> = null;
+
+let staticEntry: Awaited<ReturnType<typeof getCollection<'cases'>>>[number] | null = null;
+let StaticContent: Awaited<ReturnType<Awaited<ReturnType<typeof getCollection<'cases'>>>[number]['render']>>['Content'] | null = null;
+let staticData: Awaited<ReturnType<typeof getCollection<'cases'>>>[number]['data'] | null = null;
+
+const detailPath = `/cases/${slug}?type=${detailType}`;
+
+if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
+  const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+  profile = await getProfile(Astro.cookies, Astro.locals as never);
+
+  if (detailType === 'wanted') {
+    const { data } = await supabase
+      .from('wanted_requests')
+      .select(PUBLIC_WANTED_SELECT)
+      .eq('id', slug)
+      .eq('status', 'published')
+      .single();
+    wanted = data as PublicWanted | null;
+    if (wanted) {
+      mode = 'wanted';
+      const { data: listings } = await supabase
+        .from('listings')
+        .select(PUBLIC_LISTING_SELECT)
+        .eq('status', 'published')
+        .eq('category_slug', wanted.category_slug)
+        .limit(30);
+      matchListings = matchListingsForWanted(wanted, (listings ?? []) as unknown as PublicListing[]);
+    }
+  } else {
+    const { data } = await supabase
+      .from('listings')
+      .select(PUBLIC_LISTING_SELECT)
+      .eq('id', slug)
+      .eq('status', 'published')
+      .single();
+    listing = data as PublicListing | null;
+    if (listing) {
+      mode = 'listing';
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+      images = (listing.listing_images ?? []).map((img) => ({
+        ...img,
+        url: supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}` : null,
+      }));
+      const { data: wantedList } = await supabase
+        .from('wanted_requests')
+        .select(PUBLIC_WANTED_SELECT)
+        .eq('status', 'published')
+        .eq('category_slug', listing.category_slug)
+        .limit(30);
+      matchWanted = matchWantedForListing(listing, (wantedList ?? []) as unknown as PublicWanted[]);
+    }
+  }
+} else if (!isUuid(slug)) {
   const cases = await getCollection('cases');
-  return cases.map((entry) => {
-    const slug = entry.id.replace(/\.mdx?$/, '');
-    return {
-      params: { slug },
-      props: { entry },
-    };
-  });
-}) satisfies GetStaticPaths;
+  staticEntry = cases.find((c) => c.id.replace(/\.mdx?$/, '') === slug) ?? null;
+  if (staticEntry) {
+    mode = 'static';
+    const rendered = await staticEntry.render();
+    StaticContent = rendered.Content;
+    staticData = staticEntry.data;
+  }
+}
 
-type Props = { entry: Awaited<ReturnType<typeof getCollection<'cases'>>>[number] };
-const { entry } = Astro.props;
-const { Content } = await entry.render();
-const { data } = entry;
+if (mode === 'redirect') return Astro.redirect('/cases');
 
 function formatDateYMD(ym: string): string {
   if (!ym || ym.length < 6) return ym;
-  const y = ym.slice(0, 4);
-  const m = ym.slice(5, 7);
-  const mNum = parseInt(m, 10);
-  return `${y}年${mNum}月`;
+  return `${ym.slice(0, 4)}年${parseInt(ym.slice(5, 7), 10)}月`;
 }
 
-const specItems = [
-  { label: 'メーカー', value: data.manufacturer },
-  { label: '製造年月', value: formatDateYMD(data.manufacturedDate) },
-  { label: '保守状態', value: data.maintenanceContract },
-  { label: '使用状況', value: data.usage },
-  { label: '取引時期', value: formatDateYMD(data.transactionDate) },
-  { label: '価格帯', value: data.priceRange },
-];
+const wantedTitle =
+  wanted && (wanted.maker && wanted.model ? `${wanted.maker} ${wanted.model}` : (wanted.categories?.name ?? '買いたい'));
 
-const INQUIRY_SELL_URL = getPermalink('contact/sell');
-const INQUIRY_BUY_URL = getPermalink('contact/buy');
-
-function getCtaDescription(categoryLabel: string): string {
-  const map: Record<string, string> = {
-    '脱毛機': '脱毛機の購入・売却は、相場や保守状況の確認が重要です。まずはお気軽にご相談ください。',
-    'ピコレーザー': 'ピコレーザー機器の導入・入れ替えをご検討の方は、実績豊富な当社にご相談ください。',
-    'IPL': 'IPL機器の購入・売却について、相場や条件のご相談を承ります。',
-    'HIFU': 'HIFU機器の取引実績が多数あります。購入・売却のご希望をお聞かせください。',
-    'RF': 'RF機器の導入・売却をご検討の方は、お気軽にご相談ください。',
-    'ボディ系': 'ボディ系機器の取引事例を多数ご用意。購入・売却のご相談を承ります。',
+let metadata: MetaData = { title: '在庫・取引事例' };
+if (mode === 'listing' && listing) metadata = { title: `${listing.maker} ${listing.model}（売りたい）` };
+if (mode === 'wanted' && wantedTitle) metadata = { title: `${wantedTitle}（買いたい）` };
+if (mode === 'static' && staticData) {
+  metadata = {
+    title: staticData.title,
+    description: `${staticData.categoryLabel}の取引事例。${staticData.manufacturer} ${staticData.model}。`,
   };
-  return map[categoryLabel] ?? 'この機器の購入・売却について、相場や条件のご相談を承ります。';
 }
 
-const metadata: MetaData = {
-  title: data.title,
-  description: `${data.categoryLabel}の取引事例。${data.manufacturer} ${data.model}（${formatDateYMD(data.manufacturedDate)}製造）。${data.usage}。`,
-  openGraph: {
-    type: 'article',
-  },
-};
-
-const PRIMARY_GREEN = '#2ECC71';
-const SURFACE = '#F8F9FA';
+const staticSpecItems = staticData
+  ? [
+      { label: 'メーカー', value: staticData.manufacturer },
+      { label: '製造年月', value: formatDateYMD(staticData.manufacturedDate) },
+      { label: '保守状態', value: staticData.maintenanceContract },
+      { label: '使用状況', value: staticData.usage },
+      { label: '取引時期', value: formatDateYMD(staticData.transactionDate) },
+      { label: '価格帯', value: staticData.priceRange },
+    ]
+  : [];
 ---
 
-<Layout metadata={metadata}>
-  <!-- パンくず: ページ最上部・小さめ・グレー -->
-  <div class="border-b border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900">
-    <div class="max-w-3xl mx-auto px-4 py-3">
-      <Breadcrumb
-        class="text-xs"
-        items={[
-          { name: 'トップ', url: getHomePermalink() },
-          { name: '取引事例', url: getPermalink('cases') },
-          { name: data.title },
-        ]}
-      />
+{mode === 'wanted' && wanted && (
+  <Layout metadata={metadata}>
+    <section class="py-12 md:py-16 pb-28 lg:pb-16">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <Breadcrumb
+          class="mb-6 text-sm"
+          items={[
+            { name: 'トップ', url: getHomePermalink() },
+            { name: '在庫・取引事例', url: getPermalink('cases') },
+            { name: wantedTitle ?? '' },
+          ]}
+        />
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <span class="inline-flex rounded-full bg-buy px-3 py-1 text-xs font-semibold text-white">買いたい</span>
+          <span class="text-sm text-text-muted">{anonymousOrgLabel(wanted.area_city ?? '')}</span>
+        </div>
+        <div class="rounded-xl border border-border bg-surface p-6 shadow-sm">
+          <p class="text-sm text-text-muted">{wanted.categories?.name}</p>
+          <h1 class="text-3xl font-bold text-text mt-1">{wantedTitle}</h1>
+          <dl class="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div>
+              <dt class="text-text-muted text-xs">予算</dt>
+              <dd class="text-2xl font-bold text-buy tabular-nums">{formatPriceYen(wanted.budget)}</dd>
+            </div>
+            <div>
+              <dt class="text-text-muted text-xs">希望時期</dt>
+              <dd class="text-text font-medium">{wanted.desired_timing ?? '—'}</dd>
+            </div>
+            <div>
+              <dt class="text-text-muted text-xs">希望エリア</dt>
+              <dd class="text-text font-medium">
+                {wanted.area_prefecture && wanted.area_city
+                  ? formatLocation(wanted.area_prefecture, wanted.area_city)
+                  : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-text-muted text-xs">希望状態</dt>
+              <dd class="text-text font-medium">{wanted.condition_pref ?? '—'}</dd>
+            </div>
+          </dl>
+          {wanted.requirements && (
+            <div class="mt-6 rounded-xl bg-surface-muted p-4">
+              <p class="font-medium text-text mb-2">要件・補足</p>
+              <p class="text-sm text-text-muted whitespace-pre-wrap">{wanted.requirements}</p>
+            </div>
+          )}
+        </div>
+        <MatchSuggestions title="マッチする売りたい出品" matches={matchListings} />
+      </div>
+    </section>
+    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
+      <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
+        {profile ? (
+          <button id="offer-btn" class="btn-market-offer flex-1 sm:flex-none" data-wanted-id={wanted.id}>該当機器を提案する</button>
+        ) : (
+          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-offer flex-1 sm:flex-none">ログインして提案する</a>
+        )}
+        <ConsultButton label="この件を相談する" relatedWantedId={wanted.id} class="flex-1 sm:flex-none justify-center" />
+      </div>
+      <p id="offer-status" class="max-w-5xl mx-auto mt-2 text-sm text-text-muted hidden"></p>
     </div>
-  </div>
+    <script>
+      document.getElementById('offer-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const status = document.getElementById('offer-status');
+        if (!status) return;
+        status.textContent = '送信中…';
+        status.classList.remove('hidden');
+        const res = await fetch('/api/approaches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: 'offer', wanted_request_id: btn.dataset.wantedId, message: '該当機器があります。' }),
+        });
+        const json = await res.json();
+        status.textContent = res.ok ? '提案を送信しました。' : (json.error ?? '送信に失敗しました');
+      });
+    </script>
+    <style>
+      .btn-market-offer {
+        @apply inline-flex items-center justify-center rounded-xl bg-buy px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+      }
+    </style>
+  </Layout>
+)}
 
-  <WidgetWrapper containerClass="max-w-3xl mx-auto">
-    <article>
-      <!-- 1. ページ上部: 機器情報カード（Surface色・角丸・カテゴリバッジ・グリッド） -->
-      <section class="mt-6 mb-10 rounded-2xl overflow-hidden" style={{ backgroundColor: SURFACE }} aria-labelledby="machine-info-heading">
-        <div class="p-6 md:p-8">
-          <h2 id="machine-info-heading" class="sr-only">機器情報</h2>
-          <div class="flex flex-wrap items-start gap-3 mb-6">
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-              style={{ backgroundColor: PRIMARY_GREEN }}
-            >
-              {data.categoryLabel}
-            </span>
-            {data.status && (
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-200/80 dark:bg-slate-600/80 text-slate-700 dark:text-slate-200">
-                {data.status}
-              </span>
+{mode === 'listing' && listing && (
+  <Layout metadata={metadata}>
+    <section class="py-12 md:py-16 pb-28 lg:pb-16">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <Breadcrumb
+          class="mb-6 text-sm"
+          items={[
+            { name: 'トップ', url: getHomePermalink() },
+            { name: '在庫・取引事例', url: getPermalink('cases') },
+            { name: `${listing.maker} ${listing.model}` },
+          ]}
+        />
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <span class="inline-flex rounded-full bg-sell px-3 py-1 text-xs font-semibold text-white">売りたい</span>
+          <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">審査済</span>
+          <span class="text-sm text-text-muted">{anonymousOrgLabel(listing.location_city)}</span>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+          <div class="space-y-3">
+            {images.length ? (
+              images.map((img) =>
+                img.url ? <img src={img.url} alt="" class="w-full rounded-xl object-cover bg-surface-muted" loading="lazy" /> : null
+              )
+            ) : (
+              <div class="h-64 rounded-xl bg-surface-muted flex items-center justify-center text-text-muted">画像なし</div>
             )}
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="sm:col-span-2 lg:col-span-3">
-              <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">機器名</p>
-              <p class="mt-0.5 text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-white">
-                {data.manufacturer} {data.model}
-              </p>
-            </div>
-            {specItems.map(({ label, value }) => (
+          <div>
+            <p class="text-sm text-text-muted">{listing.categories?.name}</p>
+            <h1 class="text-3xl font-bold text-text mt-1">{listing.maker} {listing.model}</h1>
+            <p class="mt-4 text-2xl font-bold text-brand-600 tabular-nums">{formatPriceYen(listing.asking_price)}</p>
+            <p class="mt-2 text-sm text-text-muted">所在地：{formatLocation(listing.location_prefecture, listing.location_city)}</p>
+            <dl class="mt-6 grid grid-cols-2 gap-4 text-sm rounded-xl border border-border p-4">
               <div>
-                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
-                <p class="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+                <dt class="text-text-muted text-xs">年式</dt>
+                <dd class="font-semibold tabular-nums">{listing.manufacture_year ? `${listing.manufacture_year}年` : '—'}</dd>
               </div>
-            ))}
+              <div>
+                <dt class="text-text-muted text-xs">状態</dt>
+                <dd class="font-semibold">{listing.condition ?? '—'}</dd>
+              </div>
+            </dl>
+            <div class="mt-4">
+              <MaintenanceBadge
+                makerMaintenance={listing.maker_maintenance}
+                maintenanceTransferable={listing.maintenance_transferable}
+                hasAccessories={listing.has_accessories}
+              />
+            </div>
+            {listing.accessories_detail && (
+              <div class="mt-4 rounded-xl bg-surface-muted p-4 text-sm">
+                <p class="font-medium text-text mb-1">付属品</p>
+                <p class="text-text-muted whitespace-pre-wrap">{listing.accessories_detail}</p>
+              </div>
+            )}
+            {listing.description && <div class="mt-4 text-sm text-text-muted whitespace-pre-wrap">{listing.description}</div>}
           </div>
         </div>
-      </section>
+        <MatchSuggestions title="マッチする買いたいリクエスト" matches={matchWanted} />
+      </div>
+    </section>
+    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
+      <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
+        {profile ? (
+          <>
+            <button id="interest-btn" class="btn-market-primary flex-1 sm:flex-none" data-listing-id={listing.id}>関心あり</button>
+            <button id="qa-btn" class="btn-market-secondary flex-1 sm:flex-none" data-listing-id={listing.id}>保守・付属品について質問</button>
+          </>
+        ) : (
+          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary flex-1 sm:flex-none">ログインして関心リクエスト</a>
+        )}
+        <ConsultButton label="この件を相談する" relatedListingId={listing.id} class="flex-1 sm:flex-none justify-center" />
+      </div>
+      <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-text-muted hidden"></p>
+      <p id="qa-status" class="max-w-5xl mx-auto mt-1 text-sm text-text-muted hidden"></p>
+    </div>
+    <script>
+      document.getElementById('interest-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const status = document.getElementById('interest-status');
+        if (!status) return;
+        status.textContent = '送信中…';
+        status.classList.remove('hidden');
+        const res = await fetch('/api/approaches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: 'interest', listing_id: btn.dataset.listingId, message: '関心があります。' }),
+        });
+        const json = await res.json();
+        status.textContent = res.ok ? '関心リクエストを送信しました。' : (json.error ?? '送信に失敗しました');
+      });
+      document.getElementById('qa-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const qaStatus = document.getElementById('qa-status');
+        const message = window.prompt('保守・付属品についての質問を入力してください（匿名）');
+        if (!message?.trim() || !qaStatus) return;
+        qaStatus.textContent = '送信中…';
+        qaStatus.classList.remove('hidden');
+        const res = await fetch('/api/threads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ listing_id: btn.dataset.listingId, message: message.trim() }),
+        });
+        const json = await res.json();
+        if (res.ok) {
+          qaStatus.textContent = 'Q&Aを開始しました。';
+          window.location.href = `/account/threads/${json.thread_id}`;
+        } else {
+          qaStatus.textContent = json.error ?? '送信に失敗しました';
+        }
+      });
+    </script>
+    <style>
+      .btn-market-primary {
+        @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+      }
+      .btn-market-secondary {
+        @apply inline-flex items-center justify-center rounded-xl border border-brand-600 text-brand-600 px-5 py-2.5 text-sm font-semibold hover:bg-surface-muted transition;
+      }
+    </style>
+  </Layout>
+)}
 
-      <!-- 2. 本文エリア: Markdown スタイリング（h2左ボーダー・太字アクセント・リスト・インフォボックス） -->
-      <section class="cases-prose mb-12">
-        <Content />
-      </section>
-    </article>
-  </WidgetWrapper>
-
-  <!-- 3. ページ下部: CTA セクション（Surface色・全幅） -->
-  <section
-    class="py-12 md:py-16"
-    style={{ backgroundColor: SURFACE }}
-    aria-labelledby="cta-heading"
-  >
-    <div class="max-w-3xl mx-auto px-4">
-      <h2 id="cta-heading" class="text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-white mb-3">
-        この機器の購入・売却をご検討の方
-      </h2>
-      <p class="text-slate-600 dark:text-slate-300 mb-8 max-w-2xl">
-        {getCtaDescription(data.categoryLabel)}
-      </p>
-      <div class="flex flex-wrap gap-4">
-        <Button href={INQUIRY_SELL_URL} variant="primary">
-          この機器を売却したい
-        </Button>
-        <Button href={INQUIRY_BUY_URL} variant="secondary">
-          この機器の購入を相談する
-        </Button>
+{mode === 'static' && staticData && StaticContent && (
+  <Layout metadata={metadata}>
+    <div class="border-b border-border bg-surface">
+      <div class="max-w-3xl mx-auto px-4 py-3">
+        <Breadcrumb
+          class="text-xs"
+          items={[
+            { name: 'トップ', url: getHomePermalink() },
+            { name: '在庫・取引事例', url: getPermalink('cases') },
+            { name: staticData.title },
+          ]}
+        />
       </div>
     </div>
-  </section>
-
-  <style is:global>
-    /* 既存サイトのデザイントーン: 白基調・グリーンアクセント・Noto Sans JP */
-    .cases-prose {
-      @apply prose lg:prose-lg dark:prose-invert max-w-none;
-      @apply prose-headings:font-heading prose-headings:font-bold;
-      @apply prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed;
-      @apply prose-a:text-primary dark:prose-a:text-primary prose-a:no-underline hover:prose-a:underline;
-      @apply prose-img:rounded-lg;
-    }
-    .cases-prose h2 {
-      margin-top: 3rem;
-      padding-left: 1rem;
-      border-left: 4px solid #2ECC71;
-      font-size: 1.25rem;
-      line-height: 1.4;
-      color: rgb(15 23 42);
-    }
-    .dark .cases-prose h2 {
-      color: rgb(248 250 251);
-    }
-    .cases-prose strong {
-      color: #2ECC71;
-    }
-    .dark .cases-prose strong {
-      color: #34d399;
-    }
-    .cases-prose ul {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 0.75rem;
-      margin-bottom: 1rem;
-    }
-    .cases-prose ul li {
-      position: relative;
-      padding-left: 1.5rem;
-      margin-bottom: 0.5rem;
-      line-height: 1.7;
-    }
-    .cases-prose ul li::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: #2ECC71;
-    }
-    /* 「中古購入を検討する方へ」セクション = 最後の h2 以降を1つのインフォボックスに */
-    .cases-prose h2:last-of-type,
-    .cases-prose h2:last-of-type ~ * {
-      margin-left: 0;
-      margin-right: 0;
-      background-color: rgba(46, 204, 113, 0.08);
-      border: 1px solid rgba(46, 204, 113, 0.2);
-      border-top: none;
-    }
-    .cases-prose h2:last-of-type {
-      margin-bottom: 0;
-      padding: 1.25rem 1.5rem 1rem;
-      border-radius: 0.75rem 0.75rem 0 0;
-      border-top: 1px solid rgba(46, 204, 113, 0.2);
-    }
-    .cases-prose h2:last-of-type ~ * {
-      margin-top: 0;
-      padding: 0.5rem 1.5rem 1.25rem;
-    }
-    .cases-prose h2:last-of-type ~ *:last-child {
-      border-radius: 0 0 0.75rem 0.75rem;
-    }
-    .dark .cases-prose h2:last-of-type,
-    .dark .cases-prose h2:last-of-type ~ * {
-      background-color: rgba(52, 211, 153, 0.12);
-      border-color: rgba(52, 211, 153, 0.25);
-    }
-    .dark .cases-prose h2:last-of-type {
-      border-top-color: rgba(52, 211, 153, 0.25);
-    }
-  </style>
-</Layout>
+    <section class="py-12 md:py-16">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <section class="mb-10 rounded-xl border border-border bg-surface-muted p-6 md:p-8">
+          <div class="flex flex-wrap items-start gap-3 mb-6">
+            <span class="inline-flex rounded-full bg-done px-3 py-1 text-xs font-semibold text-white">成約済</span>
+            <span class="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-medium text-text border border-border">{staticData.categoryLabel}</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-text">{staticData.manufacturer} {staticData.model}</h1>
+          <dl class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+            {staticSpecItems.map(({ label, value }) => (
+              <div>
+                <dt class="text-text-muted text-xs">{label}</dt>
+                <dd class="mt-0.5 font-semibold text-text">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section class="cases-prose mb-12">
+          <StaticContent />
+        </section>
+      </div>
+    </section>
+    <section class="py-12 bg-surface-muted border-t border-border">
+      <div class="max-w-3xl mx-auto px-4">
+        <h2 class="text-xl font-bold text-text mb-3">この機器の購入・売却をご検討の方</h2>
+        <p class="text-text-muted mb-6 text-sm">写真・型番だけでも相談OK。匿名でもご利用いただけます。</p>
+        <div class="flex flex-wrap gap-3">
+          <Button href={getPermalink('contact/sell')} variant="primary">売却を相談する</Button>
+          <Button href={getPermalink('contact/buy')} variant="secondary">購入を相談する</Button>
+          <ConsultButton variant="inline" />
+        </div>
+      </div>
+    </section>
+    <style is:global>
+      .cases-prose {
+        @apply prose lg:prose-lg max-w-none prose-headings:font-bold prose-p:text-text-muted prose-p:leading-relaxed;
+      }
+      .cases-prose h2 {
+        @apply mt-12 pl-4 border-l-4 border-accent-market text-xl text-text;
+      }
+      .cases-prose strong {
+        @apply text-accent-market;
+      }
+    </style>
+  </Layout>
+)}

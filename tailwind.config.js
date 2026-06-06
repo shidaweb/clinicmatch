@@ -19,6 +19,7 @@ export default {
         'accent-market': 'var(--accent-600)',
         sell: 'var(--color-sell)',
         buy: 'var(--color-buy)',
+        done: 'var(--color-done)',
         surface: {
           DEFAULT: 'var(--color-surface)',
           muted: 'var(--color-surface-muted)',

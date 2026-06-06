@@ -1,52 +1,34 @@
 ---
 import { PREFECTURES } from '~/lib/marketplace';
+import { buildCasesUrl, type CasesFilterParams } from '~/lib/cases-page';
 
-interface Props {
-  type?: 'all' | 'listing' | 'wanted';
-  category?: string;
-  prefecture?: string;
-  city?: string;
-  minPrice?: string;
-  maxPrice?: string;
+interface Props extends Partial<CasesFilterParams> {
+  basePath?: string;
 }
 
-const { type = 'all', category = '', prefecture = '', city = '', minPrice = '', maxPrice = '' } = Astro.props;
+const {
+  view = 'active',
+  type = 'all',
+  category = '',
+  prefecture = '',
+  city = '',
+  minPrice = '',
+  maxPrice = '',
+  sort = 'new',
+  q = '',
+  basePath = '/cases',
+} = Astro.props;
 
-const buildUrl = (overrides: Record<string, string | undefined>) => {
-  const params = new URLSearchParams();
-  const values = { type, category, prefecture, city, minPrice, maxPrice, ...overrides };
-  Object.entries(values).forEach(([key, value]) => {
-    if (value && value !== 'all') params.set(key, value);
-  });
-  const qs = params.toString();
-  return `/market${qs ? `?${qs}` : ''}`;
+const filters: CasesFilterParams = { view, type, category, prefecture, city, minPrice, maxPrice, sort, q };
+
+const buildUrl = (overrides: Partial<CasesFilterParams>) => {
+  const url = buildCasesUrl(overrides, filters);
+  return basePath === '/cases' ? url : url.replace('/cases', basePath);
 };
 ---
 
-<form method="get" action="/market" class="rounded-xl border border-border bg-surface p-4 space-y-4">
-  <div>
-    <label class="block text-sm font-medium text-text mb-2">種別</label>
-    <div class="flex flex-wrap gap-2">
-      {
-        [
-          { value: 'all', label: 'すべて' },
-          { value: 'listing', label: '売りたい' },
-          { value: 'wanted', label: '買いたい' },
-        ].map(({ value, label }) => (
-          <a
-            href={buildUrl({ type: value })}
-            class:list={[
-              'rounded-full px-3 py-1 text-sm font-medium border',
-              type === value ? 'bg-brand-600 text-white border-brand-600' : 'border-border text-text hover:bg-surface-muted',
-            ]}
-          >
-            {label}
-          </a>
-        ))
-      }
-    </div>
-    <input type="hidden" name="type" value={type} />
-  </div>
+<form method="get" action={basePath} class="rounded-xl border border-border bg-surface p-4 space-y-4 shadow-sm">
+  <input type="hidden" name="view" value={view} />
 
   <div>
     <label for="category" class="block text-sm font-medium text-text mb-1">カテゴリ</label>
@@ -58,6 +40,15 @@ const buildUrl = (overrides: Record<string, string | undefined>) => {
       <option value="hifu" selected={category === 'hifu'}>HIFU</option>
       <option value="rf" selected={category === 'rf'}>RF・高周波</option>
       <option value="body" selected={category === 'body'}>痩身・ボディ</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="type" class="block text-sm font-medium text-text mb-1">種別（募集中）</label>
+    <select id="type" name="type" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+      <option value="all" selected={type === 'all'}>売りたい＋買いたい</option>
+      <option value="listing" selected={type === 'listing'}>売りたいのみ</option>
+      <option value="wanted" selected={type === 'wanted'}>買いたいのみ</option>
     </select>
   </div>
 
@@ -85,13 +76,22 @@ const buildUrl = (overrides: Record<string, string | undefined>) => {
 
   <div class="grid grid-cols-2 gap-3">
     <div>
-      <label for="minPrice" class="block text-sm font-medium text-text mb-1">価格下限（円）</label>
-      <input id="minPrice" name="minPrice" type="number" value={minPrice} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+      <label for="minPrice" class="block text-sm font-medium text-text mb-1">価格下限</label>
+      <input id="minPrice" name="minPrice" type="number" value={minPrice} placeholder="円" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
     </div>
     <div>
-      <label for="maxPrice" class="block text-sm font-medium text-text mb-1">価格上限（円）</label>
-      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+      <label for="maxPrice" class="block text-sm font-medium text-text mb-1">価格上限</label>
+      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} placeholder="円" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
     </div>
+  </div>
+
+  <div>
+    <label for="sort" class="block text-sm font-medium text-text mb-1">並び替え</label>
+    <select id="sort" name="sort" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+      <option value="new" selected={sort === 'new'}>新着順</option>
+      <option value="price" selected={sort === 'price'}>価格順</option>
+      <option value="year" selected={sort === 'year'}>年式順</option>
+    </select>
   </div>
 
   <button type="submit" class="btn-market-primary w-full">絞り込む</button>

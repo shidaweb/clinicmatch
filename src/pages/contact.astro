@@ -2,78 +2,78 @@
 export const prerender = true;
 
 import Layout from '~/layouts/PageLayout.astro';
-import HeroText from '~/components/widgets/HeroText.astro';
-import { getPermalink } from '~/utils/permalinks';
+import ConsultForm from '~/components/ConsultForm.astro';
+import TrustBadges from '~/components/TrustBadges.astro';
+import Breadcrumb from '~/components/seo/Breadcrumb.astro';
+import { getHomePermalink } from '~/utils/permalinks';
+
+const relatedListingId = Astro.url.searchParams.get('listing') ?? undefined;
+const relatedWantedId = Astro.url.searchParams.get('wanted') ?? undefined;
+const defaultTopic = relatedListingId ? 'sell' : relatedWantedId ? 'buy' : undefined;
 
 const metadata = {
-  title: 'お問い合わせ',
+  title: '出品・購入を相談する',
+  description: '売りたい・買いたいのご相談は匿名でもOK。運営が仲介します。',
 };
 ---
 
 <Layout metadata={metadata}>
-  <HeroText tagline="Contact" title="お問い合わせ" />
+  <section class="py-12 md:py-16 bg-surface-muted">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <Breadcrumb
+        class="mb-6 text-sm"
+        items={[
+          { name: 'トップ', url: getHomePermalink() },
+          { name: '出品・購入を相談する' },
+        ]}
+      />
 
-  <section id="form" class="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-16">
-    <!-- type 未指定: 購入／売却のフォームを選んでもらう -->
-    <div id="form-choice" class="form-panel text-center">
-      <p class="text-muted dark:text-slate-400 mb-6">ご希望のフォームをお選びください。</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-text mb-3">出品・購入を相談する</h1>
+      <p class="text-text-muted mb-4 leading-relaxed">
+        売り手・買い手どちらからでもご相談いただけます。<strong class="text-text">匿名OK・約2分</strong>で完了します。
+      </p>
+      <TrustBadges />
+
+      {!relatedListingId && !relatedWantedId && (
+        <div class="mt-8 grid sm:grid-cols-3 gap-4">
+          <a href="/contact/sell" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition group">
+            <span class="inline-flex rounded-full bg-sell px-2.5 py-0.5 text-xs font-semibold text-white">売りたい</span>
+            <p class="mt-3 font-semibold text-text group-hover:text-brand-600">出品・売却を相談</p>
+            <p class="mt-1 text-xs text-text-muted">3ステップ・約2分</p>
+          </a>
+          <a href="/contact/buy" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition group">
+            <span class="inline-flex rounded-full bg-buy px-2.5 py-0.5 text-xs font-semibold text-white">買いたい</span>
+            <p class="mt-3 font-semibold text-text group-hover:text-brand-600">購入を相談</p>
+            <p class="mt-1 text-xs text-text-muted">3ステップ・約2分</p>
+          </a>
+          <div class="rounded-xl border border-border bg-surface p-5">
+            <span class="inline-flex rounded-full bg-brand-600 px-2.5 py-0.5 text-xs font-semibold text-white">その他</span>
+            <p class="mt-3 font-semibold text-text">下のフォームから</p>
+            <p class="mt-1 text-xs text-text-muted">写真・型番だけでもOK</p>
+          </div>
+        </div>
+      )}
+
+      <div class="mt-8 rounded-xl border border-border bg-surface p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-text mb-4">相談フォーム</h2>
+        <ConsultForm
+          relatedListingId={relatedListingId}
+          relatedWantedId={relatedWantedId}
+          defaultTopic={(defaultTopic ?? 'sell') as 'sell' | 'buy' | 'other'}
+        />
+      </div>
+
+      <div class="mt-8 rounded-xl border border-border bg-surface p-5 text-center">
+        <p class="text-sm font-medium text-text">LINEでもご相談いただけます</p>
         <a
-          href={getPermalink('contact/sell')}
-          class="btn btn-primary inline-block py-3 px-6 rounded-full"
+          href="https://lin.ee/vepVhWc"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-3 inline-flex rounded-xl bg-[#06C755] px-5 py-2.5 text-sm font-semibold text-white"
         >
-          売却希望フォーム
-        </a>
-        <a
-          href={getPermalink('contact/buy')}
-          class="btn btn-secondary inline-block py-3 px-6 rounded-full border"
-        >
-          購入希望フォーム
+          LINEで相談する
         </a>
       </div>
-    </div>
-
-    <!-- ?type=buy: 購入希望フォームへ誘導 -->
-    <div id="form-buy" class="form-panel hidden text-center">
-      <div class="mb-4">
-        <a href={getPermalink('contact')} class="text-primary hover:underline">← フォームを選び直す</a>
-      </div>
-      <h2 class="text-xl font-bold mb-4">購入希望のお問い合わせ</h2>
-      <p class="text-muted dark:text-slate-400 mb-6">購入希望フォームは以下のページでご利用いただけます。</p>
-      <a href={getPermalink('contact/buy')} class="btn btn-primary inline-block py-3 px-6 rounded-full">
-        購入希望フォームを開く
-      </a>
-    </div>
-
-    <!-- ?type=sell: 売却希望フォームへ誘導 -->
-    <div id="form-sell" class="form-panel hidden text-center">
-      <div class="mb-4">
-        <a href={getPermalink('contact')} class="text-primary hover:underline">← フォームを選び直す</a>
-      </div>
-      <h2 class="text-xl font-bold mb-4">売却希望のお問い合わせ</h2>
-      <p class="text-muted dark:text-slate-400 mb-6">売却希望フォームは以下のページでご利用いただけます。</p>
-      <a href={getPermalink('contact/sell')} class="btn btn-primary inline-block py-3 px-6 rounded-full">
-        売却希望フォームを開く
-      </a>
     </div>
   </section>
-
-  <script>
-    (function () {
-      var params = new URLSearchParams(window.location.search);
-      var type = (params.get('type') || '').toLowerCase();
-      var choice = document.getElementById('form-choice');
-      var buy = document.getElementById('form-buy');
-      var sell = document.getElementById('form-sell');
-      if (!choice || !buy || !sell) return;
-
-      if (type === 'buy') {
-        choice.classList.add('hidden');
-        buy.classList.remove('hidden');
-      } else if (type === 'sell') {
-        choice.classList.add('hidden');
-        sell.classList.remove('hidden');
-      }
-    })();
-  </script>
 </Layout>

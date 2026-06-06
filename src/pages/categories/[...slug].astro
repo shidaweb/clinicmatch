@@ -70,6 +70,17 @@ const FORM_SELL = getPermalink('contact/sell');
         <p class="mt-4 text-lg text-muted dark:text-slate-400">{data.description}</p>
       </header>
 
+      <section class="mb-10 rounded-xl border border-border bg-brand-600/5 p-6">
+        <h2 class="text-lg font-semibold text-text mb-2">このカテゴリの在庫を見る</h2>
+        <p class="text-sm text-text-muted mb-4">募集中の売りたい・買いたいを一覧で比較できます。</p>
+        <a
+          href={`/cases?view=active&category=${categorySlug}`}
+          class="inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+        >
+          {data.title}の在庫一覧へ
+        </a>
+      </section>
+
       <!-- 主な取扱機種 -->
       <section class="mb-10" aria-labelledby="machines-heading">
         <h2 id="machines-heading" class="text-2xl font-bold font-heading text-default mb-4">主な取扱機種</h2>
