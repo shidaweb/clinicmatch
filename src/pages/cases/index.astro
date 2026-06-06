@@ -6,7 +6,7 @@ import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getCanonical, getHomePermalink, getPermalink } from '~/utils/permalinks';
 
 /** クエリ付き URL は SSR で canonical / robots を出し分ける */
-export const prerender = false;
+export const prerender = true;
 
 const allCases = await getCollection('cases');
 const cases = allCases.sort(

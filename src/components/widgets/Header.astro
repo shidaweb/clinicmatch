@@ -1,9 +1,9 @@
 ---
 import { Icon } from 'astro-icon/components';
 import Logo from '~/components/Logo.astro';
-import ToggleTheme from '~/components/common/ToggleTheme.astro';
 import ToggleMenu from '~/components/common/ToggleMenu.astro';
 import Button from '~/components/ui/Button.astro';
+import ConsultButton from '~/components/ConsultButton.astro';
 
 import { getHomePermalink, trimSlash } from '~/utils/permalinks';
 import type { CallToAction } from '~/types';
@@ -27,6 +27,9 @@ export interface Props {
   isDark?: boolean;
   isFullWidth?: boolean;
   showToggleTheme?: boolean;
+  showConsult?: boolean;
+  accountHref?: string;
+  loginHref?: string;
   position?: string;
 }
 
@@ -37,7 +40,9 @@ const {
   isSticky = false,
   isDark = false,
   isFullWidth = false,
-  showToggleTheme = false,
+  showConsult = false,
+  accountHref = '/account',
+  loginHref = '/auth/login',
   position = 'center',
 } = Astro.props;
 
@@ -147,15 +152,23 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
         'hidden lg:self-center lg:flex items-center lg:mb-0 fixed w-full lg:w-auto lg:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 lg:p-0 lg:justify-self-end',
       ]}
     >
-      <div class="items-center flex justify-between w-full lg:w-auto">
-        <div class="flex">
-          {showToggleTheme && <ToggleTheme iconClass="w-6 h-6 lg:w-5 lg:h-5 lg:inline-block" />}
-        </div>
+      <div class="items-center flex justify-between w-full lg:w-auto gap-2">
+        {
+          showConsult && (
+            <ConsultButton class="hidden lg:inline-flex" />
+          )
+        }
+        <a href={accountHref} class="hidden lg:inline-flex text-sm font-medium text-text-muted hover:text-brand-600 px-2">
+          マイページ
+        </a>
+        <a href={loginHref} class="hidden lg:inline-flex text-sm font-medium text-brand-600 hover:underline px-2">
+          ログイン
+        </a>
         {
           actions?.length ? (
-            <span class="ml-4 rtl:ml-0 rtl:mr-4">
+            <span class="flex items-center gap-2">
               {actions.map((btnProps) => (
-                <Button {...btnProps} class="ml-2 py-2.5 px-6 lg:px-8 font-semibold shadow-none text-sm min-w-0 whitespace-nowrap" />
+                <Button {...btnProps} class:list={['py-2 px-4 font-semibold shadow-sm text-sm min-w-0 whitespace-nowrap rounded-xl', btnProps.class]} />
               ))}
             </span>
           ) : (

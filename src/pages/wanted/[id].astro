@@ -1,0 +1,150 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import ConsultButton from '~/components/ConsultButton.astro';
+import MatchSuggestions from '~/components/MatchSuggestions.astro';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import {
+  anonymousOrgLabel,
+  formatLocation,
+  formatPriceYen,
+  PUBLIC_WANTED_SELECT,
+  PUBLIC_LISTING_SELECT,
+  type PublicWanted,
+  type PublicListing,
+} from '~/lib/marketplace';
+import { hasSupabaseConfig } from '~/lib/env';
+import { getProfile } from '~/lib/auth';
+import { matchListingsForWanted } from '~/lib/matching';
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/market');
+
+let wanted: PublicWanted | null = null;
+
+if (hasSupabaseConfig(Astro.locals as never)) {
+  const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+  const { data } = await supabase
+    .from('wanted_requests')
+    .select(PUBLIC_WANTED_SELECT)
+    .eq('id', id)
+    .eq('status', 'published')
+    .single();
+  wanted = data as PublicWanted | null;
+}
+
+if (!wanted) return Astro.redirect('/market');
+
+let matchListings: ReturnType<typeof matchListingsForWanted> = [];
+if (hasSupabaseConfig(Astro.locals as never)) {
+  const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+  const { data: listings } = await supabase
+    .from('listings')
+    .select(PUBLIC_LISTING_SELECT)
+    .eq('status', 'published')
+    .eq('category_slug', wanted.category_slug)
+    .limit(30);
+  matchListings = matchListingsForWanted(wanted, (listings ?? []) as PublicListing[]);
+}
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+const title =
+  wanted.maker && wanted.model ? `${wanted.maker} ${wanted.model}` : (wanted.categories?.name ?? '買いたいリクエスト');
+
+const metadata = { title: `${title}（買いたい）` };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="inline-flex rounded-full bg-buy px-3 py-1 text-xs font-semibold text-white">買いたい</span>
+        <span class="text-sm text-text-muted">{anonymousOrgLabel(wanted.area_city ?? '')}</span>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface p-6 shadow-sm">
+        <p class="text-sm text-text-muted">{wanted.categories?.name}</p>
+        <h1 class="text-3xl font-bold text-text mt-1">{title}</h1>
+
+        <dl class="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+          <div>
+            <dt class="text-text-muted">予算</dt>
+            <dd class="text-lg font-semibold text-text">{formatPriceYen(wanted.budget)}</dd>
+          </div>
+          <div>
+            <dt class="text-text-muted">希望時期</dt>
+            <dd class="text-text">{wanted.desired_timing ?? '—'}</dd>
+          </div>
+          <div>
+            <dt class="text-text-muted">希望エリア</dt>
+            <dd class="text-text">
+              {
+                wanted.area_prefecture && wanted.area_city
+                  ? formatLocation(wanted.area_prefecture, wanted.area_city)
+                  : '—'
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-text-muted">希望状態</dt>
+            <dd class="text-text">{wanted.condition_pref ?? '—'}</dd>
+          </div>
+        </dl>
+
+        {
+          wanted.requirements && (
+            <div class="mt-6 rounded-xl bg-surface-muted p-4">
+              <p class="font-medium text-text mb-2">要件・補足</p>
+              <p class="text-sm text-text-muted whitespace-pre-wrap">{wanted.requirements}</p>
+            </div>
+          )
+        }
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          {
+            profile ? (
+              <button id="offer-btn" class="btn-market-offer" data-wanted-id={wanted.id}>
+                該当機器を提案する
+              </button>
+            ) : (
+              <a href={`/auth/login?redirect=/wanted/${wanted.id}`} class="btn-market-offer">
+                ログインして提案する
+              </a>
+            )
+          }
+          <ConsultButton label="この件を相談する" relatedWantedId={wanted.id} />
+        </div>
+        <p id="offer-status" class="mt-3 text-sm text-text-muted hidden"></p>
+      </div>
+
+      <MatchSuggestions title="マッチする売りたい出品" matches={matchListings} />
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const btn = document.getElementById('offer-btn');
+  const status = document.getElementById('offer-status');
+
+  btn?.addEventListener('click', async () => {
+    if (!status) return;
+    const wantedId = btn.getAttribute('data-wanted-id');
+    status.textContent = '送信中…';
+    status.classList.remove('hidden');
+
+    const res = await fetch('/api/approaches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'offer', wanted_request_id: wantedId, message: '該当機器があります。' }),
+    });
+    const json = await res.json();
+    status.textContent = res.ok ? '提案を送信しました。運営よりご連絡します。' : (json.error ?? '送信に失敗しました');
+  });
+</script>
+
+<style>
+  .btn-market-offer {
+    @apply inline-flex items-center justify-center rounded-xl bg-buy px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+  }
+</style>

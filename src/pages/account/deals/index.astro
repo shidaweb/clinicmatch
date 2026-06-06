@@ -1,0 +1,103 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import {
+  MEDIATION_STATUS_LABELS,
+  DEAL_STATUS_LABELS,
+  INVOICE_STATUS_LABELS,
+  calcCommission,
+} from '~/lib/deals';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+
+const [{ data: mediations }, { data: deals }, { data: invoices }] = await Promise.all([
+  supabase
+    .from('mediation_agreements')
+    .select('id, status, commission_rate, signed_at, created_at')
+    .eq('seller_org_id', profile.org_id)
+    .order('created_at', { ascending: false }),
+  supabase
+    .from('deals')
+    .select('id, agreed_price, commission_amount, status, concluded_at, created_at, buyer_org_id, seller_org_id')
+    .or(`buyer_org_id.eq.${profile.org_id},seller_org_id.eq.${profile.org_id}`)
+    .order('created_at', { ascending: false }),
+  supabase
+    .from('commission_invoices')
+    .select('id, deal_id, amount, status, issued_at, due_date, paid_at')
+    .order('issued_at', { ascending: false }),
+]);
+
+const metadata = { title: '契約・請求' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
+      <h1 class="text-2xl font-bold text-text">契約・請求</h1>
+
+      <div>
+        <h2 class="text-lg font-semibold text-text mb-4">仲介契約（売り手 ⇔ 運営）</h2>
+        <ul class="space-y-3">
+          {
+            (mediations ?? []).length ? mediations!.map((m) => (
+              <li class="rounded-xl border border-border p-4 flex justify-between text-sm">
+                <span>手数料率 {(Number(m.commission_rate) * 100).toFixed(1)}%</span>
+                <span class="text-text-muted">{MEDIATION_STATUS_LABELS[m.status] ?? m.status}</span>
+              </li>
+            )) : (
+              <li class="text-sm text-text-muted">仲介契約はありません</li>
+            )
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-semibold text-text mb-4">売買契約</h2>
+        <ul class="space-y-3">
+          {
+            (deals ?? []).length ? deals!.map((d) => (
+              <li class="rounded-xl border border-border p-4">
+                <div class="flex justify-between text-sm mb-2">
+                  <span class="font-semibold">{d.agreed_price?.toLocaleString()}円</span>
+                  <span class="text-text-muted">{DEAL_STATUS_LABELS[d.status] ?? d.status}</span>
+                </div>
+                {
+                  d.commission_amount != null && profile.org_id === d.seller_org_id && (
+                    <p class="text-xs text-text-muted">
+                      仲介手数料（7.5%）: {d.commission_amount.toLocaleString()}円
+                      {d.agreed_price && ` （${calcCommission(d.agreed_price).toLocaleString()}円）`}
+                    </p>
+                  )
+                }
+              </li>
+            )) : (
+              <li class="text-sm text-text-muted">売買契約はありません</li>
+            )
+          }
+        </ul>
+      </div>
+
+      {
+        profile.org_id && (invoices ?? []).length > 0 && (
+          <div>
+            <h2 class="text-lg font-semibold text-text mb-4">手数料請求（売り手向け）</h2>
+            <ul class="space-y-3">
+              {invoices!.map((inv) => (
+                <li class="rounded-xl border border-border p-4 flex justify-between text-sm">
+                  <span>{inv.amount?.toLocaleString()}円</span>
+                  <span class="text-text-muted">{INVOICE_STATUS_LABELS[inv.status] ?? inv.status}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>

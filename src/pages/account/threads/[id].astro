@@ -1,0 +1,110 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import MessageThread from '~/components/MessageThread';
+import ContactCard from '~/components/ContactCard.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
+import type { MessageRow } from '~/lib/threads';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/account/threads');
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+const { data: thread } = await supabase
+  .from('threads')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (!thread) return Astro.redirect('/account/threads');
+
+const isParticipant =
+  thread.buyer_org_id === profile.org_id || thread.seller_org_id === profile.org_id;
+const isAdmin = profile.role === 'admin';
+if (!isParticipant && !isAdmin) return Astro.redirect('/account/threads');
+
+const { data: messages } = await supabase
+  .from('messages')
+  .select('id, thread_id, sender_type, sender_user_id, body, visible_to, created_at')
+  .eq('thread_id', id)
+  .order('created_at', { ascending: true });
+
+let counterpart: {
+  name: string;
+  full_name?: string | null;
+  phone?: string | null;
+  contact_email?: string | null;
+  prefecture?: string;
+  city?: string;
+} | null = null;
+
+if (thread.contact_disclosed && isParticipant) {
+  const counterpartOrgId =
+    profile.org_id === thread.buyer_org_id ? thread.seller_org_id : thread.buyer_org_id;
+
+  const admin = createSupabaseAdminClient(Astro.locals as never);
+  const { data: org } = await admin
+    .from('organizations')
+    .select('name, phone, contact_email, prefecture, city')
+    .eq('id', counterpartOrgId)
+    .single();
+
+  const { data: counterpartProfile } = await admin
+    .from('profiles')
+    .select('full_name')
+    .eq('org_id', counterpartOrgId)
+    .limit(1)
+    .maybeSingle();
+
+  if (org) {
+    counterpart = {
+      name: org.name,
+      full_name: counterpartProfile?.full_name,
+      phone: org.phone,
+      contact_email: org.contact_email,
+      prefecture: org.prefecture,
+      city: org.city,
+    };
+  }
+}
+
+const metadata = { title: thread.kind === 'qa' ? '保守Q&A' : '仲介メッセージ' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <a href="/account/threads" class="text-sm text-brand-600 hover:underline">← メッセージ一覧</a>
+      <h1 class="text-2xl font-bold text-text mt-4 mb-2">
+        {thread.kind === 'qa' ? '保守・付属品 Q&A' : '仲介メッセージ'}
+      </h1>
+      <p class="text-sm text-text-muted mb-6">
+        {thread.kind === 'mediation' && '運営が仲介中です。匿名のままやり取りできます。'}
+      </p>
+
+      {
+        thread.contact_disclosed && (
+          <div class="mb-6">
+            <ContactCard disclosed={true} counterpart={counterpart} />
+          </div>
+        )
+      }
+
+      <MessageThread
+        client:load
+        threadId={id}
+        initialMessages={(messages ?? []) as MessageRow[]}
+        viewerOrgId={profile.org_id}
+        buyerOrgId={thread.buyer_org_id}
+        sellerOrgId={thread.seller_org_id}
+        isAdmin={isAdmin}
+        threadClosed={thread.status === 'closed'}
+      />
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,27 @@
+---
+interface Props {
+  title?: string;
+  message?: string;
+  actionHref?: string;
+  actionLabel?: string;
+}
+
+const {
+  title = 'まだ投稿がありません',
+  message = '条件を変えるか、新しく出品・買いたいを登録してください。',
+  actionHref,
+  actionLabel,
+} = Astro.props;
+---
+
+<div class="rounded-xl border border-dashed border-border bg-surface-muted px-6 py-12 text-center">
+  <h3 class="text-lg font-semibold text-text">{title}</h3>
+  <p class="mt-2 text-sm text-text-muted">{message}</p>
+  {
+    actionHref && actionLabel && (
+      <a href={actionHref} class="mt-6 inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white">
+        {actionLabel}
+      </a>
+    )
+  }
+</div>

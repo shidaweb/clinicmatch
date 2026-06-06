@@ -1,0 +1,104 @@
+---
+import { PREFECTURES } from '~/lib/marketplace';
+
+interface Props {
+  type?: 'all' | 'listing' | 'wanted';
+  category?: string;
+  prefecture?: string;
+  city?: string;
+  minPrice?: string;
+  maxPrice?: string;
+}
+
+const { type = 'all', category = '', prefecture = '', city = '', minPrice = '', maxPrice = '' } = Astro.props;
+
+const buildUrl = (overrides: Record<string, string | undefined>) => {
+  const params = new URLSearchParams();
+  const values = { type, category, prefecture, city, minPrice, maxPrice, ...overrides };
+  Object.entries(values).forEach(([key, value]) => {
+    if (value && value !== 'all') params.set(key, value);
+  });
+  const qs = params.toString();
+  return `/market${qs ? `?${qs}` : ''}`;
+};
+---
+
+<form method="get" action="/market" class="rounded-xl border border-border bg-surface p-4 space-y-4">
+  <div>
+    <label class="block text-sm font-medium text-text mb-2">種別</label>
+    <div class="flex flex-wrap gap-2">
+      {
+        [
+          { value: 'all', label: 'すべて' },
+          { value: 'listing', label: '売りたい' },
+          { value: 'wanted', label: '買いたい' },
+        ].map(({ value, label }) => (
+          <a
+            href={buildUrl({ type: value })}
+            class:list={[
+              'rounded-full px-3 py-1 text-sm font-medium border',
+              type === value ? 'bg-brand-600 text-white border-brand-600' : 'border-border text-text hover:bg-surface-muted',
+            ]}
+          >
+            {label}
+          </a>
+        ))
+      }
+    </div>
+    <input type="hidden" name="type" value={type} />
+  </div>
+
+  <div>
+    <label for="category" class="block text-sm font-medium text-text mb-1">カテゴリ</label>
+    <select id="category" name="category" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+      <option value="">すべて</option>
+      <option value="hair-removal" selected={category === 'hair-removal'}>脱毛</option>
+      <option value="pico-laser" selected={category === 'pico-laser'}>ピコレーザー</option>
+      <option value="ipl" selected={category === 'ipl'}>IPL・光治療</option>
+      <option value="hifu" selected={category === 'hifu'}>HIFU</option>
+      <option value="rf" selected={category === 'rf'}>RF・高周波</option>
+      <option value="body" selected={category === 'body'}>痩身・ボディ</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="prefecture" class="block text-sm font-medium text-text mb-1">都道府県</label>
+    <select id="prefecture" name="prefecture" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+      <option value="">すべて</option>
+      {PREFECTURES.map((pref) => (
+        <option value={pref} selected={prefecture === pref}>{pref}</option>
+      ))}
+    </select>
+  </div>
+
+  <div>
+    <label for="city" class="block text-sm font-medium text-text mb-1">市区町村</label>
+    <input
+      id="city"
+      name="city"
+      type="text"
+      value={city}
+      placeholder="例：渋谷区"
+      class="w-full rounded-xl border border-border px-3 py-2 text-sm"
+    />
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label for="minPrice" class="block text-sm font-medium text-text mb-1">価格下限（円）</label>
+      <input id="minPrice" name="minPrice" type="number" value={minPrice} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+    </div>
+    <div>
+      <label for="maxPrice" class="block text-sm font-medium text-text mb-1">価格上限（円）</label>
+      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+    </div>
+  </div>
+
+  <button type="submit" class="btn-market-primary w-full">絞り込む</button>
+</form>
+
+<style>
+  .btn-market-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+  }
+</style>

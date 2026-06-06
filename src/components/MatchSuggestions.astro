@@ -1,0 +1,28 @@
+---
+import PostCard from '~/components/PostCard.astro';
+import type { MatchScore } from '~/lib/matching';
+
+interface Props {
+  title: string;
+  matches: MatchScore[];
+}
+
+const { title, matches } = Astro.props;
+---
+
+{
+  matches.length > 0 && (
+    <section class="mt-10 rounded-xl border border-border bg-surface-muted p-5">
+      <h2 class="text-lg font-semibold text-text mb-1">{title}</h2>
+      <p class="text-sm text-text-muted mb-4">カテゴリ・予算・エリア等から自動提案（Phase 3）</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        {matches.map(({ kind, post, reasons }) => (
+          <div>
+            <PostCard post={post} {kind} />
+            <p class="mt-1 text-xs text-text-muted">{reasons.join(' · ')}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}

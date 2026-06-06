@@ -1,0 +1,38 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+const { data: approaches } = await supabase
+  .from('approaches')
+  .select('id, kind, status, message, created_at, listing_id, wanted_request_id')
+  .order('created_at', { ascending: false })
+  .limit(50);
+
+const metadata = { title: 'アプローチ' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h1 class="text-2xl font-bold text-text mb-6">アプローチ</h1>
+      <ul class="space-y-3">
+        {(approaches ?? []).map((item) => (
+          <li class="rounded-xl border border-border p-4">
+            <div class="flex justify-between text-sm">
+              <span class="font-medium">{item.kind === 'interest' ? '関心（買い手→出品）' : '提案（売り手→買いたい）'}</span>
+              <span class="text-text-muted">{item.status}</span>
+            </div>
+            {item.message && <p class="mt-2 text-sm text-text-muted">{item.message}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Layout>

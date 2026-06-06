@@ -1,0 +1,111 @@
+---
+interface Props {
+  relatedListingId?: string;
+  relatedWantedId?: string;
+  defaultTopic?: 'sell' | 'buy' | 'other';
+}
+
+const { relatedListingId, relatedWantedId, defaultTopic = 'sell' } = Astro.props;
+---
+
+<form id="consult-form" class="space-y-5">
+  <div>
+    <label class="block text-sm font-medium text-text mb-2">相談種別</label>
+    <div class="flex flex-wrap gap-3">
+      {
+        [
+          { value: 'sell', label: '出品（売りたい）' },
+          { value: 'buy', label: '購入（買いたい）' },
+          { value: 'other', label: 'その他' },
+        ].map(({ value, label }) => (
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input type="radio" name="topic" value={value} checked={defaultTopic === value} class="text-brand-600" />
+            {label}
+          </label>
+        ))
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="body" class="block text-sm font-medium text-text mb-1">相談内容 <span class="text-buy">*</span></label>
+    <textarea
+      id="body"
+      name="body"
+      required
+      rows="5"
+      class="w-full rounded-xl border border-border px-3 py-2 text-sm"
+      placeholder="ご希望の機器、時期、予算などをお書きください（匿名相談OK）"
+    ></textarea>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="contact_name" class="block text-sm font-medium text-text mb-1">お名前（任意）</label>
+      <input id="contact_name" name="contact_name" type="text" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+    </div>
+    <div>
+      <label for="contact_email" class="block text-sm font-medium text-text mb-1">メール（任意）</label>
+      <input id="contact_email" name="contact_email" type="email" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+    </div>
+  </div>
+
+  <div>
+    <label for="contact_phone" class="block text-sm font-medium text-text mb-1">電話（任意）</label>
+    <input id="contact_phone" name="contact_phone" type="tel" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+  </div>
+
+  {relatedListingId && <input type="hidden" name="related_listing_id" value={relatedListingId} />}
+  {relatedWantedId && <input type="hidden" name="related_wanted_id" value={relatedWantedId} />}
+
+  <button type="submit" class="btn-market-primary w-full sm:w-auto">送信する</button>
+  <p id="consult-status" class="text-sm text-text-muted hidden"></p>
+</form>
+
+<div class="mt-8 rounded-xl border border-border bg-surface-muted p-5">
+  <p class="text-sm font-medium text-text">LINEでもご相談いただけます</p>
+  <a
+    href="https://lin.ee/vepVhWc"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="mt-3 inline-flex rounded-xl bg-[#06C755] px-5 py-2.5 text-sm font-semibold text-white"
+  >
+    LINEで相談する
+  </a>
+</div>
+
+<script>
+  const form = document.getElementById('consult-form') as HTMLFormElement | null;
+  const status = document.getElementById('consult-status');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+
+    const data = Object.fromEntries(new FormData(form));
+    status.textContent = '送信中…';
+    status.classList.remove('hidden', 'text-red-600');
+    status.classList.add('text-text-muted');
+
+    try {
+      const res = await fetch('/api/consultations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? '送信に失敗しました');
+      status.textContent = '送信しました。担当者よりご連絡いたします。';
+      form.reset();
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : '送信に失敗しました';
+      status.classList.add('text-red-600');
+    }
+  });
+</script>
+
+<style>
+  .btn-market-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+  }
+</style>

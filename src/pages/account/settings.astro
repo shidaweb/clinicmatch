@@ -1,0 +1,97 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { PREFECTURES } from '~/lib/marketplace';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const org = profile.organizations as {
+  name?: string;
+  corporate_number?: string;
+  prefecture?: string;
+  city?: string;
+  phone?: string | null;
+  contact_email?: string | null;
+  address_detail?: string | null;
+} | null;
+
+const metadata = { title: '設定' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-lg mx-auto px-4 sm:px-6">
+      <h1 class="text-2xl font-bold text-text mb-6">設定</h1>
+      <p class="text-sm text-text-muted mb-6">
+        組織名・法人番号は非公開です。連絡先は合意成立後にのみ取引先へ開示されます。
+      </p>
+
+      <form id="settings-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">組織名（非公開）</label>
+          <input value={org?.name ?? ''} disabled class="w-full rounded-xl border border-border px-3 py-2 text-sm bg-surface-muted" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">法人番号</label>
+          <input value={org?.corporate_number ?? ''} disabled class="w-full rounded-xl border border-border px-3 py-2 text-sm bg-surface-muted font-mono" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="full_name">担当者名</label>
+          <input id="full_name" name="full_name" value={profile.full_name ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="prefecture">都道府県</label>
+            <select id="prefecture" name="prefecture" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+              {PREFECTURES.map((pref) => (
+                <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="city">市区町村</label>
+            <input id="city" name="city" value={org?.city ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="address_detail">番地以降（非公開）</label>
+          <input id="address_detail" name="address_detail" value={org?.address_detail ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="phone">電話（非公開・合意後開示）</label>
+          <input id="phone" name="phone" type="tel" value={org?.phone ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="contact_email">メール（非公開・合意後開示）</label>
+          <input id="contact_email" name="contact_email" type="email" value={org?.contact_email ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <button type="submit" class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white">保存</button>
+        <p id="settings-status" class="text-sm text-text-muted hidden"></p>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('settings-form') as HTMLFormElement;
+  const status = document.getElementById('settings-status');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!status) return;
+    status.classList.remove('hidden');
+    status.textContent = '保存中…';
+
+    const res = await fetch('/api/account/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(form))),
+    });
+    const json = await res.json();
+    status.textContent = res.ok ? '保存しました' : (json.error ?? '保存に失敗しました');
+  });
+</script>

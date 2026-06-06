@@ -1,0 +1,115 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { POST_STATUS_LABELS } from '~/lib/marketplace';
+import { hasSupabaseConfig } from '~/lib/env';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+let listings: Array<{ id: string; maker: string; model: string; status: string }> = [];
+let wanted: Array<{ id: string; category_slug: string; status: string }> = [];
+let approachesCount = 0;
+let threadsCount = 0;
+
+if (hasSupabaseConfig(Astro.locals as never)) {
+  const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+  const [{ data: myListings }, { data: myWanted }, { count: approachCount }, { count: threadCount }] = await Promise.all([
+    supabase.from('listings').select('id, maker, model, status').eq('seller_org_id', profile.org_id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('wanted_requests').select('id, category_slug, status').eq('buyer_org_id', profile.org_id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('approaches').select('*', { count: 'exact', head: true }).or(`from_org_id.eq.${profile.org_id}`),
+    supabase.from('threads').select('*', { count: 'exact', head: true }).or(`buyer_org_id.eq.${profile.org_id},seller_org_id.eq.${profile.org_id}`),
+  ]);
+  listings = myListings ?? [];
+  wanted = myWanted ?? [];
+  approachesCount = approachCount ?? 0;
+  threadsCount = threadCount ?? 0;
+}
+
+const metadata = { title: 'マイページ' };
+const org = profile.organizations as { prefecture?: string; city?: string } | null;
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-bold text-text">マイページ</h1>
+      <p class="mt-2 text-text-muted">{org?.prefecture}{org?.city} — {profile.full_name ?? '担当者'}</p>
+
+      <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/account/listings/new" class="rounded-xl border border-sell bg-surface p-5 hover:shadow-sm transition">
+          <p class="text-sm font-semibold text-sell">売りたいを出す</p>
+        </a>
+        <a href="/account/wanted/new" class="rounded-xl border border-buy bg-surface p-5 hover:shadow-sm transition">
+          <p class="text-sm font-semibold text-buy">買いたいを出す</p>
+        </a>
+        <a href="/account/threads" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
+          <p class="text-sm font-semibold text-text">メッセージ</p>
+          <p class="text-2xl font-bold text-brand-600 mt-1">{threadsCount}</p>
+        </a>
+        <a href="/account/deals" class="rounded-xl border border-border bg-surface p-5 hover:shadow-sm transition">
+          <p class="text-sm font-semibold text-text">契約・請求</p>
+        </a>
+      </div>
+
+      <div class="mt-4">
+        <a href="/account/approaches" class="text-sm text-brand-600 hover:underline">
+          アプローチ一覧（{approachesCount}件）
+        </a>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-2 gap-8">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-text">売りたい</h2>
+            <a href="/account/listings" class="text-sm text-brand-600">すべて</a>
+          </div>
+          <ul class="space-y-3">
+            {
+              listings.length ? listings.map((item) => (
+                <li class="rounded-xl border border-border p-4 flex justify-between gap-3">
+                  <span class="text-sm text-text">{item.maker} {item.model}</span>
+                  <span class="text-xs text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+                </li>
+              )) : (
+                <li class="text-sm text-text-muted">まだ出品がありません</li>
+              )
+            }
+          </ul>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-text">買いたい</h2>
+            <a href="/account/wanted" class="text-sm text-brand-600">すべて</a>
+          </div>
+          <ul class="space-y-3">
+            {
+              wanted.length ? wanted.map((item) => (
+                <li class="rounded-xl border border-border p-4 flex justify-between gap-3">
+                  <span class="text-sm text-text">{item.category_slug}</span>
+                  <span class="text-xs text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+                </li>
+              )) : (
+                <li class="text-sm text-text-muted">まだ買いたいがありません</li>
+              )
+            }
+          </ul>
+        </div>
+      </div>
+
+      {profile.role === 'admin' && (
+        <div class="mt-10 flex flex-wrap gap-4">
+          <a href="/admin" class="text-brand-600 font-medium hover:underline">運営管理画面へ</a>
+        </div>
+      )}
+
+      <div class="mt-6">
+        <a href="/account/settings" class="text-sm text-text-muted hover:text-brand-600">設定・連絡先</a>
+      </div>
+    </div>
+  </section>
+</Layout>

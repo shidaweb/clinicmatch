@@ -2,47 +2,28 @@ import { getPermalink, getBlogPermalink, getHomePermalink } from './utils/permal
 
 export const headerData = {
   links: [
-    {
-      text: 'クリニックマッチとは',
-      links: [
-        { text: '強み', href: getHomePermalink() + '#features' },
-        { text: '取引の考え方', href: getHomePermalink() + '#torihiki' },
-      ],
-    },
-    {
-      text: '取扱機器',
-      href: getPermalink('categories'),
-      links: [
-        { text: 'カテゴリ一覧', href: getPermalink('categories') },
-        { text: '脱毛機', href: getPermalink('categories/hair-removal') },
-        { text: 'ピコレーザー', href: getPermalink('categories/pico-laser') },
-        { text: 'IPL・光治療', href: getPermalink('categories/ipl') },
-        { text: 'HIFU', href: getPermalink('categories/hifu') },
-        { text: 'RF・高周波', href: getPermalink('categories/rf') },
-        { text: '痩身・ボディ', href: getPermalink('categories/body') },
-      ],
-    },
-    { text: '取引事例', href: getPermalink('cases') },
+    { text: 'さがす', href: '/market' },
     { text: 'ブログ', href: getBlogPermalink() },
-    {
-      text: 'よくある質問',
-      links: [
-        { text: '相談例', href: getHomePermalink() + '#sodanrei' },
-        { text: 'FAQ', href: getHomePermalink() + '#faq' },
-      ],
-    },
+    { text: '取引事例', href: getPermalink('cases') },
   ],
-  actions: [{ text: 'LINEで相談する', href: 'https://lin.ee/vepVhWc', variant: 'line', target: '_blank' }],
+  actions: [
+    { text: '売りたいを出す', href: '/account/listings/new', variant: 'primary' as const, class: 'btn-sell-header hidden xl:inline-flex' },
+    { text: '買いたいを出す', href: '/account/wanted/new', variant: 'secondary' as const, class: 'btn-buy-header hidden xl:inline-flex' },
+  ],
+  showConsult: true,
+  accountHref: '/account',
+  loginHref: '/auth/login',
 };
 
 export const footerData = {
   links: [
     {
-      title: 'サービス概要',
+      title: 'マーケット',
       links: [
-        { text: 'クリニックマッチの強み', href: getHomePermalink() + '#features' },
-        { text: '取引の考え方', href: getHomePermalink() + '#torihiki' },
-        { text: 'ご利用の流れ', href: getHomePermalink() + '#flow' },
+        { text: 'さがす', href: '/market' },
+        { text: '売りたいを出す', href: '/account/listings/new' },
+        { text: '買いたいを出す', href: '/account/wanted/new' },
+        { text: '出品・購入を相談する', href: '/consult' },
       ],
     },
     {
@@ -57,18 +38,19 @@ export const footerData = {
       ],
     },
     {
-      title: 'お問い合わせ',
+      title: 'サービス',
       links: [
-        { text: '売却希望のお問い合わせ', href: getPermalink('contact/sell') },
-        { text: '購入希望のお問い合わせ', href: getPermalink('contact/buy') },
-        { text: 'LINEで売買をご相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
+        { text: '取引事例', href: getPermalink('cases') },
+        { text: 'ブログ', href: getBlogPermalink() },
+        { text: 'LINEで相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
       ],
     },
     {
       title: '会社概要',
       links: [
-        { text: '株式会社キラックについて', href: getPermalink('/about') },
-        { text: 'ブログ', href: getBlogPermalink() },
+        { text: '運営会社', href: getPermalink('/about') },
+        { text: '利用規約', href: getPermalink('/terms') },
+        { text: 'プライバシーポリシー', href: getPermalink('/privacy') },
       ],
     },
   ],
@@ -78,4 +60,7 @@ export const footerData = {
   ],
   socialLinks: [],
   footNote: '',
+  showConsult: true,
 };
+
+export const homePermalink = getHomePermalink();

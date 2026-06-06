@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { SITE } from 'astrowind:config';
+import ConsultButton from '~/components/ConsultButton.astro';
 import { getHomePermalink } from '~/utils/permalinks';
 
 interface Link {
@@ -23,9 +24,10 @@ export interface Props {
   socialLinks: Array<Link>;
   footNote?: string;
   theme?: string;
+  showConsult?: boolean;
 }
 
-const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astro.props;
+const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme = 'light', showConsult = false } = Astro.props;
 ---
 
 <footer class:list={[{ dark: theme === 'dark' }, 'relative border-t border-gray-200 dark:border-slate-800 not-prose']}>
@@ -81,8 +83,11 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
         ))
       }
     </div>
-    {(socialLinks?.length || (footNote && footNote.trim())) && (
-      <div class="md:flex md:items-center md:justify-between py-6 md:py-8">
+    {(socialLinks?.length || (footNote && footNote.trim()) || showConsult) && (
+      <div class="md:flex md:items-center md:justify-between py-6 md:py-8 gap-4">
+        {showConsult && (
+          <ConsultButton />
+        )}
         {
           socialLinks?.length ? (
             <ul class="flex mb-4 md:order-1 -ml-2 md:ml-4 md:mb-0 rtl:ml-0 rtl:-mr-2 rtl:md:ml-0 rtl:md:mr-4">

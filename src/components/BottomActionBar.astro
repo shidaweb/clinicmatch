@@ -1,0 +1,28 @@
+---
+import { Icon } from 'astro-icon/components';
+---
+
+<nav
+  class="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-surface/95 backdrop-blur lg:hidden"
+  aria-label="モバイルアクション"
+>
+  <div class="grid grid-cols-4 text-xs">
+    <a href="/market" class="flex flex-col items-center gap-1 py-3 text-text-muted hover:text-brand-600">
+      <Icon name="tabler:search" class="w-5 h-5" />
+      さがす
+    </a>
+    <a href="/account/listings/new" class="flex flex-col items-center gap-1 py-3 text-sell hover:opacity-80">
+      <Icon name="tabler:tag" class="w-5 h-5" />
+      売りたい
+    </a>
+    <a href="/account/wanted/new" class="flex flex-col items-center gap-1 py-3 text-buy hover:opacity-80">
+      <Icon name="tabler:shopping-cart" class="w-5 h-5" />
+      買いたい
+    </a>
+    <a href="/consult" class="flex flex-col items-center gap-1 py-3 text-text hover:text-brand-600">
+      <Icon name="tabler:message-circle" class="w-5 h-5" />
+      相談
+    </a>
+  </div>
+</nav>
+<div class="h-16 lg:hidden" aria-hidden="true"></div>

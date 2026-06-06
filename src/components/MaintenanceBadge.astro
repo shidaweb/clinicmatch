@@ -1,0 +1,35 @@
+---
+import { MAINTENANCE_LABELS, TRANSFER_LABELS } from '~/lib/marketplace';
+
+interface Props {
+  makerMaintenance?: string | null;
+  maintenanceTransferable?: string | null;
+  hasAccessories?: boolean | null;
+}
+
+const { makerMaintenance, maintenanceTransferable, hasAccessories } = Astro.props;
+---
+
+<div class="flex flex-wrap gap-2">
+  {
+    makerMaintenance && (
+      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+        {MAINTENANCE_LABELS[makerMaintenance] ?? makerMaintenance}
+      </span>
+    )
+  }
+  {
+    maintenanceTransferable && (
+      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+        {TRANSFER_LABELS[maintenanceTransferable] ?? maintenanceTransferable}
+      </span>
+    )
+  }
+  {
+    hasAccessories != null && (
+      <span class="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-text">
+        {hasAccessories ? '付属品あり' : '付属品なし'}
+      </span>
+    )
+  }
+</div>

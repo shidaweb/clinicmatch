@@ -1,0 +1,65 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import MessageThread from '~/components/MessageThread';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+import type { MessageRow } from '~/lib/threads';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/threads');
+
+const admin = createSupabaseAdminClient(Astro.locals as never);
+const { data: thread } = await admin.from('threads').select('*').eq('id', id).single();
+if (!thread) return Astro.redirect('/admin/threads');
+
+const { data: messages } = await admin
+  .from('messages')
+  .select('id, thread_id, sender_type, sender_user_id, body, visible_to, created_at')
+  .eq('thread_id', id)
+  .order('created_at', { ascending: true });
+
+const metadata = { title: '仲介スレッド' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <a href="/admin/threads" class="text-sm text-brand-600 hover:underline">← スレッド一覧</a>
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-4 mb-6">
+        <h1 class="text-2xl font-bold text-text">{thread.kind === 'qa' ? 'Q&A' : '仲介'}スレッド</h1>
+        {
+          !thread.contact_disclosed && thread.kind === 'mediation' && (
+            <button id="disclose-btn" class="rounded-xl bg-accent-market px-4 py-2 text-sm font-semibold text-white">
+              合意成立・連絡先開示
+            </button>
+          )
+        }
+      </div>
+
+      <MessageThread
+        client:load
+        threadId={id}
+        initialMessages={(messages ?? []) as MessageRow[]}
+        viewerOrgId={profile.org_id}
+        buyerOrgId={thread.buyer_org_id}
+        sellerOrgId={thread.seller_org_id}
+        isAdmin={true}
+        threadClosed={thread.status === 'closed'}
+      />
+    </div>
+  </section>
+</Layout>
+
+<script define:vars={{ threadId: id }}>
+  document.getElementById('disclose-btn')?.addEventListener('click', async () => {
+    if (!confirm('双方の合意を確認し、連絡先を開示しますか？')) return;
+    const res = await fetch(`/api/admin/threads/${threadId}/disclose`, { method: 'POST' });
+    if (res.ok) window.location.reload();
+    else alert('処理に失敗しました');
+  });
+</script>

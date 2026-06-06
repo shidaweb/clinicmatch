@@ -1,0 +1,112 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { PREFECTURES, POST_STATUS_LABELS } from '~/lib/marketplace';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/account/wanted');
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+const { data: wanted } = await supabase
+  .from('wanted_requests')
+  .select('*')
+  .eq('id', id)
+  .eq('buyer_org_id', profile.org_id)
+  .single();
+
+if (!wanted) return Astro.redirect('/account/wanted');
+
+const org = profile.organizations as { prefecture?: string; city?: string } | null;
+const metadata = { title: '買いたいを編集' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6">
+      <a href="/account/wanted" class="text-sm text-brand-600 hover:underline">← 買いたい一覧</a>
+      <h1 class="text-2xl font-bold text-buy mt-4 mb-2">買いたいを編集</h1>
+      <p class="text-sm text-text-muted mb-6">ステータス: {POST_STATUS_LABELS[wanted.status] ?? wanted.status}</p>
+
+      <form id="wanted-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">カテゴリ</label>
+          <select name="category_slug" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            {['hair-removal','pico-laser','ipl','hifu','rf','body'].map((slug) => (
+              <option value={slug} selected={wanted.category_slug === slug}>{slug}</option>
+            ))}
+          </select>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">メーカー</label>
+            <input name="maker" value={wanted.maker ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">型番</label>
+            <input name="model" value={wanted.model ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">予算（円）</label>
+            <input name="budget" type="number" value={wanted.budget ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">希望時期</label>
+            <input name="desired_timing" value={wanted.desired_timing ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">希望エリア（都道府県）</label>
+            <select name="area_prefecture" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+              {PREFECTURES.map((pref) => (
+                <option value={pref} selected={pref === (wanted.area_prefecture ?? org?.prefecture)}>{pref}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">市区町村</label>
+            <input name="area_city" value={wanted.area_city ?? org?.city ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">要件</label>
+          <textarea name="requirements" rows="4" class="w-full rounded-xl border border-border px-3 py-2 text-sm">{wanted.requirements ?? ''}</textarea>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" name="action" value="draft" class="rounded-xl border border-border px-5 py-2.5 text-sm">保存</button>
+          <button type="submit" name="action" value="submit" class="rounded-xl bg-buy px-5 py-2.5 text-sm text-white font-semibold">審査に提出</button>
+        </div>
+        <p id="wanted-status" class="text-sm text-text-muted hidden"></p>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script define:vars={{ wantedId: wanted.id }}>
+  const form = document.getElementById('wanted-form');
+  const status = document.getElementById('wanted-status');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitter = e.submitter?.value ?? 'draft';
+    const data = Object.fromEntries(new FormData(form));
+    data.submit = submitter === 'submit';
+    status.classList.remove('hidden');
+    status.textContent = '保存中…';
+    const res = await fetch(`/api/wanted/${wantedId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    status.textContent = res.ok ? '保存しました' : (json.error ?? '失敗しました');
+    if (res.ok && submitter === 'submit') window.location.href = '/account/wanted';
+  });
+</script>

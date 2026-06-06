@@ -1,0 +1,138 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { PREFECTURES } from '~/lib/marketplace';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const org = profile.organizations as { prefecture?: string; city?: string } | null;
+const metadata = { title: '売りたいを出す' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-bold text-sell mb-6">売りたいを出す</h1>
+
+      <form id="listing-form" class="rounded-xl border border-border bg-surface p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">カテゴリ</label>
+          <select name="category_slug" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            <option value="hair-removal">脱毛</option>
+            <option value="pico-laser">ピコレーザー</option>
+            <option value="ipl">IPL・光治療</option>
+            <option value="hifu">HIFU</option>
+            <option value="rf">RF・高周波</option>
+            <option value="body">痩身・ボディ</option>
+          </select>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">メーカー</label>
+            <input name="maker" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">型番</label>
+            <input name="model" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">希望価格（円）</label>
+            <input name="asking_price" type="number" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">年式</label>
+            <input name="manufacture_year" type="number" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">都道府県</label>
+            <select name="location_prefecture" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+              {PREFECTURES.map((pref) => (
+                <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">市区町村</label>
+            <input name="location_city" required value={org?.city ?? ''} class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">メーカー保守</label>
+            <select name="maker_maintenance" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+              <option value="unknown">不明</option>
+              <option value="yes">あり</option>
+              <option value="no">なし</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">保守引継ぎ</label>
+            <select name="maintenance_transferable" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+              <option value="unknown">不明</option>
+              <option value="yes">可</option>
+              <option value="no">不可</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" name="has_accessories" value="true" />
+            付属品あり
+          </label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">付属品詳細</label>
+          <textarea name="accessories_detail" rows="2" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">説明</label>
+          <textarea name="description" rows="4" class="w-full rounded-xl border border-border px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" name="action" value="draft" class="btn-secondary rounded-xl border border-border px-5 py-2.5 text-sm">下書き保存</button>
+          <button type="submit" name="action" value="submit" class="btn-market-sell px-5 py-2.5 text-sm">審査に提出</button>
+        </div>
+        <p id="listing-status" class="text-sm text-text-muted hidden"></p>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('listing-form') as HTMLFormElement;
+  const status = document.getElementById('listing-status');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+    const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
+    const data = Object.fromEntries(new FormData(form));
+    data.submit = submitter === 'submit';
+    data.has_accessories = data.has_accessories === 'true';
+
+    status.classList.remove('hidden');
+    status.textContent = '保存中…';
+
+    const res = await fetch('/api/listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    status.textContent = res.ok ? '保存しました。' : (json.error ?? '保存に失敗しました');
+    if (res.ok) window.location.href = '/account';
+  });
+</script>
+
+<style>
+  .btn-market-sell {
+    @apply inline-flex items-center justify-center rounded-xl bg-sell font-semibold text-white hover:opacity-90 transition;
+  }
+</style>

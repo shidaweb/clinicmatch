@@ -1,0 +1,70 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
+
+const admin = createSupabaseAdminClient(Astro.locals as never);
+
+const [
+  { count: listingsPublished },
+  { count: listingsPending },
+  { count: wantedPublished },
+  { count: approachesNew },
+  { count: threadsOpen },
+  { count: dealsContracted },
+  { data: invoices },
+  { count: consultationsNew },
+] = await Promise.all([
+  admin.from('listings').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+  admin.from('listings').select('*', { count: 'exact', head: true }).eq('status', 'pending_review'),
+  admin.from('wanted_requests').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+  admin.from('approaches').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+  admin.from('threads').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+  admin.from('deals').select('*', { count: 'exact', head: true }).eq('status', 'contracted'),
+  admin.from('commission_invoices').select('amount, status'),
+  admin.from('consultations').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+]);
+
+const totalRevenue = (invoices ?? [])
+  .filter((i) => i.status === 'paid')
+  .reduce((sum, i) => sum + (i.amount ?? 0), 0);
+const pendingRevenue = (invoices ?? [])
+  .filter((i) => i.status === 'issued')
+  .reduce((sum, i) => sum + (i.amount ?? 0), 0);
+
+const stats = [
+  { label: '公開中（売りたい）', value: listingsPublished ?? 0 },
+  { label: '審査待ち（売りたい）', value: listingsPending ?? 0 },
+  { label: '公開中（買いたい）', value: wantedPublished ?? 0 },
+  { label: '新規アプローチ', value: approachesNew ?? 0 },
+  { label: '進行中スレッド', value: threadsOpen ?? 0 },
+  { label: '成約数', value: dealsContracted ?? 0 },
+  { label: '新規相談', value: consultationsNew ?? 0 },
+  { label: '入金済手数料', value: `${totalRevenue.toLocaleString()}円` },
+  { label: '請求中手数料', value: `${pendingRevenue.toLocaleString()}円` },
+];
+
+const metadata = { title: '分析ダッシュボード' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <a href="/admin" class="text-sm text-brand-600 hover:underline">← 管理画面</a>
+      <h1 class="text-2xl font-bold text-text mt-4 mb-8">分析ダッシュボード</h1>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {stats.map(({ label, value }) => (
+          <div class="rounded-xl border border-border bg-surface p-5">
+            <p class="text-sm text-text-muted">{label}</p>
+            <p class="text-2xl font-bold text-text mt-1">{value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>

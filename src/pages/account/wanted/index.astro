@@ -1,0 +1,44 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { POST_STATUS_LABELS } from '~/lib/marketplace';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+const { data: wanted } = await supabase
+  .from('wanted_requests')
+  .select('id, category_slug, maker, model, status, created_at')
+  .eq('buyer_org_id', profile.org_id)
+  .order('created_at', { ascending: false });
+
+const metadata = { title: '買いたい一覧' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-text">買いたい一覧</h1>
+        <a href="/account/wanted/new" class="text-sm text-buy font-medium">+ 新規登録</a>
+      </div>
+      <ul class="space-y-3">
+        {(wanted ?? []).map((item) => (
+          <li class="rounded-xl border border-border p-4 flex justify-between items-center gap-3">
+            <span>{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-text-muted">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+              {item.status !== 'published' && (
+                <a href={`/account/wanted/${item.id}/edit`} class="text-sm text-brand-600 hover:underline">編集</a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Layout>

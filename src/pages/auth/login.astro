@@ -1,0 +1,68 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+
+const redirect = Astro.url.searchParams.get('redirect') ?? '/account';
+const registered = Astro.url.searchParams.has('registered');
+
+const metadata = { title: 'ログイン' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16 bg-surface-muted">
+    <div class="max-w-md mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-bold text-text mb-2">ログイン</h1>
+      {registered && <p class="text-accent-market mb-4 text-sm">登録が完了しました。ログインしてください。</p>}
+
+      <form id="login-form" class="rounded-xl border border-border bg-surface p-6 space-y-4 shadow-sm">
+        <input type="hidden" name="redirect" value={redirect} />
+        <div>
+          <label class="block text-sm font-medium mb-1" for="email">メールアドレス</label>
+          <input id="email" name="email" type="email" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="password">パスワード</label>
+          <input id="password" name="password" type="password" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <button type="submit" class="btn-market-primary w-full">ログイン</button>
+        <p id="login-status" class="text-sm text-text-muted hidden"></p>
+      </form>
+
+      <p class="mt-6 text-sm text-text-muted text-center">
+        初めての方は <a href="/auth/register" class="text-brand-600 hover:underline">会員登録</a>
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const status = document.getElementById('login-status');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+    status.classList.remove('hidden');
+    status.textContent = 'ログイン中…';
+
+    const data = Object.fromEntries(new FormData(form));
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email, password: data.password }),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      window.location.href = String(data.redirect || '/account');
+      return;
+    }
+    status.textContent = json.error ?? 'ログインに失敗しました';
+  });
+</script>
+
+<style>
+  .btn-market-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+  }
+</style>

@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
+
+const metadata = { title: '運営管理' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-bold text-text mb-8">運営管理</h1>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="/admin/consultations" class="rounded-xl border border-border p-5 hover:shadow-sm">相談一覧</a>
+        <a href="/admin/posts" class="rounded-xl border border-border p-5 hover:shadow-sm">投稿審査</a>
+        <a href="/admin/approaches" class="rounded-xl border border-border p-5 hover:shadow-sm">アプローチ管理</a>
+        <a href="/admin/threads" class="rounded-xl border border-border p-5 hover:shadow-sm">仲介ワークスペース</a>
+        <a href="/admin/agreements" class="rounded-xl border border-border p-5 hover:shadow-sm">仲介契約</a>
+        <a href="/admin/deals" class="rounded-xl border border-border p-5 hover:shadow-sm">売買契約・請求</a>
+        <a href="/admin/members" class="rounded-xl border border-border p-5 hover:shadow-sm">会員管理</a>
+        <a href="/admin/analytics" class="rounded-xl border border-border p-5 hover:shadow-sm">分析ダッシュボード</a>
+      </div>
+    </div>
+  </section>
+</Layout>

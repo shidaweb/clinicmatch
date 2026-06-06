@@ -40,6 +40,14 @@
   .btn-line {
     @apply btn font-semibold text-white border-[#06C755] bg-[#06C755] hover:bg-[#05b34a] hover:border-[#05b34a] dark:bg-[#06C755] dark:border-[#06C755] dark:hover:bg-[#05b34a] dark:hover:border-[#05b34a];
   }
+
+  .btn-sell-header {
+    @apply bg-sell text-white border-sell hover:opacity-90;
+  }
+
+  .btn-buy-header {
+    @apply bg-buy text-white border-buy hover:opacity-90;
+  }
 }
 
 #header.scroll > div:first-child {

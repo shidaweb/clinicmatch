@@ -1,0 +1,105 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import PostCard from '~/components/PostCard.astro';
+import MarketFilters from '~/components/MarketFilters.astro';
+import EmptyState from '~/components/EmptyState.astro';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { PUBLIC_LISTING_SELECT, PUBLIC_WANTED_SELECT, type PublicListing, type PublicWanted } from '~/lib/marketplace';
+import { hasSupabaseConfig } from '~/lib/env';
+
+const type = Astro.url.searchParams.get('type') ?? 'all';
+const category = Astro.url.searchParams.get('category') ?? '';
+const prefecture = Astro.url.searchParams.get('prefecture') ?? '';
+const city = Astro.url.searchParams.get('city') ?? '';
+const minPrice = Astro.url.searchParams.get('minPrice') ?? '';
+const maxPrice = Astro.url.searchParams.get('maxPrice') ?? '';
+
+let listings: PublicListing[] = [];
+let wanted: PublicWanted[] = [];
+
+if (hasSupabaseConfig(Astro.locals as never)) {
+  const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
+
+  if (type === 'all' || type === 'listing') {
+    let query = supabase
+      .from('listings')
+      .select(PUBLIC_LISTING_SELECT)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (category) query = query.eq('category_slug', category);
+    if (prefecture) query = query.eq('location_prefecture', prefecture);
+    if (city) query = query.ilike('location_city', `%${city}%`);
+    if (minPrice) query = query.gte('asking_price', Number(minPrice));
+    if (maxPrice) query = query.lte('asking_price', Number(maxPrice));
+
+    const { data } = await query.limit(50);
+    listings = (data ?? []) as PublicListing[];
+  }
+
+  if (type === 'all' || type === 'wanted') {
+    let query = supabase
+      .from('wanted_requests')
+      .select(PUBLIC_WANTED_SELECT)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (category) query = query.eq('category_slug', category);
+    if (prefecture) query = query.eq('area_prefecture', prefecture);
+    if (city) query = query.ilike('area_city', `%${city}%`);
+    if (minPrice) query = query.gte('budget', Number(minPrice));
+    if (maxPrice) query = query.lte('budget', Number(maxPrice));
+
+    const { data } = await query.limit(50);
+    wanted = (data ?? []) as PublicWanted[];
+  }
+}
+
+const posts =
+  type === 'listing'
+    ? listings.map((post) => ({ kind: 'listing' as const, post }))
+    : type === 'wanted'
+      ? wanted.map((post) => ({ kind: 'wanted' as const, post }))
+      : [
+          ...listings.map((post) => ({ kind: 'listing' as const, post, date: post.published_at ?? post.created_at })),
+          ...wanted.map((post) => ({ kind: 'wanted' as const, post, date: post.published_at ?? post.created_at })),
+        ].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+const metadata = { title: 'マーケット｜売りたい・買いたい一覧' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-text">マーケット</h1>
+        <p class="mt-2 text-text-muted">売りたい出品と買いたいリクエストを一覧で探せます。</p>
+      </div>
+
+      <div class="grid lg:grid-cols-[280px_1fr] gap-8">
+        <aside>
+          <MarketFilters {type} {category} {prefecture} {city} {minPrice} {maxPrice} />
+        </aside>
+
+        <div>
+          {
+            posts.length === 0 ? (
+              <EmptyState
+                actionHref="/account/listings/new"
+                actionLabel="売りたいを出す"
+              />
+            ) : (
+              <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {posts.map(({ kind, post }) => (
+                  <PostCard {post} {kind} />
+                ))}
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,40 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
+
+const admin = createSupabaseAdminClient(Astro.locals as never);
+const { data: consultations } = await admin
+  .from('consultations')
+  .select('id, topic, body, contact_email, status, created_at')
+  .order('created_at', { ascending: false })
+  .limit(100);
+
+const topicLabels: Record<string, string> = { sell: '出品', buy: '購入', other: 'その他' };
+const metadata = { title: '相談管理' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <h1 class="text-2xl font-bold text-text mb-6">相談一覧</h1>
+      <ul class="space-y-4">
+        {(consultations ?? []).map((item) => (
+          <li class="rounded-xl border border-border p-4">
+            <div class="flex justify-between text-sm mb-2">
+              <span class="font-medium">{topicLabels[item.topic] ?? item.topic}</span>
+              <span class="text-text-muted">{item.status}</span>
+            </div>
+            <p class="text-sm text-text whitespace-pre-wrap">{item.body}</p>
+            {item.contact_email && <p class="mt-2 text-xs text-text-muted">{item.contact_email}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Layout>

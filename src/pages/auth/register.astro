@@ -1,0 +1,88 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+import { PREFECTURES } from '~/lib/marketplace';
+
+const metadata = { title: '会員登録' };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16 bg-surface-muted">
+    <div class="max-w-lg mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-bold text-text mb-2">会員登録</h1>
+      <p class="text-text-muted mb-8">法人番号（13桁）と所在地で、数ステップで登録完了。売り手・買い手の兼任が可能です。</p>
+
+      <form id="register-form" class="rounded-xl border border-border bg-surface p-6 space-y-4 shadow-sm">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="email">メールアドレス</label>
+          <input id="email" name="email" type="email" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="password">パスワード</label>
+          <input id="password" name="password" type="password" required minlength="8" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="corporate_number">法人番号（13桁）</label>
+          <input id="corporate_number" name="corporate_number" required pattern="\d{13}" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="name">組織名（非公開）</label>
+          <input id="name" name="name" required class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="full_name">担当者名</label>
+          <input id="full_name" name="full_name" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="prefecture">都道府県</label>
+          <select id="prefecture" name="prefecture" required class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+            <option value="">選択してください</option>
+            {PREFECTURES.map((pref) => <option value={pref}>{pref}</option>)}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="city">市区町村</label>
+          <input id="city" name="city" required placeholder="例：渋谷区" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+        </div>
+        <button type="submit" class="btn-market-primary w-full">登録する</button>
+        <p id="register-status" class="text-sm text-text-muted hidden"></p>
+      </form>
+
+      <p class="mt-6 text-sm text-text-muted text-center">
+        すでにアカウントをお持ちの方は <a href="/auth/login" class="text-brand-600 hover:underline">ログイン</a>
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('register-form') as HTMLFormElement;
+  const status = document.getElementById('register-status');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+    status.classList.remove('hidden');
+    status.textContent = '登録中…';
+
+    const payload = Object.fromEntries(new FormData(form));
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      window.location.href = '/auth/login?registered=1';
+      return;
+    }
+    status.textContent = json.error ?? '登録に失敗しました';
+  });
+</script>
+
+<style>
+  .btn-market-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
+  }
+</style>
