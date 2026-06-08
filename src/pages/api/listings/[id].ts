@@ -103,18 +103,24 @@ export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const { data: listing } = await supabase
     .from('listings')
-    .select('id, seller_org_id')
+    .select('id, seller_org_id, status')
     .eq('id', listingId)
     .single();
 
   if (!listing || listing.seller_org_id !== profile.org_id) {
     return json({ error: '出品が見つかりません' }, 404);
   }
+  if (listing.status === 'published') {
+    return json({ error: '公開中の出品には画像を追加できません。運営にお問い合わせください。' }, 400);
+  }
 
   const formData = await request.formData();
   const file = formData.get('file');
   if (!(file instanceof File) || !file.size) {
     return json({ error: '画像ファイルが必要です' }, 400);
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    return json({ error: '画像サイズは8MB以下にしてください' }, 400);
   }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
@@ -135,6 +141,10 @@ export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
     .from('listing_images')
     .select('*', { count: 'exact', head: true })
     .eq('listing_id', listingId);
+
+  if ((count ?? 0) >= 10) {
+    return json({ error: '画像は最大10枚までです' }, 400);
+  }
 
   const isCover = (count ?? 0) === 0;
 

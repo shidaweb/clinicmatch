@@ -3,7 +3,7 @@ export const prerender = false;
 
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import PostRow from '~/components/PostRow.astro';
+import PostCard from '~/components/PostCard.astro';
 import CaseRow from '~/components/CaseRow.astro';
 import MarketFilters from '~/components/MarketFilters.astro';
 import MarketFilterSheet from '~/components/MarketFilterSheet.astro';
@@ -210,9 +210,9 @@ const marketPaged = paginateList(marketPosts, currentPage);
                 />
               ) : (
                 <>
-                  <div class="divide-y divide-line border-t border-line">
+                  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {marketPaged.slice.map(({ kind, post }) => (
-                      <PostRow {post} {kind} />
+                      <PostCard {post} {kind} />
                     ))}
                   </div>
                   <CmPagination

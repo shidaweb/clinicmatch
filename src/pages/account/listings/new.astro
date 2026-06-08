@@ -13,119 +13,315 @@ const metadata = { title: '売りたいを出す' };
 ---
 
 <AccountLayout metadata={metadata} title="売りたい機器を登録・相談する" maxWidth="2xl">
-      <form id="listing-form" class="cm-card p-6 space-y-4">
-        <div>
-          <label class="cm-label">カテゴリ</label>
-          <select name="category_slug" required class="cm-input">
-            <option value="hair-removal">脱毛</option>
-            <option value="pico-laser">ピコレーザー</option>
-            <option value="ipl">IPL・光治療</option>
-            <option value="hifu">HIFU</option>
-            <option value="rf">RF・高周波</option>
-            <option value="body">痩身・ボディ</option>
-          </select>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="cm-label">メーカー</label>
-            <input name="maker" required class="cm-input" />
-          </div>
-          <div>
-            <label class="cm-label">型番</label>
-            <input name="model" required class="cm-input" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="cm-label">希望価格（円）</label>
-            <input name="asking_price" type="number" class="cm-input" />
-          </div>
-          <div>
-            <label class="cm-label">年式</label>
-            <input name="manufacture_year" type="number" class="cm-input" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="cm-label">都道府県</label>
-            <select name="location_prefecture" required class="cm-input">
-              {PREFECTURES.map((pref) => (
-                <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label class="cm-label">市区町村</label>
-            <input name="location_city" required value={org?.city ?? ''} class="cm-input" />
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="cm-label">メーカー保守</label>
-            <select name="maker_maintenance" class="cm-input">
-              <option value="unknown">不明</option>
-              <option value="yes">あり</option>
-              <option value="no">なし</option>
-            </select>
-          </div>
-          <div>
-            <label class="cm-label">保守引継ぎ</label>
-            <select name="maintenance_transferable" class="cm-input">
-              <option value="unknown">不明</option>
-              <option value="yes">可</option>
-              <option value="no">不可</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" name="has_accessories" value="true" />
-            付属品あり
-          </label>
-        </div>
-        <div>
-          <label class="cm-label">付属品詳細</label>
-          <textarea name="accessories_detail" rows="2" class="cm-input"></textarea>
-        </div>
-        <div>
-          <label class="cm-label">説明</label>
-          <textarea name="description" rows="4" class="cm-input"></textarea>
-        </div>
-        <div class="flex gap-3">
-          <button type="submit" name="action" value="draft" class="cm-btn-secondary text-sm">下書き保存</button>
-          <button type="submit" name="action" value="submit" class="cm-btn-primary text-sm">審査に提出</button>
-        </div>
-        <p id="listing-status" class="text-sm text-plum-soft hidden"></p>
-      </form>
+  <form id="listing-form" class="cm-card p-6 space-y-5">
+    <section>
+      <p class="cm-label">写真</p>
+      <input id="listing-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+      <div id="listing-image-grid" class="mt-2 grid grid-cols-3 gap-2 sm:gap-3"></div>
+      <p class="mt-2 text-xs text-plum-soft">最大10枚／1枚目が表紙／「表紙にする」「←」「→」で並び替えできます。</p>
+      <p class="mt-1 text-xs text-danger">院名・連絡先・人物が写らない写真をご利用ください。</p>
+      <p id="listing-image-error" class="mt-1 text-xs text-danger hidden"></p>
+    </section>
+    <div>
+      <label class="cm-label">カテゴリ</label>
+      <select name="category_slug" required class="cm-input">
+        <option value="hair-removal">脱毛</option>
+        <option value="pico-laser">ピコレーザー</option>
+        <option value="ipl">IPL・光治療</option>
+        <option value="hifu">HIFU</option>
+        <option value="rf">RF・高周波</option>
+        <option value="body">痩身・ボディ</option>
+      </select>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">メーカー</label>
+        <input name="maker" required class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">型番</label>
+        <input name="model" required class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">希望価格（円）</label>
+        <input name="asking_price" type="number" class="cm-input" />
+      </div>
+      <div>
+        <label class="cm-label">年式</label>
+        <input name="manufacture_year" type="number" class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">都道府県</label>
+        <select name="location_prefecture" required class="cm-input">
+          {PREFECTURES.map((pref) => (
+            <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label class="cm-label">市区町村</label>
+        <input name="location_city" required value={org?.city ?? ''} class="cm-input" />
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="cm-label">メーカー保守</label>
+        <select name="maker_maintenance" class="cm-input">
+          <option value="unknown">不明</option>
+          <option value="yes">あり</option>
+          <option value="no">なし</option>
+        </select>
+      </div>
+      <div>
+        <label class="cm-label">保守引継ぎ</label>
+        <select name="maintenance_transferable" class="cm-input">
+          <option value="unknown">不明</option>
+          <option value="yes">可</option>
+          <option value="no">不可</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" name="has_accessories" value="true" />
+        付属品あり
+      </label>
+    </div>
+    <div>
+      <label class="cm-label">付属品詳細</label>
+      <textarea name="accessories_detail" rows="2" class="cm-input"></textarea>
+    </div>
+    <div>
+      <label class="cm-label">説明</label>
+      <textarea name="description" rows="4" class="cm-input"></textarea>
+    </div>
+    <div class="sticky bottom-0 -mx-6 px-6 py-4 bg-ivory border-t border-line">
+      <div class="flex gap-3">
+        <button type="submit" name="action" value="draft" class="cm-btn-secondary text-sm">下書き保存</button>
+        <button type="submit" name="action" value="submit" class="cm-btn-primary text-sm">審査に提出</button>
+      </div>
+      <p id="listing-status" class="mt-2 text-sm text-plum-soft hidden"></p>
+    </div>
+  </form>
 </AccountLayout>
 
 <script>
-  const form = document.getElementById('listing-form') as HTMLFormElement;
-  const status = document.getElementById('listing-status');
+  type PickerImage = {
+    id: string;
+    file: File;
+    previewUrl: string;
+    uploaded: boolean;
+  };
+
+  const form = document.getElementById('listing-form') as HTMLFormElement | null;
+  const status = document.getElementById('listing-status') as HTMLParagraphElement | null;
+  const imageError = document.getElementById('listing-image-error') as HTMLParagraphElement | null;
+  const imageGrid = document.getElementById('listing-image-grid') as HTMLDivElement | null;
+  const imageInput = document.getElementById('listing-image-input') as HTMLInputElement | null;
+
+  const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  const maxSize = 8 * 1024 * 1024;
+  let pickerImages: PickerImage[] = [];
+  let createdListingId = '';
+
+  const showImageError = (message: string) => {
+    if (!imageError) return;
+    imageError.classList.remove('hidden');
+    imageError.textContent = message;
+  };
+
+  const clearImageError = () => {
+    if (!imageError) return;
+    imageError.classList.add('hidden');
+    imageError.textContent = '';
+  };
+
+  const moveToCover = (id: string) => {
+    const index = pickerImages.findIndex((item) => item.id === id);
+    if (index <= 0) return;
+    const [item] = pickerImages.splice(index, 1);
+    pickerImages.unshift(item);
+    renderImageGrid();
+  };
+
+  const moveImage = (id: string, direction: -1 | 1) => {
+    const index = pickerImages.findIndex((item) => item.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= pickerImages.length) return;
+    [pickerImages[index], pickerImages[target]] = [pickerImages[target], pickerImages[index]];
+    renderImageGrid();
+  };
+
+  const removeImage = (id: string) => {
+    const item = pickerImages.find((image) => image.id === id);
+    if (item) URL.revokeObjectURL(item.previewUrl);
+    pickerImages = pickerImages.filter((image) => image.id !== id);
+    renderImageGrid();
+  };
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return;
+    clearImageError();
+    const remaining = 10 - pickerImages.length;
+    if (remaining <= 0) {
+      showImageError('画像は最大10枚までです。');
+      return;
+    }
+
+    const nextFiles = Array.from(files).slice(0, remaining);
+    for (const file of nextFiles) {
+      if (!allowedTypes.has(file.type)) {
+        showImageError('JPEG / PNG / WebP のみ登録できます。');
+        continue;
+      }
+      if (file.size > maxSize) {
+        showImageError('1枚あたり8MB以下の画像を選択してください。');
+        continue;
+      }
+      pickerImages.push({
+        id: crypto.randomUUID(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+        uploaded: false,
+      });
+    }
+    renderImageGrid();
+  };
+
+  const renderImageGrid = () => {
+    if (!imageGrid) return;
+    imageGrid.innerHTML = '';
+
+    pickerImages.forEach((item, index) => {
+      const tile = document.createElement('div');
+      tile.className = 'relative rounded-xl border border-line bg-cream overflow-hidden aspect-square';
+      tile.innerHTML = `
+        <img src="${item.previewUrl}" alt="選択中の出品画像 ${index + 1}" class="h-full w-full object-cover" />
+        ${
+          index === 0
+            ? '<span class="absolute left-1.5 top-1.5 rounded-pill bg-rose px-2 py-0.5 text-[10px] text-white">表紙</span>'
+            : ''
+        }
+        <button type="button" data-role="remove" data-id="${item.id}" class="absolute right-1.5 top-1.5 rounded-full bg-plum/80 px-1.5 py-0.5 text-[10px] text-white">×</button>
+        <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-plum/75 p-1 text-[10px] text-white">
+          <button type="button" data-role="cover" data-id="${item.id}" class="rounded bg-white/20 px-1.5 py-0.5">表紙にする</button>
+          <button type="button" data-role="left" data-id="${item.id}" class="rounded bg-white/20 px-1.5 py-0.5">←</button>
+          <button type="button" data-role="right" data-id="${item.id}" class="rounded bg-white/20 px-1.5 py-0.5">→</button>
+        </div>
+      `;
+      imageGrid.appendChild(tile);
+    });
+
+    const addTile = document.createElement('button');
+    addTile.type = 'button';
+    addTile.className =
+      'aspect-square rounded-xl border border-dashed border-line text-plum-soft text-xs bg-ivory hover:bg-cream transition-colors';
+    addTile.textContent = '＋ 写真を追加';
+    addTile.addEventListener('click', () => imageInput?.click());
+    imageGrid.appendChild(addTile);
+  };
+
+  imageGrid?.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest('button');
+    if (!button) return;
+    const id = button.getAttribute('data-id');
+    if (!id) return;
+    const role = button.getAttribute('data-role');
+    if (role === 'remove') removeImage(id);
+    if (role === 'cover') moveToCover(id);
+    if (role === 'left') moveImage(id, -1);
+    if (role === 'right') moveImage(id, 1);
+  });
+
+  imageInput?.addEventListener('change', () => {
+    addFiles(imageInput.files);
+    imageInput.value = '';
+  });
+
+  const toPayload = () => {
+    if (!form) return {};
+    const raw = Object.fromEntries(new FormData(form));
+    raw.has_accessories = raw.has_accessories === 'true';
+    return raw;
+  };
+
+  const requestJson = async (res: Response) => {
+    return (await res.json().catch(() => ({}))) as { error?: string; id?: string };
+  };
+
+  const ensureDraft = async (payload: Record<string, unknown>) => {
+    if (createdListingId) {
+      const patchRes = await fetch(`/api/listings/${createdListingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, submit: false }),
+      });
+      const patchJson = await requestJson(patchRes);
+      if (!patchRes.ok) throw new Error(patchJson.error ?? '下書き保存に失敗しました');
+      return createdListingId;
+    }
+
+    const createRes = await fetch('/api/listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, submit: false }),
+    });
+    const createJson = await requestJson(createRes);
+    if (!createRes.ok || !createJson.id) throw new Error(createJson.error ?? '出品の作成に失敗しました');
+    createdListingId = createJson.id;
+    return createdListingId;
+  };
+
+  const uploadPendingImages = async (listingId: string) => {
+    const pending = pickerImages.filter((item) => !item.uploaded);
+    for (let index = 0; index < pending.length; index += 1) {
+      const item = pending[index];
+      if (status) status.textContent = `画像をアップロード中… ${index + 1}/${pending.length}枚`;
+      const fd = new FormData();
+      fd.append('file', item.file);
+      const uploadRes = await fetch(`/api/listings/${listingId}`, { method: 'POST', body: fd });
+      const uploadJson = await requestJson(uploadRes);
+      if (!uploadRes.ok) {
+        throw new Error(uploadJson.error ?? '画像アップロードに失敗しました');
+      }
+      item.uploaded = true;
+    }
+  };
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
     const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
-    const data = Object.fromEntries(new FormData(form));
-    data.submit = submitter === 'submit';
-    data.has_accessories = data.has_accessories === 'true';
+    const submit = submitter === 'submit';
 
-    status.classList.remove('hidden');
-    status.textContent = '保存中…';
+    status.classList.remove('hidden', 'text-danger');
+    status.textContent = submit ? '申請を準備中…' : '下書きを保存中…';
 
-    const res = await fetch('/api/listings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      window.location.href =
-        submitter === 'submit' ? '/account/listings/thanks' : '/account/listings?draft=1';
-      return;
+    try {
+      const payload = toPayload();
+      const listingId = await ensureDraft(payload);
+      await uploadPendingImages(listingId);
+
+      if (submit) {
+        const patchRes = await fetch(`/api/listings/${listingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, submit: true }),
+        });
+        const patchJson = await requestJson(patchRes);
+        if (!patchRes.ok) throw new Error(patchJson.error ?? '審査提出に失敗しました');
+      }
+
+      window.location.href = submit ? '/account/listings/thanks' : '/account/listings?draft=1';
+    } catch (error) {
+      status.classList.add('text-danger');
+      status.textContent = error instanceof Error ? error.message : '保存に失敗しました';
     }
-    status.textContent = json.error ?? '保存に失敗しました';
-    status.classList.add('text-danger');
   });
+
+  renderImageGrid();
 </script>

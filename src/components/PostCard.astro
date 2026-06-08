@@ -1,5 +1,5 @@
 ---
-import { anonymousOrgLabel, formatLocation, formatPriceYen, type PublicListing, type PublicWanted } from '~/lib/marketplace';
+import { formatLocation, formatPriceYen, type PublicListing, type PublicWanted } from '~/lib/marketplace';
 
 interface Props {
   post: PublicListing | PublicWanted;
@@ -31,18 +31,25 @@ const coverImage =
     : null;
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
-const imageUrl = coverImage && supabaseUrl
-  ? `${supabaseUrl}/storage/v1/object/public/listing-images/${coverImage.storage_path}`
-  : null;
+const imageUrl = isListing
+  ? coverImage && supabaseUrl
+    ? `${supabaseUrl}/storage/v1/object/public/listing-images/${coverImage.storage_path}`
+    : null
+  : wanted?.reference_image_path && supabaseUrl
+    ? `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`
+    : null;
+const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
 ---
 
-<a href={href} class="cm-post-card group block shrink-0 w-56 snap-start">
-  <div class="cm-post-card-image">
+<a href={href} class="cm-post-card group block">
+  <div class="cm-post-card-image aspect-square">
     {
       imageUrl ? (
-        <img src={imageUrl} alt="" class="h-full w-full object-cover" loading="lazy" />
+        <img src={imageUrl} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />
       ) : (
-        <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>
+        <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">
+          {categoryName}
+        </div>
       )
     }
   </div>
@@ -60,7 +67,7 @@ const imageUrl = coverImage && supabaseUrl
       {yearLabel && (
         <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft font-heading tabular-nums">{yearLabel}</span>
       )}
-      {isListing && listing!.maker_maintenance && (
+      {isListing && listing!.maker_maintenance === 'yes' && (
         <span class="cm-tag-sage">保守あり</span>
       )}
     </div>

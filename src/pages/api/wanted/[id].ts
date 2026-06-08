@@ -74,3 +74,70 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
 
   return json({ success: true, id });
 };
+
+export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
+  const profile = await getProfile(cookies, locals as never);
+  if (!profile) return json({ error: 'ログインが必要です' }, 401);
+
+  const id = params.id;
+  if (!id) return json({ error: 'IDが必要です' }, 400);
+
+  const supabase = createSupabaseServerClient(cookies, locals as never);
+  const { data: existing } = await supabase
+    .from('wanted_requests')
+    .select('id, status, buyer_org_id')
+    .eq('id', id)
+    .single();
+
+  if (!existing || existing.buyer_org_id !== profile.org_id) {
+    return json({ error: '買いたいが見つかりません' }, 404);
+  }
+  if (existing.status === 'published') {
+    return json({ error: '公開中の買いたいは編集できません。運営にお問い合わせください。' }, 400);
+  }
+
+  const formData = await request.formData();
+  const file = formData.get('file');
+  if (!(file instanceof File) || !file.size) {
+    return json({ error: '画像ファイルが必要です' }, 400);
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    return json({ error: '画像サイズは8MB以下にしてください' }, 400);
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const allowed = ['jpg', 'jpeg', 'png', 'webp'];
+  if (!allowed.includes(ext)) return json({ error: 'JPEG/PNG/WebP のみ対応しています' }, 400);
+
+  const storagePath = `${id}/${Date.now()}.${ext}`;
+  const buffer = new Uint8Array(await file.arrayBuffer());
+
+  const admin = createSupabaseAdminClient(locals as never);
+  const { error: uploadError } = await admin.storage
+    .from('wanted-images')
+    .upload(storagePath, buffer, { contentType: file.type, upsert: false });
+
+  if (uploadError) return json({ error: uploadError.message }, 400);
+
+  const oldPath = (await supabase
+    .from('wanted_requests')
+    .select('reference_image_path')
+    .eq('id', id)
+    .single()).data?.reference_image_path as string | null;
+
+  const { error: updateError } = await supabase
+    .from('wanted_requests')
+    .update({ reference_image_path: storagePath })
+    .eq('id', id);
+
+  if (updateError) {
+    await admin.storage.from('wanted-images').remove([storagePath]);
+    return json({ error: updateError.message }, 400);
+  }
+
+  if (oldPath) {
+    await admin.storage.from('wanted-images').remove([oldPath]);
+  }
+
+  return json({ success: true, path: storagePath });
+};

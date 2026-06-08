@@ -14,6 +14,31 @@ const metadata = { title: '買いたいを出す' };
 
 <AccountLayout metadata={metadata} title="買いたいを出す" maxWidth="2xl">
   <form id="wanted-form" class="cm-card p-6 space-y-4">
+    <section>
+      <p class="cm-label">参考画像（任意）</p>
+      <input id="wanted-image-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+      <button
+        id="wanted-image-trigger"
+        type="button"
+        class="mt-2 w-full rounded-xl border border-dashed border-line bg-ivory px-4 py-6 text-sm text-plum-soft hover:bg-cream"
+      >
+        欲しい機種のカタログ画像などを追加
+      </button>
+      <div id="wanted-image-preview" class="mt-3 hidden">
+        <div class="relative w-32 overflow-hidden rounded-xl border border-line bg-cream">
+          <img id="wanted-image-preview-img" src="" alt="参考画像プレビュー" class="h-24 w-full object-cover" />
+          <button
+            id="wanted-image-remove"
+            type="button"
+            class="absolute right-1 top-1 rounded-full bg-plum/80 px-1.5 py-0.5 text-[10px] text-white"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-plum-soft">JPEG / PNG / WebP（8MB以下）</p>
+      <p id="wanted-image-error" class="mt-1 text-xs text-danger hidden"></p>
+    </section>
     <div>
       <label class="cm-label">カテゴリ（必須）</label>
       <select name="category_slug" required class="cm-input">
@@ -74,29 +99,111 @@ const metadata = { title: '買いたいを出す' };
 <script>
   const form = document.getElementById('wanted-form') as HTMLFormElement;
   const status = document.getElementById('wanted-status');
+  const imageInput = document.getElementById('wanted-image-input') as HTMLInputElement;
+  const imageTrigger = document.getElementById('wanted-image-trigger');
+  const imagePreview = document.getElementById('wanted-image-preview');
+  const imagePreviewImg = document.getElementById('wanted-image-preview-img') as HTMLImageElement;
+  const imageRemove = document.getElementById('wanted-image-remove');
+  const imageError = document.getElementById('wanted-image-error');
+
+  let wantedId = '';
+  let referenceImage: File | null = null;
+  let imagePreviewUrl = '';
+
+  const showImageError = (message: string) => {
+    imageError?.classList.remove('hidden');
+    if (imageError) imageError.textContent = message;
+  };
+  const clearImageError = () => {
+    imageError?.classList.add('hidden');
+    if (imageError) imageError.textContent = '';
+  };
+
+  imageTrigger?.addEventListener('click', () => imageInput?.click());
+  imageInput?.addEventListener('change', () => {
+    clearImageError();
+    const file = imageInput.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      showImageError('JPEG / PNG / WebP のみ登録できます。');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      showImageError('画像サイズは8MB以下にしてください。');
+      return;
+    }
+    referenceImage = file;
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    imagePreviewUrl = URL.createObjectURL(file);
+    imagePreviewImg.src = imagePreviewUrl;
+    imagePreview?.classList.remove('hidden');
+    imageInput.value = '';
+  });
+
+  imageRemove?.addEventListener('click', () => {
+    referenceImage = null;
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    imagePreviewUrl = '';
+    imagePreview?.classList.add('hidden');
+    imagePreviewImg.src = '';
+  });
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
     const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
+    const submit = submitter === 'submit';
     const data = Object.fromEntries(new FormData(form));
-    data.submit = submitter === 'submit';
+    data.submit = false;
 
     status.classList.remove('hidden');
-    status.textContent = '保存中…';
+    status.classList.remove('text-danger');
+    status.textContent = submit ? '申請を準備中…' : '下書き保存中…';
 
-    const res = await fetch('/api/wanted', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      window.location.href =
-        submitter === 'submit' ? '/account/wanted/thanks' : '/account/wanted?draft=1';
-      return;
+    try {
+      if (!wantedId) {
+        const createRes = await fetch('/api/wanted', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const createJson = await createRes.json();
+        if (!createRes.ok) throw new Error(createJson.error ?? '保存に失敗しました');
+        wantedId = createJson.id;
+      } else {
+        const patchRes = await fetch(`/api/wanted/${wantedId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const patchJson = await patchRes.json();
+        if (!patchRes.ok) throw new Error(patchJson.error ?? '保存に失敗しました');
+      }
+
+      if (referenceImage) {
+        status.textContent = '参考画像をアップロード中…';
+        const fd = new FormData();
+        fd.append('file', referenceImage);
+        const imageRes = await fetch(`/api/wanted/${wantedId}`, { method: 'POST', body: fd });
+        const imageJson = await imageRes.json();
+        if (!imageRes.ok) throw new Error(imageJson.error ?? '画像アップロードに失敗しました');
+        referenceImage = null;
+      }
+
+      if (submit) {
+        const submitRes = await fetch(`/api/wanted/${wantedId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, submit: true }),
+        });
+        const submitJson = await submitRes.json();
+        if (!submitRes.ok) throw new Error(submitJson.error ?? '審査提出に失敗しました');
+      }
+
+      window.location.href = submit ? '/account/wanted/thanks' : '/account/wanted?draft=1';
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : '保存に失敗しました';
+      status.classList.add('text-danger');
     }
-    status.textContent = json.error ?? '保存に失敗しました';
-    status.classList.add('text-danger');
   });
 </script>

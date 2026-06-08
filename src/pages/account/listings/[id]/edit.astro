@@ -15,7 +15,7 @@ if (!id) return Astro.redirect('/account/listings');
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
 const { data: listing } = await supabase
   .from('listings')
-  .select('*, listing_images(id, storage_path, is_cover)')
+  .select('*, listing_images(id, storage_path, is_cover, sort_order)')
   .eq('id', id)
   .eq('seller_org_id', profile.org_id)
   .single();
@@ -91,14 +91,25 @@ const metadata = { title: '出品を編集' };
 
   <div class="mt-8 cm-card p-6">
     <h2 class="font-heading font-semibold text-plum mb-4">画像</h2>
-    <div class="grid grid-cols-3 gap-3 mb-4">
-      {(listing.listing_images ?? []).map((img: { storage_path: string }) => (
+    <div id="existing-images" class="grid grid-cols-3 gap-3 mb-4">
+      {(listing.listing_images ?? []).map((img: { id: string; storage_path: string; is_cover: boolean }) => (
         supabaseUrl && (
-          <img
-            src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
-            alt=""
-            class="rounded-2xl h-24 w-full object-cover bg-cream"
-          />
+          <div class="relative rounded-2xl overflow-hidden border border-line bg-cream">
+            <img
+              src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
+              alt=""
+              class="h-24 w-full object-cover"
+            />
+            {img.is_cover && (
+              <span class="absolute left-1 top-1 rounded-pill bg-rose px-2 py-0.5 text-[10px] text-white">表紙</span>
+            )}
+            <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-plum/75 p-1 text-[10px] text-white">
+              <button type="button" data-role="cover" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">表紙</button>
+              <button type="button" data-role="left" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">←</button>
+              <button type="button" data-role="right" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">→</button>
+              <button type="button" data-role="delete" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">削除</button>
+            </div>
+          </div>
         )
       ))}
     </div>
@@ -132,6 +143,64 @@ const metadata = { title: '出品を編集' };
 
   const imageForm = document.getElementById('image-form');
   const imageStatus = document.getElementById('image-status');
+  const imageGrid = document.getElementById('existing-images');
+  const imageOrder = Array.from(imageGrid?.querySelectorAll('button[data-id]') ?? [])
+    .map((button) => button.getAttribute('data-id'))
+    .filter((id) => !!id);
+
+  const updateOrder = async () => {
+    await fetch(`/api/listings/${listingId}/images`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: imageOrder }),
+    });
+  };
+
+  const requestImageAction = async (path, options = {}) => {
+    const res = await fetch(path, options);
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error ?? '画像操作に失敗しました');
+    return json;
+  };
+
+  imageGrid?.addEventListener('click', async (e) => {
+    const button = e.target.closest('button[data-role][data-id]');
+    if (!button) return;
+    const imageId = button.getAttribute('data-id');
+    const role = button.getAttribute('data-role');
+    if (!imageId || !role) return;
+
+    try {
+      imageStatus.classList.remove('hidden');
+      imageStatus.textContent = '更新中…';
+
+      if (role === 'delete') {
+        await requestImageAction(`/api/listings/${listingId}/images/${imageId}`, { method: 'DELETE' });
+        window.location.reload();
+        return;
+      }
+      if (role === 'cover') {
+        await requestImageAction(`/api/listings/${listingId}/images`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coverId: imageId }),
+        });
+        window.location.reload();
+        return;
+      }
+
+      const index = imageOrder.indexOf(imageId);
+      if (index < 0) return;
+      const target = role === 'left' ? index - 1 : index + 1;
+      if (target < 0 || target >= imageOrder.length) return;
+      [imageOrder[index], imageOrder[target]] = [imageOrder[target], imageOrder[index]];
+      await updateOrder();
+      window.location.reload();
+    } catch (error) {
+      imageStatus.textContent = error instanceof Error ? error.message : '失敗しました';
+    }
+  });
+
   imageForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     imageStatus.classList.remove('hidden');

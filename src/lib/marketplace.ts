@@ -116,6 +116,7 @@ export type PublicWanted = {
   area_prefecture: string | null;
   area_city: string | null;
   requirements: string | null;
+  reference_image_path: string | null;
   published_at: string | null;
   created_at: string;
   categories?: { name: string } | null;
@@ -134,7 +135,7 @@ export const PUBLIC_LISTING_SELECT = `
 
 export const PUBLIC_WANTED_SELECT = `
   id, category_slug, maker, model, condition_pref, budget,
-  desired_timing, area_prefecture, area_city, requirements,
+  desired_timing, area_prefecture, area_city, requirements, reference_image_path,
   published_at, created_at,
   categories(name)
 `;
