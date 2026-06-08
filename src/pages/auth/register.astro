@@ -62,7 +62,7 @@ const metadata = { title: '会員登録' };
         </div>
         <div>
           <label class="cm-label" for="full_name">担当者名</label>
-          <input id="full_name" name="full_name" class="cm-input" />
+          <input id="full_name" name="full_name" required autocomplete="name" class="cm-input" />
         </div>
         <div>
           <label class="cm-label" for="prefecture">都道府県</label>
@@ -120,17 +120,45 @@ const metadata = { title: '会員登録' };
     const email = String(raw.get('email') ?? '').trim();
     const password = String(raw.get('password') ?? '');
     const corporateNumber = normalizeCorporateNumber(String(raw.get('corporate_number') ?? ''));
+    const name = String(raw.get('name') ?? '').trim();
+    const fullName = String(raw.get('full_name') ?? '').trim();
+    const prefecture = String(raw.get('prefecture') ?? '').trim();
+    const city = String(raw.get('city') ?? '').trim();
 
     if (!email) {
       showError('メールアドレスを入力してください');
+      return;
+    }
+    if (!password) {
+      showError('パスワードを入力してください');
       return;
     }
     if (!isValidPassword(password)) {
       showError('パスワードは8文字以上64文字以内で、英大文字・英小文字・数字をそれぞれ1文字以上含めてください');
       return;
     }
+    if (!corporateNumber) {
+      showError('法人番号を入力してください');
+      return;
+    }
     if (!/^\d{13}$/.test(corporateNumber)) {
       showError('法人番号は13桁の数字で入力してください（ハイフンは除いて数えます）');
+      return;
+    }
+    if (!name) {
+      showError('組織名を入力してください');
+      return;
+    }
+    if (!fullName) {
+      showError('担当者名を入力してください');
+      return;
+    }
+    if (!prefecture) {
+      showError('都道府県を選択してください');
+      return;
+    }
+    if (!city) {
+      showError('市区町村を入力してください');
       return;
     }
 

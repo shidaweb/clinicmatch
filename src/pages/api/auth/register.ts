@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import {
-  isValidCorporateNumberFormat,
-  isValidPassword,
+  mapAuthRegisterError,
   normalizeCorporateNumber,
-  PASSWORD_RULES_MESSAGE,
+  validateRegisterPayload,
 } from '~/lib/auth';
 import { getEmailConfirmRedirectUrl } from '~/lib/auth-url';
 import { hasSupabaseConfig } from '~/lib/env';
@@ -17,6 +16,9 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   }
 
   const body = (await request.json()) as Record<string, unknown>;
+  const validationError = validateRegisterPayload(body);
+  if (validationError) return json({ error: validationError }, 400);
+
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
   const corporateNumber = normalizeCorporateNumber(String(body.corporate_number ?? ''));
@@ -24,13 +26,6 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const prefecture = String(body.prefecture ?? '').trim();
   const city = String(body.city ?? '').trim();
   const fullName = String(body.full_name ?? '').trim();
-
-  if (!email || !password) return json({ error: 'メールとパスワードを入力してください' }, 400);
-  if (!isValidPassword(password)) return json({ error: PASSWORD_RULES_MESSAGE }, 400);
-  if (!isValidCorporateNumberFormat(corporateNumber)) {
-    return json({ error: '法人番号は13桁の数字で入力してください' }, 400);
-  }
-  if (!name || !prefecture || !city) return json({ error: '組織名・都道府県・市区町村を入力してください' }, 400);
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const admin = createSupabaseAdminClient(locals as never);
@@ -44,7 +39,10 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   });
 
   if (authError || !authData.user) {
-    return json({ error: authError?.message ?? '登録に失敗しました' }, 400);
+    return json(
+      { error: authError ? mapAuthRegisterError(authError) : '登録に失敗しました' },
+      400
+    );
   }
 
   const userId = authData.user.id;
@@ -69,7 +67,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const { error: profileError } = await admin.from('profiles').insert({
     id: userId,
     org_id: org.id,
-    full_name: fullName || null,
+    full_name: fullName,
     role: 'member',
   });
 

@@ -41,7 +41,7 @@ const metadata = { title: 'ログイン' };
           <input id="password" name="password" type="password" required autocomplete="current-password" class="cm-input" />
         </div>
         <button type="submit" class="cm-btn-primary w-full">ログイン</button>
-        <p id="login-status" class="text-sm text-plum-soft hidden" role="alert"></p>
+        <p id="login-status" class="text-sm text-danger hidden" role="alert" aria-live="polite"></p>
         <p id="resend-wrap" class="text-sm hidden">
           <button type="button" id="resend-btn" class="text-rose hover:underline">
             確認メールを再送する
@@ -65,7 +65,8 @@ const metadata = { title: 'ログイン' };
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
-    status.classList.remove('hidden', 'text-danger');
+    status.classList.remove('hidden');
+    status.classList.remove('text-danger');
     status.classList.add('text-plum-soft');
     resendWrap?.classList.add('hidden');
     status.textContent = 'ログイン中…';
@@ -81,9 +82,9 @@ const metadata = { title: 'ログイン' };
       window.location.href = String(data.redirect || '/account');
       return;
     }
-    status.textContent = json.error ?? 'ログインに失敗しました';
-    status.classList.add('text-danger');
+    status.textContent = json.error ?? 'ログインに失敗しました。しばらくしてから再度お試しください。';
     status.classList.remove('text-plum-soft');
+    status.classList.add('text-danger');
     if (json.code === 'email_not_confirmed') {
       resendWrap?.classList.remove('hidden');
     }

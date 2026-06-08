@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { mapAuthLoginError } from '~/lib/auth';
 import { hasSupabaseConfig } from '~/lib/env';
 
 export const prerender = false;
@@ -13,27 +14,22 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
 
-  if (!email || !password) return json({ error: 'メールとパスワードを入力してください' }, 400);
+  if (!email && !password) {
+    return json({ error: 'メールアドレスとパスワードを入力してください', code: 'missing_fields' }, 400);
+  }
+  if (!email) {
+    return json({ error: 'メールアドレスを入力してください', code: 'missing_email' }, 400);
+  }
+  if (!password) {
+    return json({ error: 'パスワードを入力してください', code: 'missing_password' }, 400);
+  }
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    const msg = error.message.toLowerCase();
-    if (
-      error.code === 'email_not_confirmed' ||
-      msg.includes('email not confirmed') ||
-      msg.includes('not confirmed')
-    ) {
-      return json(
-        {
-          error: 'メールアドレスの確認が完了していません。登録時の確認メールのリンクをクリックしてください。',
-          code: 'email_not_confirmed',
-        },
-        401
-      );
-    }
-    return json({ error: error.message }, 401);
+    const mapped = mapAuthLoginError(error);
+    return json({ error: mapped.message, code: mapped.code }, 401);
   }
 
   return json({ success: true });
