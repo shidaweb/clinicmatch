@@ -141,3 +141,36 @@ export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
 
   return json({ success: true, path: storagePath });
 };
+
+export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
+  const profile = await getProfile(cookies, locals as never);
+  if (!profile) return json({ error: 'ログインが必要です' }, 401);
+
+  const id = params.id;
+  if (!id) return json({ error: 'IDが必要です' }, 400);
+
+  const supabase = createSupabaseServerClient(cookies, locals as never);
+  const admin = createSupabaseAdminClient(locals as never);
+
+  const { data: existing } = await supabase
+    .from('wanted_requests')
+    .select('id, status, buyer_org_id, reference_image_path')
+    .eq('id', id)
+    .single();
+
+  if (!existing || existing.buyer_org_id !== profile.org_id) {
+    return json({ error: '買いたいが見つかりません' }, 404);
+  }
+  if (existing.status === 'published') {
+    return json({ error: '公開中の買いたいは削除できません。運営にお問い合わせください。' }, 400);
+  }
+
+  if (existing.reference_image_path) {
+    await admin.storage.from('wanted-images').remove([existing.reference_image_path]);
+  }
+
+  const { error } = await supabase.from('wanted_requests').delete().eq('id', id);
+  if (error) return json({ error: error.message }, 400);
+
+  return json({ success: true, id });
+};

@@ -27,17 +27,55 @@ const draftSaved = Astro.url.searchParams.has('draft');
     </p>
   )}
   <a href="/account/wanted/new" slot="actions" class="cm-btn-primary text-sm !px-4 !py-2">+ 新規登録</a>
+  <p id="wanted-delete-status" class="mb-3 hidden text-sm"></p>
   <ul class="space-y-3">
     {(wanted ?? []).map((item) => (
-      <li class="cm-list-item flex justify-between items-center gap-3">
+      <li class="cm-list-item flex justify-between items-center gap-3" data-wanted-id={item.id}>
         <span class="text-plum">{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
         <div class="flex items-center gap-3">
           <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
           {item.status !== 'published' && (
-            <a href={`/account/wanted/${item.id}/edit`} class="cm-link">編集</a>
+            <>
+              <a href={`/account/wanted/${item.id}/edit`} class="cm-link">編集</a>
+              <button type="button" class="cm-link text-danger" data-delete-wanted={item.id}>削除</button>
+            </>
           )}
         </div>
       </li>
     ))}
   </ul>
 </AccountLayout>
+
+<script>
+  const status = document.getElementById('wanted-delete-status');
+
+  const showStatus = (message, isError = false) => {
+    if (!status) return;
+    status.classList.remove('hidden', 'text-danger', 'text-plum-soft');
+    status.classList.add(isError ? 'text-danger' : 'text-plum-soft');
+    status.textContent = message;
+  };
+
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-delete-wanted]');
+    if (!button) return;
+
+    const wantedId = button.getAttribute('data-delete-wanted');
+    if (!wantedId) return;
+
+    const ok = window.confirm('この買いたい投稿を削除しますか？この操作は取り消せません。');
+    if (!ok) return;
+
+    showStatus('削除中…');
+    const res = await fetch(`/api/wanted/${wantedId}`, { method: 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showStatus(json.error ?? '削除に失敗しました', true);
+      return;
+    }
+
+    const row = document.querySelector(`[data-wanted-id="${wantedId}"]`);
+    row?.remove();
+    showStatus('削除しました');
+  });
+</script>

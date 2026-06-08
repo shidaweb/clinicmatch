@@ -166,3 +166,45 @@ export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
 
   return json({ success: true, image: imageRow });
 };
+
+export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
+  const profile = await getProfile(cookies, locals as never);
+  if (!profile) return json({ error: 'ログインが必要です' }, 401);
+
+  const listingId = params.id;
+  if (!listingId) return json({ error: 'IDが必要です' }, 400);
+
+  const supabase = createSupabaseServerClient(cookies, locals as never);
+  const admin = createSupabaseAdminClient(locals as never);
+
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('id, seller_org_id, status')
+    .eq('id', listingId)
+    .single();
+
+  if (!listing || listing.seller_org_id !== profile.org_id) {
+    return json({ error: '出品が見つかりません' }, 404);
+  }
+  if (listing.status === 'published') {
+    return json({ error: '公開中の出品は削除できません。運営にお問い合わせください。' }, 400);
+  }
+
+  const { data: images, error: imageError } = await supabase
+    .from('listing_images')
+    .select('storage_path')
+    .eq('listing_id', listingId);
+  if (imageError) return json({ error: imageError.message }, 400);
+
+  const storagePaths = (images ?? [])
+    .map((img) => img.storage_path)
+    .filter((path): path is string => Boolean(path));
+  if (storagePaths.length > 0) {
+    await admin.storage.from('listing-images').remove(storagePaths);
+  }
+
+  const { error: deleteError } = await supabase.from('listings').delete().eq('id', listingId);
+  if (deleteError) return json({ error: deleteError.message }, 400);
+
+  return json({ success: true, id: listingId });
+};

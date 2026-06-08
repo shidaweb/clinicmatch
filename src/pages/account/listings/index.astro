@@ -27,17 +27,55 @@ const draftSaved = Astro.url.searchParams.has('draft');
     </p>
   )}
   <a href="/account/listings/new" slot="actions" class="cm-btn-primary text-sm !px-4 !py-2">+ 新規出品</a>
+  <p id="listing-delete-status" class="mb-3 hidden text-sm"></p>
   <ul class="space-y-3">
     {(listings ?? []).map((item) => (
-      <li class="cm-list-item flex justify-between items-center gap-3">
+      <li class="cm-list-item flex justify-between items-center gap-3" data-listing-id={item.id}>
         <span class="text-plum">{item.maker} {item.model}</span>
         <div class="flex items-center gap-3">
           <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
           {item.status !== 'published' && (
-            <a href={`/account/listings/${item.id}/edit`} class="cm-link">編集</a>
+            <>
+              <a href={`/account/listings/${item.id}/edit`} class="cm-link">編集</a>
+              <button type="button" class="cm-link text-danger" data-delete-listing={item.id}>削除</button>
+            </>
           )}
         </div>
       </li>
     ))}
   </ul>
 </AccountLayout>
+
+<script>
+  const status = document.getElementById('listing-delete-status');
+
+  const showStatus = (message, isError = false) => {
+    if (!status) return;
+    status.classList.remove('hidden', 'text-danger', 'text-plum-soft');
+    status.classList.add(isError ? 'text-danger' : 'text-plum-soft');
+    status.textContent = message;
+  };
+
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-delete-listing]');
+    if (!button) return;
+
+    const listingId = button.getAttribute('data-delete-listing');
+    if (!listingId) return;
+
+    const ok = window.confirm('この売りたい投稿を削除しますか？この操作は取り消せません。');
+    if (!ok) return;
+
+    showStatus('削除中…');
+    const res = await fetch(`/api/listings/${listingId}`, { method: 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showStatus(json.error ?? '削除に失敗しました', true);
+      return;
+    }
+
+    const row = document.querySelector(`[data-listing-id="${listingId}"]`);
+    row?.remove();
+    showStatus('削除しました');
+  });
+</script>
