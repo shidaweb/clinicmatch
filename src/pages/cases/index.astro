@@ -46,13 +46,13 @@ let wantedCount = 0;
 if (hasSupabaseConfig(Astro.locals as never)) {
   const countData = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
     type: 'all',
-    category,
-    prefecture,
-    city,
-    minPrice,
-    maxPrice,
-    sort,
-    q,
+    category: '',
+    prefecture: '',
+    city: '',
+    minPrice: '',
+    maxPrice: '',
+    sort: 'new',
+    q: '',
   });
   listingCount = countData.listings.length;
   wantedCount = countData.wanted.length;
