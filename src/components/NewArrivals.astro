@@ -25,9 +25,42 @@
 </div>
 
 <script>
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+
   function formatPrice(amount: number | null | undefined) {
     if (amount == null) return '応相談';
     return `${amount.toLocaleString('ja-JP')}円`;
+  }
+
+  function escapeHtml(value: unknown) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function imageHtml(kind: 'listing' | 'wanted', item: Record<string, unknown>, modelLabel: string) {
+    const listingImages = Array.isArray(item.listing_images) ? item.listing_images : [];
+    const cover =
+      kind === 'listing'
+        ? (listingImages.find((img) => (img as { is_cover?: boolean }).is_cover) ??
+            listingImages[0]) as { storage_path?: string } | undefined
+        : undefined;
+
+    const listingPath = cover?.storage_path;
+    const wantedPath = typeof item.reference_image_path === 'string' ? item.reference_image_path : '';
+    const storagePath = kind === 'listing' ? listingPath : wantedPath;
+    const bucket = kind === 'listing' ? 'listing-images' : 'wanted-images';
+    const imageUrl = storagePath && supabaseUrl
+      ? `${supabaseUrl}/storage/v1/object/public/${bucket}/${storagePath}`
+      : '';
+
+    if (!imageUrl) {
+      return '<div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>';
+    }
+    return `<img src="${imageUrl}" alt="${escapeHtml(modelLabel)}" class="h-full w-full object-cover" loading="lazy" />`;
   }
 
   function cardHtml(kind: 'listing' | 'wanted', item: Record<string, unknown>) {
@@ -39,17 +72,22 @@
     const tagLabel = isListing ? '売りたい' : '買いたい';
     const href = `/cases/${item.id}?type=${kind}`;
     const year = isListing && item.manufacture_year ? `${item.manufacture_year}年` : '';
+    const safeModel = escapeHtml(model);
+    const safeMaker = escapeHtml(maker);
+    const safePrice = escapeHtml(price);
+    const safeHref = escapeHtml(href);
+    const safeYear = escapeHtml(year);
     return `
-      <a href="${href}" class="cm-post-card group block shrink-0 w-56 snap-start">
+      <a href="${safeHref}" class="cm-post-card group block shrink-0 w-56 snap-start">
         <div class="cm-post-card-image">
-          <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>
+          ${imageHtml(kind, item, String(model))}
         </div>
         <div class="p-4">
           <span class="${tagClass}">${tagLabel}</span>
-          <h4 class="mt-2 font-bold text-[15px] text-plum line-clamp-2 group-hover:text-rose-deep">${model}</h4>
-          ${maker ? `<p class="mt-0.5 text-xs text-plum-soft truncate">${maker}</p>` : ''}
-          ${year ? `<p class="mt-2 text-[11px] text-plum-soft font-heading">${year}</p>` : ''}
-          <p class="mt-2 font-heading text-base font-semibold text-rose-deep tabular-nums">${price}</p>
+          <h4 class="mt-2 font-bold text-[15px] text-plum line-clamp-2 group-hover:text-rose-deep">${safeModel}</h4>
+          ${maker ? `<p class="mt-0.5 text-xs text-plum-soft truncate">${safeMaker}</p>` : ''}
+          ${year ? `<p class="mt-2 text-[11px] text-plum-soft font-heading">${safeYear}</p>` : ''}
+          <p class="mt-2 font-heading text-base font-semibold text-rose-deep tabular-nums">${safePrice}</p>
         </div>
       </a>
     `;
