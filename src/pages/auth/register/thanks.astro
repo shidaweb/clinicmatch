@@ -15,11 +15,14 @@ const metadata = { title: '確認メールを送信しました', showConsultBlo
           ご登録のメールアドレスに確認リンクをお送りしました。<br />
           メール内のリンクをクリックすると登録が完了し、ログインできるようになります。
         </p>
-        <ul class="text-left text-sm text-plum-soft space-y-2 mb-8 max-w-sm mx-auto">
+        <ul class="text-left text-sm text-plum-soft space-y-2 mb-6 max-w-sm mx-auto">
           <li>・届かない場合は迷惑メールフォルダをご確認ください</li>
           <li>・リンクの有効期限は24時間程度です</li>
           <li>・確認後は<a href="/auth/login" class="text-rose hover:underline">ログイン</a>してください</li>
         </ul>
+        <p class="text-xs text-plum-soft mb-6">
+          リンクの有効期限が切れた場合は、<a href="/auth/login?error=confirm" class="text-rose hover:underline">ログイン画面</a>から確認メールを再送できます。
+        </p>
         <a href="/auth/login" class="cm-btn-primary">ログイン画面へ</a>
       </div>
     </div>

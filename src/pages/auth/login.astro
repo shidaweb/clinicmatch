@@ -6,7 +6,9 @@ import Layout from '~/layouts/PageLayout.astro';
 const redirect = Astro.url.searchParams.get('redirect') ?? '/account';
 const registered = Astro.url.searchParams.has('registered');
 const confirmed = Astro.url.searchParams.has('confirmed');
+const resent = Astro.url.searchParams.has('resent');
 const error = Astro.url.searchParams.get('error');
+const confirmExpired = error === 'confirm';
 
 const metadata = { title: 'ログイン' };
 ---
@@ -24,10 +26,19 @@ const metadata = { title: 'ログイン' };
       {registered && !confirmed && (
         <p class="text-sage mb-4 text-sm">登録が完了しました。ログインしてください。</p>
       )}
-      {error === 'confirm' && (
-        <p class="text-danger mb-4 text-sm">
-          メール確認リンクが無効か期限切れです。下の「確認メールを再送」から再度お試しください。
+      {resent && (
+        <p class="text-sage mb-4 text-sm">
+          確認メールを再送しました。メール内のリンクをクリックしてからログインしてください。
         </p>
+      )}
+      {confirmExpired && (
+        <div class="mb-4 p-4 rounded-xl border border-rose/30 bg-rose/5 text-sm">
+          <p class="font-medium text-plum mb-1">メール確認が完了していません</p>
+          <p class="text-plum-soft leading-relaxed">
+            確認リンクの有効期限（24時間程度）が切れたか、すでに使用されています。
+            登録時のメールアドレスを入力し、「確認メールを再送する」から新しいリンクを受け取ってください。
+          </p>
+        </div>
       )}
 
       <form id="login-form" class="cm-card p-6 space-y-4">
@@ -42,11 +53,19 @@ const metadata = { title: 'ログイン' };
         </div>
         <button type="submit" class="cm-btn-primary w-full">ログイン</button>
         <p id="login-status" class="text-sm text-danger hidden" role="alert" aria-live="polite"></p>
-        <p id="resend-wrap" class="text-sm hidden">
-          <button type="button" id="resend-btn" class="text-rose hover:underline">
+
+        <div
+          id="resend-panel"
+          class:list={[
+            'space-y-2 pt-4 border-t border-border',
+            !confirmExpired && 'hidden',
+          ]}
+        >
+          <p class="text-xs text-plum-soft">メール確認が届かない・期限切れの場合</p>
+          <button type="button" id="resend-btn" class="cm-btn-secondary w-full">
             確認メールを再送する
           </button>
-        </p>
+        </div>
       </form>
 
       <p class="mt-6 text-sm text-plum-soft text-center">
@@ -59,17 +78,26 @@ const metadata = { title: 'ログイン' };
 <script>
   const form = document.getElementById('login-form') as HTMLFormElement;
   const status = document.getElementById('login-status');
-  const resendWrap = document.getElementById('resend-wrap');
+  const resendPanel = document.getElementById('resend-panel');
   const resendBtn = document.getElementById('resend-btn');
+
+  function showResendPanel() {
+    resendPanel?.classList.remove('hidden');
+  }
+
+  function showStatus(message: string, isError: boolean) {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('hidden');
+    status.classList.toggle('text-danger', isError);
+    status.classList.toggle('text-plum-soft', !isError);
+    status.classList.toggle('text-sage', !isError && message.includes('再送しました'));
+  }
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!status) return;
-    status.classList.remove('hidden');
-    status.classList.remove('text-danger');
-    status.classList.add('text-plum-soft');
-    resendWrap?.classList.add('hidden');
-    status.textContent = 'ログイン中…';
+    status?.classList.add('hidden');
+    showStatus('ログイン中…', false);
 
     const data = Object.fromEntries(new FormData(form));
     const res = await fetch('/api/auth/login', {
@@ -82,32 +110,39 @@ const metadata = { title: 'ログイン' };
       window.location.href = String(data.redirect || '/account');
       return;
     }
-    status.textContent = json.error ?? 'ログインに失敗しました。しばらくしてから再度お試しください。';
-    status.classList.remove('text-plum-soft');
-    status.classList.add('text-danger');
+    showStatus(json.error ?? 'ログインに失敗しました。しばらくしてから再度お試しください。', true);
     if (json.code === 'email_not_confirmed') {
-      resendWrap?.classList.remove('hidden');
+      showResendPanel();
     }
   });
 
   resendBtn?.addEventListener('click', async () => {
     const email = (document.getElementById('email') as HTMLInputElement)?.value?.trim();
-    if (!email || !status) return;
-    status.classList.remove('hidden', 'text-danger');
-    status.classList.add('text-plum-soft');
-    status.textContent = '確認メールを再送中…';
+    if (!email) {
+      showStatus('再送するにはメールアドレスを入力してください', true);
+      return;
+    }
+
+    showStatus('確認メールを再送中…', false);
+    resendBtn.setAttribute('disabled', 'true');
+
     const res = await fetch('/api/auth/resend-confirmation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     const json = await res.json();
+    resendBtn.removeAttribute('disabled');
+
     if (res.ok) {
-      status.textContent = '確認メールを再送しました。受信トレイをご確認ください。';
+      const params = new URLSearchParams(window.location.search);
+      params.delete('error');
+      params.set('resent', '1');
+      window.location.href = `/auth/login?${params.toString()}`;
       return;
     }
-    status.textContent = json.error ?? '再送に失敗しました';
-    status.classList.add('text-danger');
-    status.classList.remove('text-plum-soft');
+
+    showStatus(json.error ?? '再送に失敗しました', true);
+    showResendPanel();
   });
 </script>

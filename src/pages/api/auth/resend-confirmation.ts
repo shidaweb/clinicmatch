@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { mapAuthResendError } from '~/lib/auth';
 import { getEmailConfirmRedirectUrl } from '~/lib/auth-url';
 import { hasSupabaseConfig } from '~/lib/env';
 
@@ -21,9 +22,19 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     options: { emailRedirectTo: getEmailConfirmRedirectUrl(request) },
   });
 
-  if (error) return json({ error: error.message }, 400);
+  if (error) {
+    const message = mapAuthResendError(error);
+    const alreadyConfirmed = message.includes('既に確認済み');
+    return json(
+      { error: message, code: alreadyConfirmed ? 'already_confirmed' : 'resend_failed' },
+      400
+    );
+  }
 
-  return json({ success: true });
+  return json({
+    success: true,
+    message: '確認メールを再送しました。受信トレイ（迷惑メールフォルダも）をご確認ください。',
+  });
 };
 
 function json(data: unknown, status = 200) {

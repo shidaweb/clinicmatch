@@ -17,13 +17,19 @@ export const GET: APIRoute = async ({ url, cookies, locals, redirect }) => {
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return redirect('/auth/login?error=confirm');
+    if (error) {
+      console.warn('[auth/confirm] code exchange failed:', error.message);
+      return redirect('/auth/login?error=confirm');
+    }
     return redirect('/auth/login?confirmed=1');
   }
 
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
-    if (error) return redirect('/auth/login?error=confirm');
+    if (error) {
+      console.warn('[auth/confirm] otp verify failed:', error.message);
+      return redirect('/auth/login?error=confirm');
+    }
     return redirect('/auth/login?confirmed=1');
   }
 

@@ -138,6 +138,31 @@ export function mapAuthRegisterError(error: AuthErrorLike): string {
   return '登録に失敗しました。入力内容をご確認のうえ、再度お試しください。';
 }
 
+export function mapAuthResendError(error: AuthErrorLike): string {
+  const msg = (error.message ?? '').toLowerCase();
+  const code = error.code ?? '';
+
+  if (
+    code === 'over_request_rate_limit' ||
+    code === 'too_many_requests' ||
+    msg.includes('rate limit') ||
+    msg.includes('too many')
+  ) {
+    return '確認メールの再送回数が上限に達しました。しばらく時間をおいてから再度お試しください。';
+  }
+  if (
+    msg.includes('already confirmed') ||
+    msg.includes('email address is already confirmed')
+  ) {
+    return 'このメールアドレスは既に確認済みです。ログインしてください。';
+  }
+  if (msg.includes('email') && (msg.includes('invalid') || msg.includes('format'))) {
+    return 'メールアドレスの形式が正しくありません。';
+  }
+
+  return '確認メールの再送に失敗しました。メールアドレスをご確認のうえ、再度お試しください。';
+}
+
 export function validateRegisterPayload(body: Record<string, unknown>): string | null {
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
