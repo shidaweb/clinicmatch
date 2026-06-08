@@ -39,6 +39,7 @@ let wanted: PublicWanted | null = null;
 let matchWanted: ReturnType<typeof matchWantedForListing> = [];
 let matchListings: ReturnType<typeof matchListingsForWanted> = [];
 let images: Array<{ url: string | null; storage_path: string; is_cover: boolean }> = [];
+let wantedImages: Array<{ url: string; alt: string }> = [];
 let profile: Awaited<ReturnType<typeof getProfile>> = null;
 
 let staticEntry: Awaited<ReturnType<typeof getCollection<'cases'>>>[number] | null = null;
@@ -48,6 +49,7 @@ let relatedCases: Array<{ slug: string; title: string; categoryLabel: string; ma
 let productJsonLd: Record<string, unknown> | null = null;
 
 const detailPath = `/cases/${slug}?type=${detailType}`;
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 
 if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
   const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
@@ -63,6 +65,14 @@ if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
     wanted = data as PublicWanted | null;
     if (wanted) {
       mode = 'wanted';
+      if (wanted.reference_image_path && supabaseUrl) {
+        wantedImages = [
+          {
+            url: `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`,
+            alt: wanted.maker && wanted.model ? `${wanted.maker} ${wanted.model}` : wanted.categories?.name ?? '買いたいの参考画像',
+          },
+        ];
+      }
       const { data: listings } = await supabase
         .from('listings')
         .select(PUBLIC_LISTING_SELECT)
@@ -81,7 +91,6 @@ if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
     listing = data as PublicListing | null;
     if (listing) {
       mode = 'listing';
-      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
       images = (listing.listing_images ?? []).map((img) => ({
         ...img,
         url: supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}` : null,
@@ -196,6 +205,21 @@ const staticSpecItems = staticData
           <span class="text-sm text-plum-soft">{anonymousOrgLabel(wanted.area_city ?? '')}</span>
         </div>
         <div class="cm-card p-6">
+          <div class="mb-5">
+            {wantedImages.length > 0 ? (
+              <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1">
+                {wantedImages.map((img) => (
+                  <figure class="shrink-0 snap-start w-[88%] sm:w-full rounded-card border border-line bg-ivory overflow-hidden">
+                    <img src={img.url} alt={img.alt} class="w-full object-cover aspect-[4/3]" loading="eager" />
+                  </figure>
+                ))}
+              </div>
+            ) : (
+              <div class="aspect-[4/3] rounded-card bg-ivory border border-line flex items-center justify-center text-plum-soft">
+                参考画像なし
+              </div>
+            )}
+          </div>
           <p class="text-sm text-plum-soft">{wanted.categories?.name}</p>
           <h1 class="font-heading text-3xl font-bold text-plum mt-1">{wantedTitle}</h1>
           <dl class="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
@@ -286,25 +310,25 @@ const staticSpecItems = staticData
         <div class="grid lg:grid-cols-2 gap-8 lg:gap-10">
           <div class="space-y-3">
             {images.length ? (
-              <>
-                {images.filter((img) => img.is_cover)[0]?.url || images[0]?.url ? (
-                  <img
-                    src={(images.find((img) => img.is_cover) ?? images[0])!.url!}
-                    alt={`${listing.maker} ${listing.model}`}
-                    class="w-full rounded-card object-cover bg-cream aspect-[4/3]"
-                    loading="eager"
-                  />
-                ) : null}
-                {images.length > 1 && (
-                  <div class="grid grid-cols-4 gap-2">
-                    {images.slice(0, 4).map((img) =>
-                      img.url ? (
-                        <img src={img.url} alt="" class="w-full rounded-input object-cover aspect-square bg-cream" loading="lazy" />
-                      ) : null
-                    )}
-                  </div>
+              <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1">
+                {images.map((img, index) =>
+                  img.url ? (
+                    <figure class="relative shrink-0 snap-start w-[88%] sm:w-full rounded-card border border-line bg-ivory overflow-hidden">
+                      <img
+                        src={img.url}
+                        alt={`${listing.maker} ${listing.model} ${index + 1}枚目`}
+                        class="w-full object-cover bg-cream aspect-[4/3]"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                      />
+                      {img.is_cover && (
+                        <span class="absolute left-2 top-2 rounded-pill bg-rose px-2 py-0.5 text-[10px] text-white">
+                          表紙
+                        </span>
+                      )}
+                    </figure>
+                  ) : null
                 )}
-              </>
+              </div>
             ) : (
               <div class="aspect-[4/3] rounded-card bg-ivory border border-line flex items-center justify-center text-plum-soft">画像なし</div>
             )}
