@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
+import LineConsultButton from '~/components/LineConsultButton.astro';
 ---
 
 <nav
@@ -15,10 +16,7 @@ import { Icon } from 'astro-icon/components';
       <Icon name="tabler:tag" class="w-5 h-5" />
       出す
     </a>
-    <a href="/contact" class="flex flex-col items-center gap-1 py-3 text-rose font-medium">
-      <Icon name="tabler:message-circle" class="w-5 h-5" />
-      相談
-    </a>
+    <LineConsultButton compact />
     <a href="/account" class="flex flex-col items-center gap-1 py-3 text-plum-soft hover:text-rose">
       <Icon name="tabler:user" class="w-5 h-5" />
       マイページ

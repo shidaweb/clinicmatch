@@ -20,7 +20,7 @@ const metadata = { title: '買いたい一覧' };
 ---
 
 <AccountLayout metadata={metadata} title="買いたい一覧" maxWidth="4xl">
-  <a href="/account/wanted/new" slot="actions" class="cm-link font-medium">+ 新規登録</a>
+  <a href="/account/wanted/new" slot="actions" class="cm-btn-primary text-sm !px-4 !py-2">+ 新規登録</a>
   <ul class="space-y-3">
     {(wanted ?? []).map((item) => (
       <li class="cm-list-item flex justify-between items-center gap-3">

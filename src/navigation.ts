@@ -59,14 +59,6 @@ export const footerData = {
     { text: '利用規約', href: '/terms' },
     { text: 'プライバシーポリシー', href: '/privacy' },
   ],
-  socialLinks: [
-    {
-      ariaLabel: 'LINEで相談',
-      href: 'https://lin.ee/vepVhWc',
-      icon: 'tabler:brand-line',
-      text: '',
-    },
-  ],
-  footNote: `© ${new Date().getFullYear()} 株式会社キラック`,
+  footNote: '© 2026 株式会社キラック all rights reserved.',
   showConsult: false,
 };

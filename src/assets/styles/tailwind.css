@@ -58,6 +58,10 @@
     @apply inline-flex items-center justify-center rounded-pill px-[26px] py-3 text-sm font-medium text-white bg-plum hover:opacity-90 active:scale-[0.98] transition;
   }
 
+  .cm-btn-line {
+    @apply inline-flex items-center justify-center rounded-pill px-5 py-2.5 text-sm font-semibold text-white bg-[#06C755] hover:opacity-90 active:scale-[0.98] transition;
+  }
+
   .cm-tag-sell {
     @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold;
     background-color: var(--color-sell-bg);

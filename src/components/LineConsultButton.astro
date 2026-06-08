@@ -1,0 +1,36 @@
+---
+export const LINE_CONSULT_URL = 'https://lin.ee/vepVhWc';
+
+interface Props {
+  class?: string;
+  /** モバイル下部バー用 */
+  compact?: boolean;
+}
+
+const { class: className = '', compact = false } = Astro.props;
+---
+
+{
+  compact ? (
+    <a
+      href={LINE_CONSULT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      class:list={['flex flex-col items-center justify-center gap-1 py-3', className]}
+      aria-label="LINEで相談する"
+    >
+      <span class="inline-flex items-center justify-center rounded-pill bg-[#06C755] px-2.5 py-1.5 text-[10px] font-semibold text-white leading-none">
+        LINEで相談
+      </span>
+    </a>
+  ) : (
+    <a
+      href={LINE_CONSULT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      class:list={['cm-btn-line', className]}
+    >
+      LINEで相談する
+    </a>
+  )
+}

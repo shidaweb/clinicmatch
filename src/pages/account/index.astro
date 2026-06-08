@@ -30,13 +30,13 @@ if (hasSupabaseConfig(Astro.locals as never)) {
 }
 
 const metadata = { title: 'マイページ' };
-const org = profile.organizations as { prefecture?: string; city?: string } | null;
+const displayName = profile.full_name?.trim() || '担当者';
 ---
 
 <AccountLayout metadata={metadata} showNav={true}>
   <header class="mb-8">
     <h1 class="cm-heading text-3xl font-bold">マイページ</h1>
-    <p class="mt-2 text-plum-soft">{org?.prefecture}{org?.city} — {profile.full_name ?? '担当者'}</p>
+    <p class="mt-2 text-plum-soft">{displayName} さん</p>
   </header>
 
   <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,4 +1,6 @@
 ---
+import LineConsultButton from '~/components/LineConsultButton.astro';
+
 interface Props {
   relatedListingId?: string;
   relatedWantedId?: string;
@@ -64,14 +66,9 @@ const { relatedListingId, relatedWantedId, defaultTopic = 'sell' } = Astro.props
 
 <div class="mt-8 rounded-xl border border-border bg-surface-muted p-5">
   <p class="text-sm font-medium text-text">LINEでもご相談いただけます</p>
-  <a
-    href="https://lin.ee/vepVhWc"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="mt-3 inline-flex rounded-xl bg-[#06C755] px-5 py-2.5 text-sm font-semibold text-white"
-  >
-    LINEで相談する
-  </a>
+  <div class="mt-3">
+    <LineConsultButton />
+  </div>
 </div>
 
 <script>

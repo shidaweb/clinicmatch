@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { SITE } from 'astrowind:config';
+import LineConsultButton from '~/components/LineConsultButton.astro';
 import { getHomePermalink } from '~/utils/permalinks';
 
 interface Link {
@@ -20,13 +21,12 @@ interface Links {
 export interface Props {
   links: Array<Links>;
   secondaryLinks: Array<Link>;
-  socialLinks: Array<Link>;
   footNote?: string;
   theme?: string;
   showConsult?: boolean;
 }
 
-const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astro.props;
+const { secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astro.props;
 ---
 
 <footer class:list={[{ dark: theme === 'dark' }, 'relative not-prose bg-plum']}>
@@ -70,27 +70,9 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
     </div>
     <div class="border-t py-6 md:py-8" style="border-color: rgb(216 196 189 / 0.2);">
       <div class="md:flex md:items-center md:justify-between gap-4">
-        {
-          socialLinks?.length ? (
-            <ul class="flex mb-4 md:mb-0 -ml-2 md:ml-0">
-              {socialLinks.map(({ ariaLabel, href, text, icon }) => (
-                <li>
-                  <a
-                    class="rounded-lg text-sm p-2.5 inline-flex items-center hover:bg-white/5 transition"
-                    style="color: #D8C4BD;"
-                    aria-label={ariaLabel}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {icon && <Icon name={icon} class="w-5 h-5" />}
-                    <Fragment set:html={text} />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : null
-        }
+        <div class="mb-4 md:mb-0">
+          <LineConsultButton />
+        </div>
         {footNote && footNote.trim() && (
           <div class="text-sm" style="color: #D8C4BD;">
             <Fragment set:html={footNote} />
