@@ -43,7 +43,7 @@ let marketPosts: ReturnType<typeof mergeMarketPosts> = [];
 let listingCount = 0;
 let wantedCount = 0;
 
-if (hasSupabaseConfig(Astro.locals as never) && view !== 'done') {
+if (hasSupabaseConfig(Astro.locals as never)) {
   const countData = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
     type: 'all',
     category,
@@ -57,12 +57,14 @@ if (hasSupabaseConfig(Astro.locals as never) && view !== 'done') {
   listingCount = countData.listings.length;
   wantedCount = countData.wanted.length;
 
-  const displayType = type === 'all' ? 'listing' : type;
-  const { listings, wanted } = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
-    ...filters,
-    type: displayType,
-  });
-  marketPosts = mergeMarketPosts(listings, wanted, displayType, sort);
+  if (view !== 'done') {
+    const displayType = type === 'all' ? 'listing' : type;
+    const { listings, wanted } = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
+      ...filters,
+      type: displayType,
+    });
+    marketPosts = mergeMarketPosts(listings, wanted, displayType, sort);
+  }
 }
 
 const doneCount = staticCases.length;

@@ -4,20 +4,20 @@ import LineConsultButton from '~/components/LineConsultButton.astro';
 ---
 
 <nav
-  class="fixed bottom-0 inset-x-0 z-50 border-t border-line bg-ivory/95 backdrop-blur lg:hidden"
+  class="fixed bottom-0 inset-x-0 z-50 border-t border-line bg-ivory lg:hidden shadow-[0_-4px_18px_rgba(70,52,58,0.08)]"
   aria-label="モバイルアクション"
 >
   <div class="grid grid-cols-4 text-xs">
-    <a href="/cases?view=active" class="flex flex-col items-center gap-1 py-3 text-plum-soft hover:text-rose">
+    <a href="/cases?view=active" class="flex flex-col items-center gap-1 py-3 font-medium text-plum hover:text-rose-deep">
       <Icon name="tabler:search" class="w-5 h-5" />
       さがす
     </a>
-    <a href="/contact/sell" class="flex flex-col items-center gap-1 py-3 text-rose hover:text-rose-deep">
+    <a href="/contact/sell" class="flex flex-col items-center gap-1 py-3 font-medium text-rose-deep hover:text-plum">
       <Icon name="tabler:tag" class="w-5 h-5" />
       出す
     </a>
     <LineConsultButton compact />
-    <a href="/account" class="flex flex-col items-center gap-1 py-3 text-plum-soft hover:text-rose">
+    <a href="/account" class="flex flex-col items-center gap-1 py-3 font-medium text-plum hover:text-rose-deep">
       <Icon name="tabler:user" class="w-5 h-5" />
       マイページ
     </a>
