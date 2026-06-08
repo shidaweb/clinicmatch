@@ -31,7 +31,7 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
 
 /** Normalize: strip spaces and hyphens */
 export function normalizeCorporateNumber(value: string): string {
-  return value.replace(/[\s-]/g, '');
+  return value.replace(/[\s\u3000-]/g, '');
 }
 
 /** 13 digits + modulus-9 check digit (国税庁法人番号) */
@@ -48,6 +48,22 @@ export function isValidCorporateNumber(value: string): boolean {
   const normalized = normalizeCorporateNumber(value);
   if (!/^\d{13}$/.test(normalized)) return false;
   return isValidCorporateNumberCheckDigit(normalized);
+}
+
+/** 会員登録用：13桁数字のみ（ハイフン・空白は除去後に判定。API実在確認は行わない） */
+export function isValidCorporateNumberFormat(value: string): boolean {
+  return /^\d{13}$/.test(normalizeCorporateNumber(value));
+}
+
+export const PASSWORD_RULES_MESSAGE =
+  'パスワードは8文字以上64文字以内で、英大文字・英小文字・数字をそれぞれ1文字以上含めてください';
+
+export function isValidPassword(password: string): boolean {
+  if (password.length < 8 || password.length > 64) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/\d/.test(password)) return false;
+  return true;
 }
 
 export function requireAuthRedirect(loginPath = '/auth/login') {

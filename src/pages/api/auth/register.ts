@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
-import { normalizeCorporateNumber } from '~/lib/auth';
+import { isValidCorporateNumberFormat, isValidPassword, normalizeCorporateNumber, PASSWORD_RULES_MESSAGE } from '~/lib/auth';
 import { hasSupabaseConfig } from '~/lib/env';
 
 export const prerender = false;
@@ -20,7 +20,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const fullName = String(body.full_name ?? '').trim();
 
   if (!email || !password) return json({ error: 'メールとパスワードを入力してください' }, 400);
-  if (!/^\d{13}$/.test(corporateNumber)) {
+  if (!isValidPassword(password)) return json({ error: PASSWORD_RULES_MESSAGE }, 400);
+  if (!isValidCorporateNumberFormat(corporateNumber)) {
     return json({ error: '法人番号は13桁の数字で入力してください' }, 400);
   }
   if (!name || !prefecture || !city) return json({ error: '組織名・都道府県・市区町村を入力してください' }, 400);

@@ -13,30 +13,48 @@ const metadata = { title: '会員登録' };
       <h1 class="cm-heading text-3xl font-bold mb-2">会員登録</h1>
       <p class="text-plum-soft mb-8">法人番号（13桁）と所在地で、数ステップで登録完了。売り手・買い手の兼任が可能です。</p>
 
-      <form id="register-form" class="cm-card p-6 space-y-4">
+      <form id="register-form" class="cm-card p-6 space-y-4" novalidate>
         <div>
           <label class="cm-label" for="email">メールアドレス</label>
-          <input id="email" name="email" type="email" required class="cm-input" />
+          <input id="email" name="email" type="email" required autocomplete="email" class="cm-input" />
         </div>
         <div>
           <label class="cm-label" for="password">パスワード</label>
-          <input id="password" name="password" type="password" required minlength="8" class="cm-input" />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            minlength="8"
+            maxlength="64"
+            autocomplete="new-password"
+            class="cm-input"
+            aria-describedby="password-rules"
+          />
+          <ul id="password-rules" class="mt-2 text-xs text-plum-soft space-y-0.5 list-none">
+            <li>・8文字以上64文字以内</li>
+            <li>・英大文字（A–Z）を1文字以上</li>
+            <li>・英小文字（a–z）を1文字以上</li>
+            <li>・数字（0–9）を1文字以上</li>
+          </ul>
         </div>
         <div>
           <label class="cm-label" for="corporate_number">法人番号（13桁）</label>
           <input
             id="corporate_number"
             name="corporate_number"
+            type="text"
             required
             inputmode="numeric"
-            maxlength="15"
+            maxlength="17"
             autocomplete="off"
             placeholder="例：8040001139883"
-            pattern="\d{13}"
-            title="13桁の法人番号（ハイフンなし）"
             class="cm-input font-mono"
+            aria-describedby="corporate-number-hint"
           />
-          <p class="mt-1 text-xs text-plum-soft">13桁の数字（ハイフン可）。国税庁の法人番号を入力してください。</p>
+          <p id="corporate-number-hint" class="mt-1 text-xs text-plum-soft">
+            13桁の数字（ハイフン・空白は自動で除去されます）。国税庁の法人番号を入力してください。
+          </p>
         </div>
         <div>
           <label class="cm-label" for="name">組織名（非公開）</label>
@@ -58,7 +76,7 @@ const metadata = { title: '会員登録' };
           <input id="city" name="city" required placeholder="例：渋谷区" class="cm-input" />
         </div>
         <button type="submit" class="cm-btn-primary w-full">登録する</button>
-        <p id="register-status" class="text-sm text-plum-soft hidden"></p>
+        <p id="register-status" class="text-sm text-plum-soft hidden" role="alert"></p>
       </form>
 
       <p class="mt-6 text-sm text-plum-soft text-center">
@@ -73,24 +91,53 @@ const metadata = { title: '会員登録' };
   const status = document.getElementById('register-status');
 
   function normalizeCorporateNumber(value: string) {
-    return value.replace(/[\s-]/g, '');
+    return value.replace(/[\s\u3000-]/g, '');
+  }
+
+  function isValidPassword(password: string) {
+    if (password.length < 8 || password.length > 64) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    return true;
+  }
+
+  function showError(message: string) {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('hidden');
+    status.classList.add('text-danger');
+    status.classList.remove('text-plum-soft');
   }
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
-    status.classList.remove('hidden', 'text-red-600');
+    status.classList.add('hidden');
+    status.classList.remove('text-danger');
 
     const raw = new FormData(form);
+    const email = String(raw.get('email') ?? '').trim();
+    const password = String(raw.get('password') ?? '');
     const corporateNumber = normalizeCorporateNumber(String(raw.get('corporate_number') ?? ''));
 
+    if (!email) {
+      showError('メールアドレスを入力してください');
+      return;
+    }
+    if (!isValidPassword(password)) {
+      showError('パスワードは8文字以上64文字以内で、英大文字・英小文字・数字をそれぞれ1文字以上含めてください');
+      return;
+    }
     if (!/^\d{13}$/.test(corporateNumber)) {
-      status.textContent = '法人番号は13桁の数字で入力してください';
-      status.classList.add('text-red-600');
+      showError('法人番号は13桁の数字で入力してください（ハイフンは除いて数えます）');
       return;
     }
 
     status.textContent = '登録中…';
+    status.classList.remove('hidden', 'text-danger');
+    status.classList.add('text-plum-soft');
+
     const payload = Object.fromEntries(raw);
     payload.corporate_number = corporateNumber;
     const res = await fetch('/api/auth/register', {
@@ -103,7 +150,6 @@ const metadata = { title: '会員登録' };
       window.location.href = '/auth/login?registered=1';
       return;
     }
-    status.textContent = json.error ?? '登録に失敗しました';
-    status.classList.add('text-red-600');
+    showError(json.error ?? '登録に失敗しました');
   });
 </script>
