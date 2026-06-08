@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import AccountLayout from '~/layouts/AccountLayout.astro';
+import SubmissionThanks from '~/components/account/SubmissionThanks.astro';
+import { getProfile } from '~/lib/auth';
+
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile) return Astro.redirect('/auth/login');
+
+const metadata = { title: '審査提出完了', showConsultBlock: false };
+---
+
+<AccountLayout metadata={metadata} title="買いたいを出す" maxWidth="2xl">
+  <SubmissionThanks kind="wanted" />
+</AccountLayout>

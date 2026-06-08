@@ -91,7 +91,12 @@ const metadata = { title: '買いたいを出す' };
       body: JSON.stringify(data),
     });
     const json = await res.json();
-    status.textContent = res.ok ? '保存しました。' : (json.error ?? '保存に失敗しました');
-    if (res.ok) window.location.href = '/account';
+    if (res.ok) {
+      window.location.href =
+        submitter === 'submit' ? '/account/wanted/thanks' : '/account/wanted?draft=1';
+      return;
+    }
+    status.textContent = json.error ?? '保存に失敗しました';
+    status.classList.add('text-danger');
   });
 </script>

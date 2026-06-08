@@ -17,9 +17,15 @@ const { data: listings } = await supabase
   .order('created_at', { ascending: false });
 
 const metadata = { title: '売りたい一覧' };
+const draftSaved = Astro.url.searchParams.has('draft');
 ---
 
 <AccountLayout metadata={metadata} title="売りたい一覧" maxWidth="4xl">
+  {draftSaved && (
+    <p class="mb-4 rounded-xl border border-sage/30 bg-sage/10 px-4 py-3 text-sm text-plum">
+      下書きを保存しました。内容を確認のうえ、審査に提出できます。
+    </p>
+  )}
   <a href="/account/listings/new" slot="actions" class="cm-btn-primary text-sm !px-4 !py-2">+ 新規出品</a>
   <ul class="space-y-3">
     {(listings ?? []).map((item) => (
