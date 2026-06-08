@@ -1,7 +1,10 @@
 import type { APIRoute } from 'astro';
 import { requireAdmin } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
-import { sendAdminEmail, escapeHtml } from '~/lib/notifications';
+import { sendAdminEmail, sendUserEmail } from '~/lib/notifications';
+import { getOrgPrimaryEmail } from '~/lib/emails/recipients';
+import { getSiteUrl } from '~/lib/emails/helpers';
+import * as emailTemplates from '~/lib/emails/templates';
 
 export const prerender = false;
 
@@ -99,15 +102,26 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
       sender_type: 'operator',
       sender_user_id: profile!.id,
       body: `（アプローチ原文）${approach.message}`,
-      visible_to: 'all',
+      visible_to: 'operator',
     });
   }
 
-  await sendAdminEmail(
-    '【クリニックマッチ】仲介スレッド開始',
-    `<p>アプローチ: ${escapeHtml(approachId)}</p><p>スレッド: ${escapeHtml(thread.id)}</p>`,
-    locals as never
-  );
+  const siteUrl = getSiteUrl(locals as never);
+
+  for (const orgId of [buyerOrgId, sellerOrgId]) {
+    const email = await getOrgPrimaryEmail(admin, orgId);
+    if (email) {
+      const t = emailTemplates.mediationStartToParty(siteUrl, { threadId: thread.id });
+      await sendUserEmail(email, t.subject, t.html, locals as never);
+    }
+  }
+
+  const a = emailTemplates.mediationStartToAdmin({
+    approachId,
+    threadId: thread.id,
+    adminUrl: `${siteUrl}/admin/threads/${thread.id}`,
+  });
+  await sendAdminEmail(a.subject, a.html, locals as never);
 
   return json({ success: true, thread_id: thread.id });
 };

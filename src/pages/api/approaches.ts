@@ -1,7 +1,15 @@
 import type { APIRoute } from 'astro';
-import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { getProfile } from '~/lib/auth';
-import { sendAdminEmail, escapeHtml } from '~/lib/notifications';
+import { sendAdminEmail, sendUserEmail } from '~/lib/notifications';
+import { getUserEmail, getOrgPrimaryEmail } from '~/lib/emails/recipients';
+import {
+  getSiteUrl,
+  formatAnonArea,
+  formatListingTitle,
+  formatWantedTitle,
+} from '~/lib/emails/helpers';
+import * as emailTemplates from '~/lib/emails/templates';
 
 export const prerender = false;
 
@@ -36,11 +44,85 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const { data, error } = await supabase.from('approaches').insert(payload).select('id').single();
   if (error) return json({ error: error.message }, 400);
 
-  await sendAdminEmail(
-    `【クリニックマッチ】新規アプローチ（${kind === 'interest' ? '関心' : '提案'}）`,
-    `<p>ID: ${escapeHtml(data.id)}</p><p>${escapeHtml(String(payload.message ?? ''))}</p>`,
-    locals as never
-  );
+  const admin = createSupabaseAdminClient(locals as never);
+  const siteUrl = getSiteUrl(locals as never);
+  const adminUrl = `${siteUrl}/admin/approaches`;
+
+  if (kind === 'interest' && payload.listing_id) {
+    const { data: listing } = await admin
+      .from('listings')
+      .select('id, maker, model, category_slug, location_city, seller_org_id, categories(name)')
+      .eq('id', payload.listing_id)
+      .single();
+
+    if (listing) {
+      const category =
+        (listing.categories as { name?: string } | null)?.name ?? listing.category_slug;
+      const title = formatListingTitle(listing.maker, listing.model);
+      const area = formatAnonArea(listing.location_city);
+
+      const actorEmail = await getUserEmail(admin, profile.id);
+      if (actorEmail) {
+        const t = emailTemplates.interestToBuyer(siteUrl, { listingTitle: title });
+        await sendUserEmail(actorEmail, t.subject, t.html, locals as never);
+      }
+
+      const sellerEmail = await getOrgPrimaryEmail(admin, listing.seller_org_id);
+      if (sellerEmail) {
+        const t = emailTemplates.interestToSeller(siteUrl, { listingTitle: title, category, area });
+        await sendUserEmail(sellerEmail, t.subject, t.html, locals as never);
+      }
+
+      const a = emailTemplates.interestToAdmin({
+        approachId: data.id,
+        listingId: listing.id,
+        fromOrgId: profile.org_id,
+        listingTitle: title,
+        category,
+        area,
+        message: payload.message ?? undefined,
+        adminUrl,
+      });
+      await sendAdminEmail(a.subject, a.html, locals as never);
+    }
+  } else if (kind === 'offer' && payload.wanted_request_id) {
+    const { data: wanted } = await admin
+      .from('wanted_requests')
+      .select('id, maker, model, category_slug, area_city, buyer_org_id, categories(name)')
+      .eq('id', payload.wanted_request_id)
+      .single();
+
+    if (wanted) {
+      const category =
+        (wanted.categories as { name?: string } | null)?.name ?? wanted.category_slug;
+      const title = formatWantedTitle(wanted.maker, wanted.model, category);
+      const area = wanted.area_city ? formatAnonArea(wanted.area_city) : '指定エリアの医療機関';
+
+      const actorEmail = await getUserEmail(admin, profile.id);
+      if (actorEmail) {
+        const t = emailTemplates.offerToSeller(siteUrl, { wantedTitle: title });
+        await sendUserEmail(actorEmail, t.subject, t.html, locals as never);
+      }
+
+      const buyerEmail = await getOrgPrimaryEmail(admin, wanted.buyer_org_id);
+      if (buyerEmail) {
+        const t = emailTemplates.offerToBuyer(siteUrl, { wantedTitle: title, category, area });
+        await sendUserEmail(buyerEmail, t.subject, t.html, locals as never);
+      }
+
+      const a = emailTemplates.offerToAdmin({
+        approachId: data.id,
+        wantedId: wanted.id,
+        fromOrgId: profile.org_id,
+        wantedTitle: title,
+        category,
+        area,
+        message: payload.message ?? undefined,
+        adminUrl,
+      });
+      await sendAdminEmail(a.subject, a.html, locals as never);
+    }
+  }
 
   return json({ success: true, id: data.id });
 };

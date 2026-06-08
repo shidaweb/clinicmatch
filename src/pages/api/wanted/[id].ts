@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getProfile } from '~/lib/auth';
-import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
+import { notifyWantedSubmission } from '~/lib/emails/notify-submission';
 
 export const prerender = false;
 
@@ -39,7 +40,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const { data: existing } = await supabase
     .from('wanted_requests')
-    .select('id, status, buyer_org_id')
+    .select('id, status, buyer_org_id, maker, model, category_slug')
     .eq('id', id)
     .single();
 
@@ -52,6 +53,24 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
 
   const { error } = await supabase.from('wanted_requests').update(payload).eq('id', id);
   if (error) return json({ error: error.message }, 400);
+
+  if (payload.status === 'pending_review' && existing.status !== 'pending_review') {
+    const admin = createSupabaseAdminClient(locals as never);
+    const categorySlug = String(payload.category_slug ?? existing.category_slug);
+    const { data: category } = await admin
+      .from('categories')
+      .select('name')
+      .eq('slug', categorySlug)
+      .maybeSingle();
+    await notifyWantedSubmission(admin, locals as never, {
+      id,
+      maker: payload.maker != null ? String(payload.maker) : existing.maker,
+      model: payload.model != null ? String(payload.model) : existing.model,
+      category: category?.name ?? categorySlug,
+      orgId: profile.org_id,
+      userId: profile.id,
+    });
+  }
 
   return json({ success: true, id });
 };

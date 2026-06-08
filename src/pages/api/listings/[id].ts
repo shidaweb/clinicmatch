@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
+import { notifyListingSubmission } from '~/lib/emails/notify-submission';
 
 export const prerender = false;
 
@@ -64,7 +65,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
 
   const { data: existing } = await supabase
     .from('listings')
-    .select('id, status, seller_org_id')
+    .select('id, status, seller_org_id, maker, model')
     .eq('id', id)
     .single();
 
@@ -77,6 +78,17 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
 
   const { error } = await supabase.from('listings').update(payload).eq('id', id);
   if (error) return json({ error: error.message }, 400);
+
+  if (payload.status === 'pending_review' && existing.status !== 'pending_review') {
+    const admin = createSupabaseAdminClient(locals as never);
+    await notifyListingSubmission(admin, locals as never, {
+      id,
+      maker: String(payload.maker ?? existing.maker),
+      model: String(payload.model ?? existing.model),
+      orgId: profile.org_id,
+      userId: profile.id,
+    });
+  }
 
   return json({ success: true, id });
 };

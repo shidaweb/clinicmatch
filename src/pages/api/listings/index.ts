@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { getProfile } from '~/lib/auth';
+import { notifyListingSubmission } from '~/lib/emails/notify-submission';
 
 export const prerender = false;
 
@@ -38,6 +39,17 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const { data, error } = await supabase.from('listings').insert(payload).select('id').single();
   if (error) return json({ error: error.message }, 400);
+
+  if (payload.status === 'pending_review') {
+    const admin = createSupabaseAdminClient(locals as never);
+    await notifyListingSubmission(admin, locals as never, {
+      id: data.id,
+      maker: payload.maker,
+      model: payload.model,
+      orgId: profile.org_id,
+      userId: profile.id,
+    });
+  }
 
   return json({ success: true, id: data.id });
 };

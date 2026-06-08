@@ -1,7 +1,10 @@
 import type { APIRoute } from 'astro';
 import { requireAdmin } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
-import { sendAdminEmail, escapeHtml } from '~/lib/notifications';
+import { sendAdminEmail, sendUserEmail } from '~/lib/notifications';
+import { getOrgPrimaryEmail } from '~/lib/emails/recipients';
+import { getSiteUrl } from '~/lib/emails/helpers';
+import * as emailTemplates from '~/lib/emails/templates';
 
 export const prerender = false;
 
@@ -27,7 +30,7 @@ export const POST: APIRoute = async ({ params, cookies, locals }) => {
     .from('threads')
     .update({ contact_disclosed: true })
     .eq('id', threadId)
-    .select('id, approach_id')
+    .select('id, approach_id, buyer_org_id, seller_org_id')
     .single();
 
   if (error || !thread) return json({ error: error?.message ?? '更新に失敗しました' }, 400);
@@ -43,11 +46,21 @@ export const POST: APIRoute = async ({ params, cookies, locals }) => {
     visible_to: 'all',
   });
 
-  await sendAdminEmail(
-    '【クリニックマッチ】合意成立・連絡先開示',
-    `<p>スレッド: ${escapeHtml(threadId)}</p>`,
-    locals as never
-  );
+  const siteUrl = getSiteUrl(locals as never);
+
+  for (const orgId of [thread.buyer_org_id, thread.seller_org_id]) {
+    const email = await getOrgPrimaryEmail(admin, orgId);
+    if (email) {
+      const t = emailTemplates.discloseToParty(siteUrl, { threadId });
+      await sendUserEmail(email, t.subject, t.html, locals as never);
+    }
+  }
+
+  const a = emailTemplates.discloseToAdmin({
+    threadId,
+    adminUrl: `${siteUrl}/admin/threads/${threadId}`,
+  });
+  await sendAdminEmail(a.subject, a.html, locals as never);
 
   return json({ success: true });
 };

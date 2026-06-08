@@ -1,7 +1,10 @@
 import type { APIRoute } from 'astro';
 import { requireAdmin } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
-import { sendAdminEmail, escapeHtml } from '~/lib/notifications';
+import { sendAdminEmail, sendUserEmail } from '~/lib/notifications';
+import { getOrgPrimaryEmail } from '~/lib/emails/recipients';
+import { getSiteUrl } from '~/lib/emails/helpers';
+import * as emailTemplates from '~/lib/emails/templates';
 
 export const prerender = false;
 
@@ -32,7 +35,7 @@ export const POST: APIRoute = async ({ params, cookies, locals }) => {
       concluded_at: now,
     })
     .eq('id', dealId)
-    .select('id, agreed_price, commission_amount, seller_org_id')
+    .select('id, agreed_price, commission_amount, seller_org_id, buyer_org_id')
     .single();
 
   if (error || !deal) return json({ error: error?.message ?? '成約処理に失敗しました' }, 400);
@@ -43,13 +46,33 @@ export const POST: APIRoute = async ({ params, cookies, locals }) => {
     .eq('deal_id', dealId)
     .maybeSingle();
 
-  await sendAdminEmail(
-    '【クリニックマッチ】売買成約・手数料請求発行',
-    `<p>Deal: ${escapeHtml(dealId)}</p>
-     <p>成約額: ${deal.agreed_price?.toLocaleString()}円</p>
-     <p>手数料(7.5%): ${(invoice?.amount ?? deal.commission_amount)?.toLocaleString()}円</p>`,
-    locals as never
-  );
+  const commissionAmount = invoice?.amount ?? deal.commission_amount ?? 0;
+  const agreedPrice = deal.agreed_price ?? 0;
+  const siteUrl = getSiteUrl(locals as never);
+
+  const sellerEmail = await getOrgPrimaryEmail(admin, deal.seller_org_id);
+  if (sellerEmail) {
+    const t = emailTemplates.concludeToSeller(siteUrl, {
+      dealId,
+      agreedPrice,
+      commissionAmount,
+    });
+    await sendUserEmail(sellerEmail, t.subject, t.html, locals as never);
+  }
+
+  const buyerEmail = await getOrgPrimaryEmail(admin, deal.buyer_org_id);
+  if (buyerEmail) {
+    const t = emailTemplates.concludeToBuyer(siteUrl);
+    await sendUserEmail(buyerEmail, t.subject, t.html, locals as never);
+  }
+
+  const a = emailTemplates.concludeToAdmin({
+    dealId,
+    agreedPrice,
+    commissionAmount,
+    adminUrl: `${siteUrl}/admin/deals`,
+  });
+  await sendAdminEmail(a.subject, a.html, locals as never);
 
   return json({ success: true, deal, invoice });
 };

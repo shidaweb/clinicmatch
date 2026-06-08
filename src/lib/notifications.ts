@@ -1,5 +1,7 @@
 import { getEnv } from '~/lib/env';
 
+export { escapeHtml } from '~/lib/emails/layout';
+
 type RuntimeLocals = {
   runtime?: {
     env?: Record<string, string | undefined>;
@@ -18,15 +20,35 @@ function normalizeApiKey(value: unknown): string {
   return trimmed;
 }
 
-export async function sendAdminEmail(
+function getResendApiKey(locals?: RuntimeLocals): string {
+  return normalizeApiKey(locals?.runtime?.env?.RESEND_API_KEY ?? import.meta.env.RESEND_API_KEY);
+}
+
+function getMailFrom(locals?: RuntimeLocals): string {
+  return getEnv('MAIL_FROM', locals) || 'クリニックマッチ <noreply@clinicmatch.org>';
+}
+
+export function getAdminEmails(locals?: RuntimeLocals): string[] {
+  const raw = getEnv('ADMIN_NOTIFY_EMAILS', locals);
+  if (raw) {
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return ['master@jugyoin.jp', 'general-aaaarfzhzdv7fph2uqij5m6si4@kiruck.slack.com'];
+}
+
+export async function sendEmail(
+  to: string[],
   subject: string,
   html: string,
   locals?: RuntimeLocals
 ): Promise<boolean> {
-  const resendApiKey = normalizeApiKey(
-    locals?.runtime?.env?.RESEND_API_KEY ?? import.meta.env.RESEND_API_KEY
-  );
+  const recipients = to.filter(Boolean);
+  if (recipients.length === 0) return false;
 
+  const resendApiKey = getResendApiKey(locals);
   if (!resendApiKey || !resendApiKey.startsWith('re_')) {
     console.warn('[notify] RESEND_API_KEY not configured, skipping email');
     return false;
@@ -40,8 +62,8 @@ export async function sendAdminEmail(
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'クリニックマッチ <noreply@clinicmatch.org>',
-        to: ['master@jugyoin.jp', 'general-aaaarfzhzdv7fph2uqij5m6si4@kiruck.slack.com'],
+        from: getMailFrom(locals),
+        to: recipients,
         subject,
         html,
       }),
@@ -58,10 +80,20 @@ export async function sendAdminEmail(
   }
 }
 
-export function escapeHtml(s: string): string {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+export async function sendAdminEmail(
+  subject: string,
+  html: string,
+  locals?: RuntimeLocals
+): Promise<boolean> {
+  return sendEmail(getAdminEmails(locals), subject, html, locals);
+}
+
+export async function sendUserEmail(
+  to: string,
+  subject: string,
+  html: string,
+  locals?: RuntimeLocals
+): Promise<boolean> {
+  if (!to) return false;
+  return sendEmail([to], subject, html, locals);
 }
