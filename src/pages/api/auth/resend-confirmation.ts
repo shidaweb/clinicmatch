@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { getEmailConfirmRedirectUrl } from '~/lib/auth-url';
 import { hasSupabaseConfig } from '~/lib/env';
 
 export const prerender = false;
@@ -11,30 +12,16 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const body = (await request.json()) as Record<string, unknown>;
   const email = String(body.email ?? '').trim();
-  const password = String(body.password ?? '');
-
-  if (!email || !password) return json({ error: 'メールとパスワードを入力してください' }, 400);
+  if (!email) return json({ error: 'メールアドレスを入力してください' }, 400);
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: getEmailConfirmRedirectUrl(request) },
+  });
 
-  if (error) {
-    const msg = error.message.toLowerCase();
-    if (
-      error.code === 'email_not_confirmed' ||
-      msg.includes('email not confirmed') ||
-      msg.includes('not confirmed')
-    ) {
-      return json(
-        {
-          error: 'メールアドレスの確認が完了していません。登録時の確認メールのリンクをクリックしてください。',
-          code: 'email_not_confirmed',
-        },
-        401
-      );
-    }
-    return json({ error: error.message }, 401);
-  }
+  if (error) return json({ error: error.message }, 400);
 
   return json({ success: true });
 };

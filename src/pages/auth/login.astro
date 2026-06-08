@@ -5,6 +5,8 @@ import Layout from '~/layouts/PageLayout.astro';
 
 const redirect = Astro.url.searchParams.get('redirect') ?? '/account';
 const registered = Astro.url.searchParams.has('registered');
+const confirmed = Astro.url.searchParams.has('confirmed');
+const error = Astro.url.searchParams.get('error');
 
 const metadata = { title: 'ログイン' };
 ---
@@ -13,20 +15,38 @@ const metadata = { title: 'ログイン' };
   <section class="py-12 md:py-16 bg-cream">
     <div class="max-w-md mx-auto px-4 sm:px-6">
       <h1 class="cm-heading text-3xl font-bold mb-2">ログイン</h1>
-      {registered && <p class="text-sage mb-4 text-sm">登録が完了しました。ログインしてください。</p>}
+
+      {confirmed && (
+        <p class="text-sage mb-4 text-sm">
+          メールアドレスの確認が完了しました。ログインしてください。
+        </p>
+      )}
+      {registered && !confirmed && (
+        <p class="text-sage mb-4 text-sm">登録が完了しました。ログインしてください。</p>
+      )}
+      {error === 'confirm' && (
+        <p class="text-danger mb-4 text-sm">
+          メール確認リンクが無効か期限切れです。下の「確認メールを再送」から再度お試しください。
+        </p>
+      )}
 
       <form id="login-form" class="cm-card p-6 space-y-4">
         <input type="hidden" name="redirect" value={redirect} />
         <div>
           <label class="cm-label" for="email">メールアドレス</label>
-          <input id="email" name="email" type="email" required class="cm-input" />
+          <input id="email" name="email" type="email" required autocomplete="email" class="cm-input" />
         </div>
         <div>
           <label class="cm-label" for="password">パスワード</label>
-          <input id="password" name="password" type="password" required class="cm-input" />
+          <input id="password" name="password" type="password" required autocomplete="current-password" class="cm-input" />
         </div>
         <button type="submit" class="cm-btn-primary w-full">ログイン</button>
-        <p id="login-status" class="text-sm text-plum-soft hidden"></p>
+        <p id="login-status" class="text-sm text-plum-soft hidden" role="alert"></p>
+        <p id="resend-wrap" class="text-sm hidden">
+          <button type="button" id="resend-btn" class="text-rose hover:underline">
+            確認メールを再送する
+          </button>
+        </p>
       </form>
 
       <p class="mt-6 text-sm text-plum-soft text-center">
@@ -39,11 +59,15 @@ const metadata = { title: 'ログイン' };
 <script>
   const form = document.getElementById('login-form') as HTMLFormElement;
   const status = document.getElementById('login-status');
+  const resendWrap = document.getElementById('resend-wrap');
+  const resendBtn = document.getElementById('resend-btn');
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
-    status.classList.remove('hidden');
+    status.classList.remove('hidden', 'text-danger');
+    status.classList.add('text-plum-soft');
+    resendWrap?.classList.add('hidden');
     status.textContent = 'ログイン中…';
 
     const data = Object.fromEntries(new FormData(form));
@@ -58,5 +82,31 @@ const metadata = { title: 'ログイン' };
       return;
     }
     status.textContent = json.error ?? 'ログインに失敗しました';
+    status.classList.add('text-danger');
+    status.classList.remove('text-plum-soft');
+    if (json.code === 'email_not_confirmed') {
+      resendWrap?.classList.remove('hidden');
+    }
+  });
+
+  resendBtn?.addEventListener('click', async () => {
+    const email = (document.getElementById('email') as HTMLInputElement)?.value?.trim();
+    if (!email || !status) return;
+    status.classList.remove('hidden', 'text-danger');
+    status.classList.add('text-plum-soft');
+    status.textContent = '確認メールを再送中…';
+    const res = await fetch('/api/auth/resend-confirmation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      status.textContent = '確認メールを再送しました。受信トレイをご確認ください。';
+      return;
+    }
+    status.textContent = json.error ?? '再送に失敗しました';
+    status.classList.add('text-danger');
+    status.classList.remove('text-plum-soft');
   });
 </script>

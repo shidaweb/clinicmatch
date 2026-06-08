@@ -147,7 +147,11 @@ const metadata = { title: '会員登録' };
     });
     const json = await res.json();
     if (res.ok) {
-      window.location.href = '/auth/login?registered=1';
+      if (json.confirmationRequired) {
+        window.location.href = '/auth/register/thanks';
+      } else {
+        window.location.href = '/auth/login?registered=1';
+      }
       return;
     }
     showError(json.error ?? '登録に失敗しました');

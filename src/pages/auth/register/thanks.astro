@@ -1,0 +1,27 @@
+---
+export const prerender = false;
+
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = { title: '確認メールを送信しました', showConsultBlock: false };
+---
+
+<Layout metadata={metadata}>
+  <section class="py-12 md:py-16 bg-cream">
+    <div class="max-w-lg mx-auto px-4 sm:px-6 text-center">
+      <div class="cm-card p-8">
+        <h1 class="cm-heading text-2xl md:text-3xl font-semibold text-plum mb-4">確認メールを送信しました</h1>
+        <p class="text-plum-soft text-sm leading-relaxed mb-6">
+          ご登録のメールアドレスに確認リンクをお送りしました。<br />
+          メール内のリンクをクリックすると登録が完了し、ログインできるようになります。
+        </p>
+        <ul class="text-left text-sm text-plum-soft space-y-2 mb-8 max-w-sm mx-auto">
+          <li>・届かない場合は迷惑メールフォルダをご確認ください</li>
+          <li>・リンクの有効期限は24時間程度です</li>
+          <li>・確認後は<a href="/auth/login" class="text-rose hover:underline">ログイン</a>してください</li>
+        </ul>
+        <a href="/auth/login" class="cm-btn-primary">ログイン画面へ</a>
+      </div>
+    </div>
+  </section>
+</Layout>
