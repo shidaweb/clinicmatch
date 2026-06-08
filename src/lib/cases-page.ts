@@ -26,6 +26,8 @@ export function parseMarketType(value: string | null | undefined): MarketType {
   return 'all';
 }
 
+export const CASES_PER_PAGE = 20;
+
 export type CasesFilterParams = {
   view: CasesView;
   type: MarketType;
@@ -36,6 +38,7 @@ export type CasesFilterParams = {
   maxPrice: string;
   sort: string;
   q: string;
+  page: string;
 };
 
 export function parseCasesFilters(url: URL): CasesFilterParams {
@@ -49,6 +52,7 @@ export function parseCasesFilters(url: URL): CasesFilterParams {
     maxPrice: url.searchParams.get('maxPrice')?.trim() ?? '',
     sort: url.searchParams.get('sort')?.trim() ?? 'new',
     q: url.searchParams.get('q')?.trim() ?? '',
+    page: url.searchParams.get('page')?.trim() ?? '',
   };
 }
 
@@ -64,6 +68,7 @@ export function buildCasesUrl(overrides: Partial<CasesFilterParams> = {}, base?:
   if (values.maxPrice) params.set('maxPrice', values.maxPrice);
   if (values.sort && values.sort !== 'new') params.set('sort', values.sort);
   if (values.q) params.set('q', values.q);
+  if (values.page && values.page !== '1') params.set('page', values.page);
   const qs = params.toString();
   return `/cases${qs ? `?${qs}` : ''}`;
 }
@@ -171,4 +176,29 @@ export function mergeMarketPosts(
   }
 
   return posts.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+}
+
+export function parseCasesPage(page: string | undefined): number {
+  const n = parseInt(page ?? '1', 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+export function paginateList<T>(
+  items: T[],
+  page: number,
+  perPage = CASES_PER_PAGE
+): { slice: T[]; total: number; totalPages: number; currentPage: number; from: number; to: number } {
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const from = (currentPage - 1) * perPage;
+  const to = Math.min(from + perPage, total);
+  return {
+    slice: items.slice(from, to),
+    total,
+    totalPages,
+    currentPage,
+    from: total === 0 ? 0 : from + 1,
+    to,
+  };
 }

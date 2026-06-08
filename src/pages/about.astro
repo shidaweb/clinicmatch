@@ -9,7 +9,7 @@ import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getPermalink, getHomePermalink } from '~/utils/permalinks';
 
 const metadata = {
-  title: '運営会社概要',
+  title: '運営会社について',
 };
 
 const companyTable = [
@@ -33,7 +33,7 @@ const companyTable = [
     <Breadcrumb
       items={[
         { name: 'トップ', url: getHomePermalink() },
-        { name: '運営会社概要' },
+        { name: '運営会社について' },
       ]}
     />
   </WidgetWrapper>
@@ -41,16 +41,12 @@ const companyTable = [
   <!-- Hero Widget ******************* -->
 
   <Hero
-    tagline="運営会社概要"
     image={{
       src: '~/assets/images/about-hero.png',
       alt: '医療従事者とビジネスパーソンの相談',
     }}
   >
-    <Fragment slot="title">
-      中古取引の透明性と安全性を <br />
-      <span class="text-rose">あらゆる分野で加速する</span>
-    </Fragment>
+    <Fragment slot="title">運営会社について</Fragment>
 
     <Fragment slot="subtitle">
       株式会社キラックは、中古トラックのAIマッチング「トラックマッチ」中古美容医療機器のAIマッチング「クリニックマッチ」を提供する中古取引の透明性と安全性を、AIによる網羅力で高める中古流通改革企業です。
@@ -62,10 +58,9 @@ const companyTable = [
   <!-- 会社概要 ******************* -->
 
   <WidgetWrapper containerClass="max-w-4xl mx-auto" bg='<div class="absolute inset-0 bg-cream"></div>'>
-    <div class="mb-8 md:mx-auto md:mb-10 text-center">
-      <p class="cm-eyebrow mb-2">Company</p>
+    <header class="mb-8 md:mb-10 text-center">
       <h2 class="cm-heading text-2xl font-bold">会社概要</h2>
-    </div>
+    </header>
     <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
       <table class="w-full min-w-[480px] border-collapse cm-card overflow-hidden">
         <thead>

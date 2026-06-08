@@ -26,12 +26,12 @@ const jsonLd = {
 };
 ---
 
-<nav class:list={['text-xs text-plum-soft', className]} aria-label="パンくず">
+<nav class:list={['text-xs text-muted', className]} aria-label="パンくず">
   <ol class="flex flex-wrap items-center gap-1">
     {
       items.map((item, index) => (
         <li class="flex items-center gap-1">
-          {index > 0 && <span class="text-line" aria-hidden="true"> / </span>}
+          {index > 0 && <span class="text-muted px-0.5" aria-hidden="true">›</span>}
           {item.url ? (
             <a href={item.url} class="hover:text-rose transition-colors">
               {item.name}

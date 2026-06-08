@@ -14,28 +14,29 @@ const {
 } = Astro.props;
 
 const variants = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  tertiary: 'btn btn-tertiary',
-  link: 'cursor-pointer hover:text-primary',
-  line: 'btn-line',
+  primary: 'cm-btn-primary',
+  secondary: 'cm-btn-secondary',
+  tertiary: 'inline-flex items-center justify-center rounded-pill px-4 py-2 text-sm font-medium text-plum-soft hover:text-rose hover:underline transition',
+  dark: 'cm-btn-dark',
+  link: 'text-rose hover:underline text-sm font-medium transition',
+  line: 'inline-flex items-center justify-center rounded-pill px-[26px] py-3 text-sm font-medium text-white bg-[#06C755] hover:opacity-90 active:scale-[0.98] transition',
 };
 ---
 
 {
   type === 'button' || type === 'submit' || type === 'reset' ? (
-    <button type={type} class={twMerge(variants[variant] || '', className)} {...rest}>
+    <button type={type} class={twMerge(variants[variant] || variants.secondary, className)} {...rest}>
       <Fragment set:html={text} />
-      {icon && <Icon name={icon} class="w-5 h-5 ml-1 -mr-1.5 rtl:mr-1 rtl:-ml-1.5 inline-block" />}
+      {icon && <Icon name={icon} class="w-4 h-4 ml-1.5 -mr-0.5 inline-block" />}
     </button>
   ) : (
     <a
-      class={twMerge(variants[variant] || '', className)}
+      class={twMerge(variants[variant] || variants.secondary, className)}
       {...(target ? { target: target, rel: 'noopener noreferrer' } : {})}
       {...rest}
     >
       <Fragment set:html={text} />
-      {icon && <Icon name={icon} class="w-5 h-5 ml-1 -mr-1.5 rtl:mr-1 rtl:-ml-1.5 inline-block" />}
+      {icon && <Icon name={icon} class="w-4 h-4 ml-1.5 -mr-0.5 inline-block" />}
     </a>
   )
 }

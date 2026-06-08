@@ -1,0 +1,69 @@
+---
+import MarketFilters from '~/components/MarketFilters.astro';
+import type { CasesFilterParams } from '~/lib/cases-page';
+
+interface Props extends Partial<CasesFilterParams> {
+  activeCount?: number;
+}
+
+const props = Astro.props;
+const { activeCount = 0, ...filterProps } = props;
+---
+
+<div class="lg:hidden mb-4">
+  <button
+    type="button"
+    id="filter-open"
+    class="cm-btn-secondary w-full justify-center gap-2"
+    aria-expanded="false"
+    aria-controls="filter-sheet-panel"
+  >
+    絞り込み
+    {activeCount > 0 && (
+      <span class="inline-flex rounded-pill bg-rose text-white text-xs px-2 py-0.5">{activeCount}</span>
+    )}
+  </button>
+</div>
+
+<div
+  id="filter-sheet"
+  class="fixed inset-0 z-50 hidden lg:hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="filter-sheet-title"
+>
+  <div id="filter-backdrop" class="absolute inset-0 bg-plum/40"></div>
+  <div
+    id="filter-sheet-panel"
+    class="absolute bottom-0 inset-x-0 bg-ivory rounded-t-card border-t border-line p-6 max-h-[88vh] overflow-y-auto shadow-float"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="filter-sheet-title" class="font-heading text-lg font-semibold text-plum">絞り込み</h2>
+      <button type="button" id="filter-close" class="text-sm text-plum-soft hover:text-rose px-2 py-1">閉じる</button>
+    </div>
+    <MarketFilters {...filterProps} />
+  </div>
+</div>
+
+<script>
+  const openBtn = document.getElementById('filter-open');
+  const sheet = document.getElementById('filter-sheet');
+  const backdrop = document.getElementById('filter-backdrop');
+  const closeBtn = document.getElementById('filter-close');
+
+  function openSheet() {
+    sheet?.classList.remove('hidden');
+    openBtn?.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSheet() {
+    sheet?.classList.add('hidden');
+    openBtn?.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  openBtn?.addEventListener('click', openSheet);
+  closeBtn?.addEventListener('click', closeSheet);
+  backdrop?.addEventListener('click', closeSheet);
+</script>

@@ -1,0 +1,21 @@
+---
+import ConsultButton from '~/components/ConsultButton.astro';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<section class:list={['bg-blush border-y border-line py-12 md:py-16', className]}>
+  <div class="max-w-content mx-auto px-4 sm:px-6 text-center">
+    <h2 class="cm-heading text-2xl md:text-3xl font-semibold text-plum">
+      写真と型番だけでも、まずは相談。
+    </h2>
+    <p class="mt-3 text-plum-soft text-sm md:text-base">匿名OK・約2分。運営があいだに入ります。</p>
+    <div class="mt-6 flex justify-center">
+      <ConsultButton variant="primary" />
+    </div>
+  </div>
+</section>

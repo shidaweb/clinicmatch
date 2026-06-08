@@ -2,75 +2,101 @@
 export const prerender = true;
 
 import Layout from '~/layouts/PageLayout.astro';
+import Image from '~/components/common/Image.astro';
 import { Icon } from 'astro-icon/components';
-import ConsultButton from '~/components/ConsultButton.astro';
 import TrustBadges from '~/components/TrustBadges.astro';
 import NewArrivals from '~/components/NewArrivals.astro';
-import Features from '~/components/widgets/Features.astro';
-import Features2 from '~/components/widgets/Features2.astro';
-import Steps from '~/components/widgets/Steps.astro';
-import Content from '~/components/widgets/Content.astro';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
-import CallToAction from '~/components/widgets/CallToAction.astro';
 import FAQPageJsonLd from '~/components/seo/FAQPageJsonLd.astro';
 import { homeFaqs } from '~/data/homeFaq';
 import { getPermalink } from '~/utils/permalinks';
+import { PREFECTURES } from '~/lib/marketplace';
 
 const metadata = {
-  title: 'クリニックマッチ｜美容医療機器の売買を もっと 安心・透明に',
+  title: 'クリニックマッチ｜美容医療機器の中古売買マーケット',
   ignoreTitleTemplate: true,
 };
 
 const categories = [
-  { slug: 'hair-removal', label: '脱毛', icon: 'tabler:scissors' },
-  { slug: 'pico-laser', label: 'ピコ', icon: 'tabler:focus-2' },
-  { slug: 'ipl', label: 'IPL', icon: 'tabler:sun' },
-  { slug: 'hifu', label: 'HIFU', icon: 'tabler:wave-saw-tool' },
-  { slug: 'rf', label: 'RF', icon: 'tabler:radio' },
-  { slug: 'body', label: '痩身', icon: 'tabler:user-circle' },
+  { slug: 'hair-removal', label: '脱毛', href: '/categories/hair-removal' },
+  { slug: 'pico-laser', label: 'ピコレーザー', href: '/categories/pico-laser' },
+  { slug: 'ipl', label: 'IPL', href: '/categories/ipl' },
+  { slug: 'hifu', label: 'HIFU', href: '/categories/hifu' },
+  { slug: 'rf', label: 'RF', href: '/categories/rf' },
+  { slug: 'body', label: '痩身', href: '/categories/body' },
+];
+
+const flowSteps = [
+  { num: '01', title: '相談・登録', desc: '匿名OK。分かる範囲で入力' },
+  { num: '02', title: '条件整理', desc: '運営が仲介して論点を揃える' },
+  { num: '03', title: 'マッチング', desc: '合意後に連絡先を開示' },
 ];
 ---
 
 <Layout metadata={metadata}>
-  <section class="py-16 md:py-20 bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-      <div class="text-center max-w-3xl mx-auto">
-        <p class="cm-eyebrow mb-3">Clinic Match</p>
-        <h1 class="cm-heading text-4xl md:text-5xl font-bold leading-tight">
-          美容医療機器の<br class="sm:hidden" />売りたい・買いたいをつなぐ
-        </h1>
-        <p class="mt-4 text-lg text-plum-soft leading-relaxed">
-          匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器のマッチングプラットフォーム。
-        </p>
-        <div class="mt-6 flex justify-center">
-          <TrustBadges compact />
+  <section class="bg-cream pt-12 md:pt-16 pb-4">
+    <div class="max-w-content mx-auto px-4 sm:px-6">
+      <div class="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
+        <div>
+          <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold">
+            美容医療機器の、次の場所を見つける
+          </h1>
+          <p class="mt-4 text-plum-soft leading-[1.8] text-[15px] md:text-base">
+            匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器のマッチングプラットフォーム。連絡先は合意後に開示されます。
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="/cases?view=active&type=listing" class="cm-btn-primary">機器をさがす</a>
+            <a href={getPermalink('contact')} class="cm-btn-secondary">出品・購入を相談する</a>
+          </div>
+          <div class="cm-stat-band mt-10 justify-start">
+            <div>
+              <p class="cm-stat-value">38</p>
+              <p class="cm-stat-label">累計成約</p>
+            </div>
+            <div>
+              <p class="cm-stat-value">14<span class="text-lg">日</span></p>
+              <p class="cm-stat-label">平均マッチング</p>
+            </div>
+            <div>
+              <p class="cm-stat-value">100<span class="text-lg">%</span></p>
+              <p class="cm-stat-label">運営仲介</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="rounded-card border border-line bg-ivory p-4 shadow-soft">
+            <div class="rounded-card overflow-hidden relative" style="box-shadow: inset 0 0 0 16px transparent; padding: 16px;">
+              <div class="rounded-card overflow-hidden relative border border-white/60">
+                <Image
+                  src="~/assets/images/about-hero.png"
+                  alt="美容医療機器の売買相談"
+                  class="w-full h-auto object-cover"
+                  width={540}
+                  height={360}
+                  loading="eager"
+                />
+              </div>
+            </div>
+          </div>
+          <a
+            href="/cases?view=active&type=listing"
+            class="absolute -bottom-3 -left-2 sm:-left-6 rounded-card border border-line bg-ivory p-4 shadow-float max-w-[190px] hidden sm:block hover:-translate-y-1 transition-transform"
+          >
+            <p class="cm-kicker mb-2">新着</p>
+            <p class="font-heading text-sm font-semibold text-plum leading-snug">在庫を随時更新</p>
+            <p class="text-xs text-rose mt-2">一覧へ →</p>
+          </a>
         </div>
       </div>
 
-      <div class="mt-10 grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-        <a href="/cases?view=active" class="cm-card p-6 text-center hover:shadow-lg transition group">
-          <Icon name="tabler:search" class="w-8 h-8 mx-auto text-rose" />
-          <p class="mt-3 font-heading font-semibold text-plum group-hover:text-rose">在庫をさがす</p>
-          <p class="mt-1 text-xs text-plum-soft">募集中の売りたい・買いたい</p>
-        </a>
-        <a href={getPermalink('contact')} class="cm-card p-6 text-center hover:shadow-lg transition group">
-          <Icon name="tabler:tag" class="w-8 h-8 mx-auto text-gold" />
-          <p class="mt-3 font-heading font-semibold text-plum">売りたい・買いたいを出す</p>
-          <p class="mt-1 text-xs text-plum-soft">会員登録または相談フォーム</p>
-        </a>
-        <a href={getPermalink('contact')} class="rounded-2xl bg-rose p-6 text-center shadow-card hover:bg-rose-deep transition text-white">
-          <Icon name="tabler:message-circle" class="w-8 h-8 mx-auto" />
-          <p class="mt-3 font-heading font-semibold">出品・購入を相談する</p>
-          <p class="mt-1 text-xs text-white/85">匿名OK・約2分</p>
-        </a>
-      </div>
-
-      <form action="/cases" method="get" class="mt-10 max-w-2xl mx-auto">
+      <form action="/cases" method="get" class="cm-search-float mt-8 max-w-4xl mx-auto">
         <input type="hidden" name="view" value="active" />
+        <input type="hidden" name="type" value="listing" />
         <div class="flex flex-col sm:flex-row gap-2">
-          <select name="category" class="rounded-full border border-line px-4 py-3 text-sm bg-ivory sm:w-40">
-            <option value="">すべてのカテゴリ</option>
+          <select name="category" class="rounded-pill border border-line px-4 py-2.5 text-sm bg-ivory sm:w-36">
+            <option value="">カテゴリ</option>
             {categories.map(({ slug, label }) => (
               <option value={slug}>{label}</option>
             ))}
@@ -78,114 +104,65 @@ const categories = [
           <input
             type="search"
             name="q"
-            placeholder="メーカー・型番で検索"
-            class="flex-1 rounded-full border border-line px-4 py-3 text-sm bg-ivory"
+            placeholder="メーカー・型番"
+            class="flex-1 rounded-pill border border-line px-4 py-2.5 text-sm bg-ivory min-w-0"
           />
-          <button type="submit" class="cm-btn-primary px-8">さがす</button>
+          <select name="prefecture" class="rounded-pill border border-line px-4 py-2.5 text-sm bg-ivory sm:w-32">
+            <option value="">エリア</option>
+            {PREFECTURES.map((pref) => (
+              <option value={pref}>{pref}</option>
+            ))}
+          </select>
+          <button type="submit" class="cm-btn-dark px-8 shrink-0">検索</button>
         </div>
       </form>
+    </div>
+  </section>
 
+  <section class="py-12 md:py-16 bg-ivory border-y border-line">
+    <div class="max-w-content mx-auto px-4 sm:px-6">
+      <p class="cm-kicker-center mb-2">新着</p>
+      <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-6">新着の在庫</h2>
       <NewArrivals />
+    </div>
+  </section>
 
-      <div class="mt-10 flex flex-wrap justify-center gap-2">
-        {categories.map(({ slug, label, icon }) => (
-          <a
-            href={`/cases?view=active&category=${slug}`}
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-ivory border border-line text-plum hover:border-rose hover:text-rose transition"
-          >
-            <Icon name={icon} class="w-4 h-4 shrink-0" />
-            {label}
+  <section class="py-12 md:py-16 bg-cream">
+    <div class="max-w-content mx-auto px-4 sm:px-6">
+      <p class="cm-kicker-center mb-2">ご利用の流れ</p>
+      <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-8">取引の進め方</h2>
+      <div class="grid md:grid-cols-3 gap-10">
+        {flowSteps.map(({ num, title, desc }) => (
+          <div>
+            <p class="font-heading text-3xl text-gold tabular-nums">{num}</p>
+            <h3 class="mt-2 font-heading text-lg font-semibold text-plum">{title}</h3>
+            <p class="mt-2 text-sm text-plum-soft leading-relaxed">{desc}</p>
+          </div>
+        ))}
+      </div>
+      <div class="mt-10">
+        <TrustBadges />
+      </div>
+    </div>
+  </section>
+
+  <section class="py-12 md:py-16 bg-blush border-y border-line">
+    <div class="max-w-content mx-auto px-4 sm:px-6">
+      <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-6">カテゴリから探す</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {categories.map(({ label, href }) => (
+          <a href={href} class="cm-card-interactive flex items-center justify-between p-5 group">
+            <span class="font-heading font-semibold text-plum group-hover:text-rose-deep">{label}</span>
+            <span class="text-sm text-rose">→</span>
           </a>
         ))}
       </div>
     </div>
   </section>
 
-  <section class="bg-ivory border-y border-line py-10 md:py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <div>
-          <p class="cm-stat-value">38</p>
-          <p class="cm-stat-label">累計成約</p>
-        </div>
-        <div>
-          <p class="cm-stat-value">14<span class="text-xl font-semibold">日</span></p>
-          <p class="cm-stat-label">平均マッチング</p>
-        </div>
-        <div>
-          <p class="cm-stat-value">100<span class="text-xl font-semibold">%</span></p>
-          <p class="cm-stat-label">運営仲介</p>
-        </div>
-        <div>
-          <p class="cm-stat-value">匿名</p>
-          <p class="cm-stat-label">相談OK</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <Features
-    id="features"
-    tagline="強み"
-    title="クリニックマッチでできること"
-    subtitle="「相場が分かりにくい」「比較が大変」な中古機器取引を、分かりやすく整流化します。"
-    items={[
-      { title: '条件整理と要件定義', description: 'メーカー/型番/年式/状態/付属品/希望価格など、取引の前提を揃えます。', icon: 'tabler:clipboard-check' },
-      { title: '候補提示と比較検討', description: '目的・予算・運用に合わせて候補を整理し、比較しやすい形で提示します。', icon: 'tabler:arrows-exchange' },
-      { title: 'スピード感あるマッチング', description: '在庫情報を必要条件に沿って素早く絞り込み、意思決定を前に進めます。', icon: 'tabler:bolt' },
-      { title: '取引実務の段取り', description: '検品・搬出入・保守/修理の論点を整理してスムーズな実行を支援します。', icon: 'tabler:truck-delivery' },
-      { title: '情報管理と守秘', description: '検討段階の情報が拡散しないよう配慮し、必要な範囲で取り扱います。', icon: 'tabler:lock' },
-      { title: '市場理解の発信（ブログ）', description: '中古機器の見極め、注意点、相場感を記事として整理します。', icon: 'tabler:book' },
-    ]}
-  />
-
-  <Content
-    id="torihiki"
-    isReversed
-    tagline="取引の考え方"
-    title="意思決定を早め<br />リスクを減らす"
-    items={[
-      { title: '論点を先に揃える', description: '価格だけでなく、状態・保証・搬入条件など後から揉めやすい論点を先に揃えます。' },
-      { title: '比較できる形に整える', description: '候補ごとに見比べやすい整理を行い、意思決定を前に進めます。' },
-      { title: '段取りで事故を減らす', description: '検品/引渡し/設置などの実務を先回りして整理します。' },
-    ]}
-    image={{ src: '~/assets/images/torihiki-joken.png', alt: '取引条件が明確だと、判断が速い' }}
-  >
-    <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight mb-2">取引条件が明確だと、判断が速い</h3>
-      クリニックの運用を止めずに、必要な機器を適切に調達・入替できる状態を目指します。
-    </Fragment>
-  </Content>
-
-  <Steps
-    id="flow"
-    title="取引の進め方"
-    items={[
-      { title: 'Step 1: <span class="font-medium">相談・登録</span>', description: 'フォームまたは会員登録で、分かる範囲の情報を入力（匿名OK）。', icon: 'tabler:forms' },
-      { title: 'Step 2: <span class="font-medium">条件整理</span>', description: '運営が仲介し、候補提示や売却条件の整備に向けて論点を揃えます。', icon: 'tabler:filter' },
-      { title: 'Step 3: <span class="font-medium">マッチング</span>', description: '候補の比較・条件調整を進め、段取りを整理します。', icon: 'tabler:truck' },
-      { title: '完了: <span class="font-medium">取引成立</span>', icon: 'tabler:check' },
-    ]}
-    image={{ src: '~/assets/images/torihiki-nagare.png', alt: '取引の流れ' }}
-  />
-
-  <Features2
-    id="sodanrei"
-    title="よくある相談テーマ"
-    subtitle="まずはこの辺りの整理から入ると、判断が早くなります。"
-    tagline="相談例"
-    bg='<div class="absolute inset-0 bg-ivory"></div>'
-    items={[
-      { title: '価格の相場感', description: '同型番でも状態や付属品で価格が大きく変わります。', icon: 'tabler:exchange' },
-      { title: '状態・リスクの見極め', description: '点検履歴、消耗部品、修理可否などの論点を整理します。', icon: 'tabler:clipboard-check' },
-      { title: '搬出入・設置', description: 'サイズ/重量/搬入経路など、現場で詰まりやすい点を先に確認します。', icon: 'tabler:truck-delivery' },
-      { title: '保証・保守', description: 'メーカー保守、第三者保守など前提を揃えます。', icon: 'tabler:headset' },
-    ]}
-  />
-
   <BlogLatestPosts
-    title="ブログ：美容医療の中古市場を整備する人"
-    information="中古美容医療機器の「見極め」「注意点」「相場感」を、実務目線で整理します。"
+    title="読み物"
+    information="中古美容医療機器の見極め・注意点・相場感を、実務目線で整理します。"
   />
 
   <FAQPageJsonLd faqs={[...homeFaqs]} />
@@ -193,19 +170,8 @@ const categories = [
     id="faq"
     title="よくある質問"
     subtitle="検討の初期段階で気になりやすい点をまとめました。"
-    tagline="FAQ"
     bg='<div class="absolute inset-0 bg-ivory"></div>'
     items={homeFaqs.map((faq) => ({ title: faq.q, description: faq.a }))}
   />
 
-  <CallToAction
-    bg='<div class="absolute inset-0 bg-plum"></div>'
-    actions={[
-      { variant: 'primary', text: '在庫をさがす', href: '/cases?view=active' },
-      { variant: 'secondary', text: '出品・購入を相談する', href: getPermalink('contact') },
-    ]}
-  >
-    <Fragment slot="title">写真・型番だけでも相談OK</Fragment>
-    <Fragment slot="subtitle">匿名相談からでも始められます。まずはお気軽にご連絡ください。</Fragment>
-  </CallToAction>
 </Layout>

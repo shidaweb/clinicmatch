@@ -27,12 +27,12 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
 };
 ---
 
-<form method="get" action={basePath} class="cm-card p-4 space-y-4">
+<form method="get" action={basePath} class="cm-card p-4 space-y-4 lg:border-0 lg:shadow-none lg:p-0 lg:bg-transparent">
   <input type="hidden" name="view" value={view} />
 
   <div>
-    <label for="category" class="block text-sm font-medium text-text mb-1">カテゴリ</label>
-    <select id="category" name="category" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+    <label for="category" class="cm-label">カテゴリ</label>
+    <select id="category" name="category" class="cm-input">
       <option value="">すべて</option>
       <option value="hair-removal" selected={category === 'hair-removal'}>脱毛</option>
       <option value="pico-laser" selected={category === 'pico-laser'}>ピコレーザー</option>
@@ -44,8 +44,8 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
   </div>
 
   <div>
-    <label for="type" class="block text-sm font-medium text-text mb-1">種別（募集中）</label>
-    <select id="type" name="type" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+    <label for="type" class="cm-label">種別（募集中）</label>
+    <select id="type" name="type" class="cm-input">
       <option value="all" selected={type === 'all'}>売りたい＋買いたい</option>
       <option value="listing" selected={type === 'listing'}>売りたいのみ</option>
       <option value="wanted" selected={type === 'wanted'}>買いたいのみ</option>
@@ -53,8 +53,8 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
   </div>
 
   <div>
-    <label for="prefecture" class="block text-sm font-medium text-text mb-1">都道府県</label>
-    <select id="prefecture" name="prefecture" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+    <label for="prefecture" class="cm-label">都道府県</label>
+    <select id="prefecture" name="prefecture" class="cm-input">
       <option value="">すべて</option>
       {PREFECTURES.map((pref) => (
         <option value={pref} selected={prefecture === pref}>{pref}</option>
@@ -63,42 +63,36 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
   </div>
 
   <div>
-    <label for="city" class="block text-sm font-medium text-text mb-1">市区町村</label>
+    <label for="city" class="cm-label">市区町村</label>
     <input
       id="city"
       name="city"
       type="text"
       value={city}
       placeholder="例：渋谷区"
-      class="w-full rounded-xl border border-border px-3 py-2 text-sm"
+      class="cm-input"
     />
   </div>
 
   <div class="grid grid-cols-2 gap-3">
     <div>
-      <label for="minPrice" class="block text-sm font-medium text-text mb-1">価格下限</label>
-      <input id="minPrice" name="minPrice" type="number" value={minPrice} placeholder="円" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+      <label for="minPrice" class="cm-label">価格下限</label>
+      <input id="minPrice" name="minPrice" type="number" value={minPrice} placeholder="円" class="cm-input" />
     </div>
     <div>
-      <label for="maxPrice" class="block text-sm font-medium text-text mb-1">価格上限</label>
-      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} placeholder="円" class="w-full rounded-xl border border-border px-3 py-2 text-sm" />
+      <label for="maxPrice" class="cm-label">価格上限</label>
+      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} placeholder="円" class="cm-input" />
     </div>
   </div>
 
   <div>
-    <label for="sort" class="block text-sm font-medium text-text mb-1">並び替え</label>
-    <select id="sort" name="sort" class="w-full rounded-xl border border-border px-3 py-2 text-sm">
+    <label for="sort" class="cm-label">並び替え</label>
+    <select id="sort" name="sort" class="cm-input">
       <option value="new" selected={sort === 'new'}>新着順</option>
       <option value="price" selected={sort === 'price'}>価格順</option>
       <option value="year" selected={sort === 'year'}>年式順</option>
     </select>
   </div>
 
-  <button type="submit" class="btn-market-primary w-full">絞り込む</button>
+  <button type="submit" class="cm-btn-primary w-full">絞り込む</button>
 </form>
-
-<style>
-  .btn-market-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-rose px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition w-full;
-  }
-</style>

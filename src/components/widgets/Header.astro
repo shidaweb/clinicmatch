@@ -13,6 +13,7 @@ interface Link {
   href?: string;
   ariaLabel?: string;
   icon?: string;
+  highlight?: boolean;
 }
 
 interface MenuLink extends Link {
@@ -88,7 +89,7 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
         class="flex flex-col lg:flex-row lg:self-center w-full lg:w-auto text-xl lg:text-[0.8125rem] xl:text-[0.875rem] tracking-[0.01rem] font-medium lg:justify-center lg:gap-x-0.5"
       >
         {
-          links.map(({ text, href, links }) => (
+          links.map(({ text, href, links, highlight }) => (
             <li class={links?.length ? 'dropdown' : ''}>
               {links?.length ? (
                 <>
@@ -133,7 +134,10 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
               ) : (
                 <a
                   class:list={[
-                    'hover:text-rose dark:hover:text-white px-2 lg:px-3 py-3 flex items-center whitespace-nowrap',
+                    'px-2 lg:px-3 py-3 flex items-center whitespace-nowrap transition-colors',
+                    highlight
+                      ? 'text-rose font-semibold hover:text-rose-deep'
+                      : 'hover:text-rose dark:hover:text-white',
                     { 'aw-link-active': href === currentPath },
                   ]}
                   href={href}
@@ -158,12 +162,6 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
             <ConsultButton class="hidden lg:inline-flex" />
           )
         }
-        <a href={accountHref} class="hidden lg:inline-flex text-sm font-medium text-plum-soft hover:text-rose px-2">
-          マイページ
-        </a>
-        <a href={loginHref} class="hidden lg:inline-flex text-sm font-medium text-rose hover:underline px-2">
-          ログイン
-        </a>
         {
           actions?.length ? (
             <span class="flex items-center gap-2">

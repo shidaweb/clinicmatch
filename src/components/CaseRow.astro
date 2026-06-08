@@ -1,0 +1,49 @@
+---
+import { getPermalink } from '~/utils/permalinks';
+
+interface Props {
+  slug: string;
+  title: string;
+  categoryLabel: string;
+  manufacturedDate: string;
+  transactionDate: string;
+  manufacturer?: string;
+  model?: string;
+}
+
+const { slug, title, categoryLabel, manufacturedDate, transactionDate, manufacturer, model } = Astro.props;
+
+function formatDateYMD(ym: string): string {
+  if (!ym || ym.length < 6) return ym;
+  return `${ym.slice(0, 4)}年${parseInt(ym.slice(5, 7), 10)}月`;
+}
+
+const href = getPermalink(`cases/${slug}`);
+const displayTitle = manufacturer && model ? `${manufacturer} ${model}` : title;
+const specParts = [categoryLabel, formatDateYMD(manufacturedDate), `成約 ${formatDateYMD(transactionDate)}`];
+---
+
+<a href={href} class="cm-post-row group block px-2 -mx-2 rounded-card">
+  <div class="shrink-0 w-[70px] h-[54px] rounded-input bg-cream border border-line flex items-center justify-center">
+    <span class="cm-tag-done text-[10px]">成約</span>
+  </div>
+
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-2 mb-1">
+      <span class="cm-tag-done">成約済</span>
+      <h4 class="font-bold text-[15px] text-plum truncate group-hover:text-rose-deep">{displayTitle}</h4>
+    </div>
+    <p class="cm-spec-dots line-clamp-1">
+      {specParts.map((part, i) => (
+        <>
+          {i > 0 && <span class="dot"> · </span>}
+          {part}
+        </>
+      ))}
+    </p>
+  </div>
+
+  <div class="shrink-0 cm-post-row-price">
+    <p class="text-xs text-rose">詳細 →</p>
+  </div>
+</a>

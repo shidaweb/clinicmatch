@@ -35,7 +35,6 @@ const org = profile.organizations as { prefecture?: string; city?: string } | nu
 
 <AccountLayout metadata={metadata} showNav={true}>
   <header class="mb-8">
-    <p class="cm-eyebrow mb-2">My Page</p>
     <h1 class="cm-heading text-3xl font-bold">マイページ</h1>
     <p class="mt-2 text-plum-soft">{org?.prefecture}{org?.city} — {profile.full_name ?? '担当者'}</p>
   </header>

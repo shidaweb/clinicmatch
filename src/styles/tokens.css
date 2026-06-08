@@ -1,33 +1,53 @@
 :root {
-  /* 美容医療トーン（第4章） */
-  --color-cream: #fbf5f1;
-  --color-ivory: #ffffff;
-  --color-rose: #c98b97;
-  --color-rose-deep: #a86a77;
-  --color-plum: #46343a;
-  --color-plum-soft: #7a5c63;
-  --color-muted: #9b848a;
-  --color-line: #eadcd4;
-  --color-gold: #c2a36b;
-  --color-sage: #8fa99b;
+  /* 第2章デザイントークン（docs/design-spec.md） */
+  --cream: #fbf5f1;
+  --ivory: #ffffff;
+  --blush: #f4e3dd;
+  --rose: #c98b97;
+  --rose-deep: #a86a77;
+  --plum: #46343a;
+  --plum-soft: #7a5c63;
+  --muted: #9b848a;
+  --line: #eadcd4;
+  --gold: #c2a36b;
+  --sage: #8fa99b;
+  --danger: #b5524e;
+  --dot: #d8c6bf;
+
   --color-sell-bg: #f4dce2;
   --color-sell-text: #993556;
   --color-buy-bg: #fbefe2;
   --color-buy-text: #9a6312;
-  --color-done-bg: #ede8ea;
+  --color-done-bg: #ede4de;
   --color-done-text: #7a5c63;
+  --color-sage-bg: #eaf0ec;
+  --color-sage-text: #5c7a6c;
 
   /* 互換エイリアス */
-  --brand-600: var(--color-rose);
-  --brand-800: var(--color-rose-deep);
-  --accent-600: var(--color-sage);
-  --color-sell: var(--color-rose-deep);
+  --color-cream: var(--cream);
+  --color-ivory: var(--ivory);
+  --color-rose: var(--rose);
+  --color-rose-deep: var(--rose-deep);
+  --color-plum: var(--plum);
+  --color-plum-soft: var(--plum-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-sage: var(--sage);
+  --brand-600: var(--rose);
+  --brand-800: var(--rose-deep);
+  --accent-600: var(--sage);
+  --color-sell: var(--rose-deep);
   --color-buy: var(--color-buy-text);
   --color-done: var(--color-done-text);
-  --color-surface: var(--color-ivory);
-  --color-surface-muted: var(--color-cream);
-  --color-border: var(--color-line);
-  --color-text: var(--color-plum);
-  --color-text-muted: var(--color-plum-soft);
-  --shadow-card: 0 10px 26px rgba(70, 52, 58, 0.1);
+  --color-surface: var(--ivory);
+  --color-surface-muted: var(--cream);
+  --color-border: var(--line);
+  --color-text: var(--plum);
+  --color-text-muted: var(--plum-soft);
+  --shadow-soft: 0 10px 26px rgba(63, 45, 51, 0.07);
+  --shadow-lift: 0 16px 34px rgba(63, 45, 51, 0.12);
+  --shadow-float: 0 16px 34px rgba(63, 45, 51, 0.14);
+  --shadow-card: var(--shadow-soft);
+  --max-content: 1080px;
 }

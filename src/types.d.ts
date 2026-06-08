@@ -62,6 +62,9 @@ export interface MetaData {
 
   description?: string;
 
+  /** PageLayout: false で下部 ConsultBlock を非表示 */
+  showConsultBlock?: boolean;
+
   openGraph?: MetaDataOpenGraph;
   twitter?: MetaDataTwitter;
 }
@@ -188,7 +191,7 @@ export interface Disclaimer {
 
 // COMPONENTS
 export interface CallToAction extends Omit<HTMLAttributes<'a'>, 'slot'> {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'link' | 'line';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'link' | 'line' | 'dark';
   text?: string;
   icon?: string;
   classes?: Record<string, string>;

@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import FormStepProgress from '~/components/interactive/FormStepProgress';
 import { trackGaEvent } from '~/utils/analytics';
 
 const PRIMARY = '#C98B97';
-const PRIMARY_DEEP = '#A86A77';
+const REQUIRED = '#B5524E';
 
 const CATEGORY_OPTIONS = [
   { value: 'hair-removal', label: '脱毛' },
@@ -56,10 +57,15 @@ const initialData: BuyFormData = {
 };
 
 const inputBase =
-  'w-full rounded-2xl border border-[#EADCD4] bg-white px-4 py-2.5 text-[#46343A] placeholder:text-[#9B848A] focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
+  'w-full h-11 rounded-[10px] border border-[#EADCD4] bg-white px-4 py-2.5 text-[#46343A] placeholder:text-[#9B848A] focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
 const inputFocus = 'focus:border-[#C98B97] focus:ring-[#C98B97]/30';
-const labelClass = 'block text-sm font-medium text-[#46343A] mb-1';
-const errorClass = 'text-red-600 dark:text-red-400 text-sm mt-1';
+const labelClass = 'block text-sm font-medium text-[#7A5C63] mb-1';
+const errorClass = 'text-sm mt-1';
+const errorStyle = { color: REQUIRED };
+const pillBase =
+  'rounded-full px-4 py-2 text-sm font-medium border transition-colors';
+const pillActive = 'bg-[#A86A77] text-white border-[#A86A77]';
+const pillIdle = 'bg-white text-[#46343A] border-[#EADCD4] hover:border-[#C98B97]';
 
 export default function BuyForm() {
   const [step, setStep] = useState(1);
@@ -143,41 +149,23 @@ export default function BuyForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Progress bar */}
-      <div className="flex items-center gap-2">
-        <div
-          className="h-2 flex-1 rounded-full bg-[#EADCD4] overflow-hidden"
-          role="progressbar"
-          aria-valuenow={step}
-          aria-valuemin={1}
-          aria-valuemax={3}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${(step / 3) * 100}%`, backgroundColor: PRIMARY }}
-          />
-        </div>
-        <span className="text-sm font-medium text-[#7A5C63] whitespace-nowrap">
-          Step {step}/3
-        </span>
-      </div>
+      <FormStepProgress step={step} />
 
       {/* Step 1: 機器について */}
       {step === 1 && (
         <div className="space-y-6">
           <div>
             <p className={labelClass}>検討中のカテゴリ（複数選択可）</p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 mt-2">
               {CATEGORY_OPTIONS.map((opt) => (
-                <label key={opt.value} className="inline-flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={data.categories.includes(opt.value)}
-                    onChange={() => toggleCategory(opt.value)}
-                    className="rounded border-slate-300 text-[#C98B97] focus:ring-[#C98B97]"
-                  />
-                  <span className="text-[#7A5C63]">{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => toggleCategory(opt.value)}
+                  className={`${pillBase} ${data.categories.includes(opt.value) ? pillActive : pillIdle}`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
@@ -195,23 +183,22 @@ export default function BuyForm() {
             />
           </div>
           <div>
-            <p className={labelClass}>希望予算レンジ</p>
-            <div className="space-y-2">
+            <p className={labelClass}>
+              希望予算レンジ <span style={{ color: REQUIRED }}>*</span>
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
               {BUDGET_OPTIONS.map((opt) => (
-                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="budgetRange"
-                    value={opt.value}
-                    checked={data.budgetRange === opt.value}
-                    onChange={(e) => update('budgetRange', e.target.value)}
-                    className="border-slate-300 text-[#C98B97] focus:ring-[#C98B97]"
-                  />
-                  <span className="text-[#7A5C63]">{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('budgetRange', opt.value)}
+                  className={`${pillBase} ${data.budgetRange === opt.value ? pillActive : pillIdle}`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
-            {errors.budgetRange && <p className={errorClass}>{errors.budgetRange}</p>}
+            {errors.budgetRange && <p className={errorClass} style={errorStyle}>{errors.budgetRange}</p>}
           </div>
         </div>
       )}
@@ -221,19 +208,16 @@ export default function BuyForm() {
         <div className="space-y-6">
           <div>
             <p className={labelClass}>導入予定時期</p>
-            <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {TIMING_OPTIONS.map((opt) => (
-                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="timing"
-                    value={opt.value}
-                    checked={data.timing === opt.value}
-                    onChange={(e) => update('timing', e.target.value)}
-                    className="border-slate-300 text-[#C98B97] focus:ring-[#C98B97]"
-                  />
-                  <span className="text-[#7A5C63]">{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('timing', opt.value)}
+                  className={`${pillBase} ${data.timing === opt.value ? pillActive : pillIdle}`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
@@ -258,7 +242,7 @@ export default function BuyForm() {
         <div className="space-y-5">
           <div>
             <label htmlFor="buy-name" className={labelClass}>
-              お名前 <span className="text-red-500">*</span>
+              お名前 <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="buy-name"
@@ -287,7 +271,7 @@ export default function BuyForm() {
           </div>
           <div>
             <label htmlFor="buy-email" className={labelClass}>
-              メールアドレス <span className="text-red-500">*</span>
+              メールアドレス <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="buy-email"
@@ -318,7 +302,7 @@ export default function BuyForm() {
       )}
 
       {/* Buttons */}
-      <div className="flex flex-wrap gap-3 pt-4">
+      <div className="flex flex-wrap gap-3 pt-4 sticky bottom-0 bg-ivory pb-2 -mx-1 px-1">
         {step > 1 && (
           <button
             type="button"
@@ -332,7 +316,7 @@ export default function BuyForm() {
           <button
             type="button"
             onClick={handleNext}
-            className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90"
+            className="flex-1 min-w-[140px] px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: PRIMARY }}
           >
             次へ
@@ -341,7 +325,7 @@ export default function BuyForm() {
           <button
             type="submit"
             disabled={sending}
-            className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="flex-1 min-w-[140px] px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: PRIMARY }}
           >
             {sending ? '送信中...' : '送信する'}

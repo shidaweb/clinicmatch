@@ -1,0 +1,99 @@
+---
+import {
+  anonymousOrgLabel,
+  formatLocation,
+  formatPriceYen,
+  MAINTENANCE_LABELS,
+  type PublicListing,
+  type PublicWanted,
+} from '~/lib/marketplace';
+
+interface Props {
+  post: PublicListing | PublicWanted;
+  kind: 'listing' | 'wanted';
+}
+
+const { post, kind } = Astro.props;
+const isListing = kind === 'listing';
+const listing = isListing ? (post as PublicListing) : null;
+const wanted = !isListing ? (post as PublicWanted) : null;
+
+const href = `/cases/${post.id}?type=${kind}`;
+const categoryName = post.categories?.name ?? post.category_slug;
+const title = isListing
+  ? `${listing!.maker} ${listing!.model}`
+  : wanted!.maker && wanted!.model
+    ? `${wanted!.maker} ${wanted!.model}`
+    : categoryName;
+
+const priceLabel = isListing ? formatPriceYen(listing!.asking_price) : formatPriceYen(wanted!.budget);
+const location = isListing
+  ? formatLocation(listing!.location_prefecture, listing!.location_city)
+  : wanted!.area_prefecture && wanted!.area_city
+    ? formatLocation(wanted!.area_prefecture, wanted!.area_city)
+    : 'エリア指定なし';
+
+const yearLabel = isListing && listing!.manufacture_year ? `${listing!.manufacture_year}年` : null;
+const conditionLabel = isListing ? listing!.condition : wanted!.condition_pref;
+const maintenanceLabel =
+  isListing && listing!.maker_maintenance
+    ? (MAINTENANCE_LABELS[listing!.maker_maintenance] ?? listing!.maker_maintenance)
+    : null;
+
+const specParts = [categoryName, yearLabel, conditionLabel, maintenanceLabel, location].filter(Boolean);
+
+const coverImage =
+  isListing && listing!.listing_images?.length
+    ? listing!.listing_images.find((img) => img.is_cover) ?? listing!.listing_images[0]
+    : null;
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const imageUrl = coverImage && supabaseUrl
+  ? `${supabaseUrl}/storage/v1/object/public/listing-images/${coverImage.storage_path}`
+  : null;
+---
+
+<a href={href} class="cm-post-row group block px-2 -mx-2 rounded-card">
+  <div class="shrink-0 w-[70px] h-[54px] rounded-input overflow-hidden bg-cream border border-line">
+    {
+      imageUrl ? (
+        <img src={imageUrl} alt="" class="h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <div class="h-full w-full flex items-center justify-center text-[10px] text-muted">—</div>
+      )
+    }
+  </div>
+
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-2 mb-1">
+      <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
+        {isListing ? '売りたい' : '買いたい'}
+      </span>
+      <h4 class="font-bold text-[15px] text-plum truncate group-hover:text-rose-deep">{title}</h4>
+    </div>
+    <p class="cm-spec-dots line-clamp-1">
+      {specParts.map((part, i) => (
+        <>
+          {i > 0 && <span class="dot"> · </span>}
+          {part}
+        </>
+      ))}
+    </p>
+  </div>
+
+  <div class="shrink-0 cm-post-row-price">
+    {
+      isListing ? (
+        <>
+          <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">{priceLabel}</p>
+          <p class="text-xs text-rose mt-0.5">詳細 →</p>
+        </>
+      ) : (
+        <>
+          <p class="font-heading text-sm font-semibold text-plum-soft tabular-nums">{priceLabel}</p>
+          <p class="text-xs text-rose mt-0.5">提案する →</p>
+        </>
+      )
+    }
+  </div>
+</a>

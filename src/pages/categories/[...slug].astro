@@ -65,17 +65,26 @@ const FORM_SELL = getPermalink('contact/sell');
           {data.title}
         </span>
         <h1 class="mt-2 cm-heading text-4xl md:text-5xl font-bold">
-          {data.title}の中古売買
+          {data.title}
         </h1>
         <p class="mt-4 text-lg text-plum-soft leading-relaxed">{data.description}</p>
       </header>
 
       <section class="mb-10 cm-card p-6 border-rose/20">
-        <h2 class="font-heading text-lg font-semibold text-plum mb-2">このカテゴリの在庫を見る</h2>
+        <h2 class="font-heading text-2xl font-bold text-plum mb-2">このカテゴリの在庫</h2>
         <p class="text-sm text-plum-soft mb-4">募集中の売りたい・買いたいを一覧で比較できます。</p>
         <a href={`/cases?view=active&category=${categorySlug}`} class="cm-btn-primary">
           {data.title}の在庫一覧へ
         </a>
+      </section>
+
+      <!-- 読み物 -->
+      <section class="mb-10" aria-labelledby="reading-heading">
+        <h2 id="reading-heading" class="font-heading text-2xl font-bold text-plum mb-4">読み物</h2>
+        <p class="text-plum-soft mb-4 leading-relaxed">
+          {data.title}の相場感・見極めポイントはブログでも整理しています。購入前の確認にご活用ください。
+        </p>
+        <a href="/blog" class="text-rose hover:underline text-sm font-medium">ブログ一覧へ →</a>
       </section>
 
       <!-- 主な取扱機種 -->

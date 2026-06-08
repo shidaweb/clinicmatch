@@ -13,11 +13,8 @@ const wanted = !isListing ? (post as PublicWanted) : null;
 
 const href = `/cases/${post.id}?type=${kind}`;
 const categoryName = post.categories?.name ?? post.category_slug;
-const title = isListing
-  ? `${listing!.maker} ${listing!.model}`
-  : wanted!.maker && wanted!.model
-    ? `${wanted!.maker} ${wanted!.model}`
-    : categoryName;
+const modelName = isListing ? listing!.model : wanted!.model ?? categoryName;
+const makerName = isListing ? listing!.maker : wanted!.maker;
 
 const priceLabel = isListing ? formatPriceYen(listing!.asking_price) : formatPriceYen(wanted!.budget);
 const location = isListing
@@ -26,9 +23,7 @@ const location = isListing
     ? formatLocation(wanted!.area_prefecture, wanted!.area_city)
     : 'エリア指定なし';
 
-const anonLabel = anonymousOrgLabel(isListing ? listing!.location_city : wanted!.area_city ?? '');
 const yearLabel = isListing && listing!.manufacture_year ? `${listing!.manufacture_year}年` : null;
-const conditionLabel = isListing ? listing!.condition : wanted!.condition_pref;
 
 const coverImage =
   isListing && listing!.listing_images?.length
@@ -41,52 +36,36 @@ const imageUrl = coverImage && supabaseUrl
   : null;
 ---
 
-<a href={href} class="group block cm-card p-4 hover:shadow-lg transition">
-  <div class="flex items-start justify-between gap-3 mb-3">
+<a href={href} class="cm-post-card group block shrink-0 w-56 snap-start">
+  <div class="cm-post-card-image">
+    {
+      imageUrl ? (
+        <img src={imageUrl} alt="" class="h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>
+      )
+    }
+  </div>
+
+  <div class="p-4">
     <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
       {isListing ? '売りたい' : '買いたい'}
     </span>
-    <span class="text-xs text-ink-muted">{anonLabel}</span>
+    <h4 class="mt-2 font-bold text-[15px] text-plum line-clamp-2 group-hover:text-rose-deep transition-colors">
+      {modelName}
+    </h4>
+    {makerName && <p class="mt-0.5 text-xs text-plum-soft truncate">{makerName}</p>}
+
+    <div class="mt-3 flex flex-wrap gap-1">
+      {yearLabel && (
+        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft font-heading tabular-nums">{yearLabel}</span>
+      )}
+      {isListing && listing!.maker_maintenance && (
+        <span class="cm-tag-sage">保守あり</span>
+      )}
+    </div>
+
+    <p class="mt-3 font-heading text-base font-semibold text-rose-deep tabular-nums">{priceLabel}</p>
+    <p class="mt-1 text-xs text-plum-soft truncate">{location}</p>
   </div>
-
-  {
-    imageUrl && (
-      <img
-        src={imageUrl}
-        alt=""
-        class="mb-3 h-36 w-full rounded-xl object-cover bg-cream"
-        loading="lazy"
-      />
-    )
-  }
-
-  <p class="text-xs text-plum-soft mb-1">{categoryName}</p>
-  <h3 class="font-heading font-semibold text-plum group-hover:text-rose line-clamp-2">{title}</h3>
-
-  {
-    (yearLabel || conditionLabel) && (
-      <div class="mt-2 flex flex-wrap gap-1.5">
-        {yearLabel && (
-          <span class="rounded-full bg-cream px-2 py-0.5 text-xs text-plum-soft tabular-nums">{yearLabel}</span>
-        )}
-        {conditionLabel && (
-          <span class="rounded-full bg-cream px-2 py-0.5 text-xs text-plum-soft">{conditionLabel}</span>
-        )}
-        {isListing && listing!.has_accessories && (
-          <span class="rounded-full bg-cream px-2 py-0.5 text-xs text-plum-soft">付属品あり</span>
-        )}
-      </div>
-    )
-  }
-
-  <dl class="mt-3 grid grid-cols-2 gap-2 text-sm">
-    <div>
-      <dt class="text-plum-soft text-xs">{isListing ? '希望価格' : '予算'}</dt>
-      <dd class="font-semibold text-plum tabular-nums">{priceLabel}</dd>
-    </div>
-    <div>
-      <dt class="text-plum-soft text-xs">{isListing ? '所在地' : '希望エリア'}</dt>
-      <dd class="text-plum">{location}</dd>
-    </div>
-  </dl>
 </a>

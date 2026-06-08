@@ -3,14 +3,14 @@ import { getBlogPermalink } from './utils/permalinks';
 export const headerData = {
   links: [
     { text: 'さがす', href: '/cases?view=active' },
+    { text: '売りたい', href: '/contact/sell' },
+    { text: '買いたい', href: '/contact/buy' },
+    { text: '相談', href: '/contact', highlight: true },
     { text: 'ブログ', href: getBlogPermalink() },
-    { text: '成約事例', href: '/cases?view=done' },
+    { text: 'ログイン', href: '/auth/login' },
   ],
-  actions: [
-    { text: '売りたい', href: '/account/listings/new', variant: 'primary' as const, class: 'btn-sell-header !rounded-full !py-2 !px-5 !text-sm' },
-    { text: '買いたい', href: '/account/wanted/new', variant: 'secondary' as const, class: 'btn-buy-header !rounded-full !py-2 !px-5 !text-sm !text-white' },
-  ],
-  showConsult: true,
+  actions: [] as Array<{ text: string; href: string; variant?: 'primary' | 'secondary'; class?: string }>,
+  showConsult: false,
   accountHref: '/account',
   loginHref: '/auth/login',
 };
@@ -18,12 +18,13 @@ export const headerData = {
 export const footerData = {
   links: [
     {
-      title: 'マーケット',
+      title: 'サービス',
       links: [
         { text: '在庫をさがす', href: '/cases?view=active' },
-        { text: '売りたいを出す', href: '/account/listings/new' },
-        { text: '買いたいを出す', href: '/account/wanted/new' },
+        { text: '売りたいを出す', href: '/contact/sell' },
+        { text: '買いたいを出す', href: '/contact/buy' },
         { text: '出品・購入を相談する', href: '/contact' },
+        { text: '成約事例', href: '/cases?view=done' },
       ],
     },
     {
@@ -38,17 +39,17 @@ export const footerData = {
       ],
     },
     {
-      title: 'サービス',
+      title: 'お問い合わせ',
       links: [
-        { text: '成約事例', href: '/cases?view=done' },
-        { text: 'ブログ', href: getBlogPermalink() },
+        { text: '相談フォーム', href: '/contact' },
         { text: 'LINEで相談', href: 'https://lin.ee/vepVhWc', target: '_blank' },
+        { text: 'ブログ', href: getBlogPermalink() },
       ],
     },
     {
       title: '会社概要',
       links: [
-        { text: '運営会社', href: '/about' },
+        { text: '運営会社について', href: '/about' },
         { text: '利用規約', href: '/terms' },
         { text: 'プライバシーポリシー', href: '/privacy' },
       ],
@@ -58,7 +59,14 @@ export const footerData = {
     { text: '利用規約', href: '/terms' },
     { text: 'プライバシーポリシー', href: '/privacy' },
   ],
-  socialLinks: [],
-  footNote: '',
-  showConsult: true,
+  socialLinks: [
+    {
+      ariaLabel: 'LINEで相談',
+      href: 'https://lin.ee/vepVhWc',
+      icon: 'tabler:brand-line',
+      text: '',
+    },
+  ],
+  footNote: `© ${new Date().getFullYear()} 株式会社キラック`,
+  showConsult: false,
 };

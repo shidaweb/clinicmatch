@@ -3,23 +3,33 @@ export const prerender = false;
 
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import PostCard from '~/components/PostCard.astro';
-import CaseCard from '~/components/CaseCard.astro';
+import PostRow from '~/components/PostRow.astro';
+import CaseRow from '~/components/CaseRow.astro';
 import MarketFilters from '~/components/MarketFilters.astro';
+import MarketFilterSheet from '~/components/MarketFilterSheet.astro';
 import EmptyState from '~/components/EmptyState.astro';
 import TrustBadges from '~/components/TrustBadges.astro';
 import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getCanonical, getHomePermalink, getPermalink } from '~/utils/permalinks';
 import { hasSupabaseConfig } from '~/lib/env';
+import CmPagination from '~/components/CmPagination.astro';
 import {
   buildCasesUrl,
   fetchMarketPosts,
   mergeMarketPosts,
+  paginateList,
   parseCasesFilters,
+  parseCasesPage,
 } from '~/lib/cases-page';
 
 const filters = parseCasesFilters(Astro.url);
-const { view, type, category, prefecture, city, minPrice, maxPrice, sort, q } = filters;
+let { view, type, category, prefecture, city, minPrice, maxPrice, sort, q, page: pageParam } = filters;
+const currentPage = parseCasesPage(pageParam);
+
+if (view === 'all') {
+  view = 'active';
+  if (type === 'all') type = 'listing';
+}
 
 const allCases = await getCollection('cases');
 let staticCases = allCases.sort(
@@ -30,20 +40,41 @@ if (category) {
 }
 
 let marketPosts: ReturnType<typeof mergeMarketPosts> = [];
+let listingCount = 0;
+let wantedCount = 0;
+
 if (hasSupabaseConfig(Astro.locals as never) && view !== 'done') {
-  const { listings, wanted } = await fetchMarketPosts(Astro.cookies, Astro.locals as never, filters);
-  marketPosts = mergeMarketPosts(listings, wanted, type, sort);
+  const countData = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
+    type: 'all',
+    category,
+    prefecture,
+    city,
+    minPrice,
+    maxPrice,
+    sort,
+    q,
+  });
+  listingCount = countData.listings.length;
+  wantedCount = countData.wanted.length;
+
+  const displayType = type === 'all' ? 'listing' : type;
+  const { listings, wanted } = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
+    ...filters,
+    type: displayType,
+  });
+  marketPosts = mergeMarketPosts(listings, wanted, displayType, sort);
 }
 
-const showMarket = view === 'active' || view === 'all';
-const showDone = view === 'done' || view === 'all';
-const activeCount = marketPosts.length;
 const doneCount = staticCases.length;
-const totalCount = (showMarket ? activeCount : 0) + (showDone ? doneCount : 0);
+const showMarket = view !== 'done';
+const showDone = view === 'done';
+
+const tabListingActive = showMarket && type !== 'wanted';
+const tabWantedActive = showMarket && type === 'wanted';
 
 const casesCanonical = String(getCanonical(getPermalink('cases')));
 const metadata = {
-  title: view === 'done' ? '成約事例' : '在庫・取引事例',
+  title: view === 'done' ? '成約事例' : '在庫・取引事例をさがす',
   description:
     '美容医療機器の募集中在庫と成約事例。脱毛機・ピコレーザー・IPL・HIFU・RF・痩身機器をカテゴリ・エリア・価格で探せます。',
   canonical: category || view !== 'active' ? casesCanonical : String(getCanonical(Astro.url.pathname)),
@@ -51,11 +82,17 @@ const metadata = {
 };
 
 const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segment');
+const sortLabels: Record<string, string> = { new: '新着順', price: '価格順', year: '年式順' };
+
+const activeFilterCount = [category, prefecture, city, minPrice, maxPrice, q].filter(Boolean).length;
+
+const donePaged = paginateList(staticCases, currentPage);
+const marketPaged = paginateList(marketPosts, currentPage);
 ---
 
 <Layout metadata={metadata}>
-  <section class="py-12 md:py-16 bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <section class="py-10 md:py-16 bg-cream">
+    <div class="max-w-content mx-auto px-4 sm:px-6">
       <Breadcrumb
         class="mb-6 text-sm text-plum-soft"
         items={[
@@ -64,114 +101,177 @@ const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segmen
         ]}
       />
 
-      <div class="mb-8">
-        <p class="cm-eyebrow mb-2">Marketplace</p>
-        <h1 class="cm-heading text-3xl md:text-4xl font-bold">在庫・取引事例</h1>
-        <p class="mt-2 text-plum-soft max-w-2xl leading-relaxed">
+      <header class="mb-8">
+        <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold">在庫・取引事例をさがす</h1>
+        <p class="mt-3 text-plum-soft max-w-2xl leading-relaxed text-[15px] md:text-base">
           いま募集中の売りたい・買いたいと、過去の成約事例を同じ画面で探せます。匿名表示・運営仲介です。
         </p>
         <div class="mt-4">
           <TrustBadges />
         </div>
-      </div>
+      </header>
 
-      <div class="flex flex-wrap items-center gap-2 mb-6">
-        <a href={buildCasesUrl({ view: 'active', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'active')}>
-          募集中（{activeCount}）
+      <div class="flex flex-wrap items-center gap-2 mb-6" role="tablist" aria-label="在庫の種別">
+        <a
+          href={buildCasesUrl({ view: 'active', type: 'listing', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          class={tabClass(tabListingActive)}
+          role="tab"
+          aria-selected={tabListingActive}
+        >
+          在庫（売り）（{listingCount}）
         </a>
-        <a href={buildCasesUrl({ view: 'done', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'done')}>
+        <a
+          href={buildCasesUrl({ view: 'active', type: 'wanted', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          class={tabClass(tabWantedActive)}
+          role="tab"
+          aria-selected={tabWantedActive}
+        >
+          買いたい（{wantedCount}）
+        </a>
+        <a
+          href={buildCasesUrl({ view: 'done', type: 'listing', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          class={tabClass(showDone)}
+          role="tab"
+          aria-selected={showDone}
+        >
           成約事例（{doneCount}）
         </a>
-        <a href={buildCasesUrl({ view: 'all', type, category, prefecture, city, minPrice, maxPrice, sort, q })} class={tabClass(view === 'all')}>
-          すべて（{totalCount}）
-        </a>
       </div>
 
-      <div class="grid lg:grid-cols-[280px_1fr] gap-8">
-        <aside>
+      <div class="grid lg:grid-cols-[180px_1fr] gap-8">
+        <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {view !== 'done' && (
             <MarketFilters {view} {type} {category} {prefecture} {city} {minPrice} {maxPrice} {sort} {q} />
           )}
           {view === 'done' && category && (
-            <div class="cm-card p-4 text-sm text-plum-soft">
+            <div class="rounded-card border border-line bg-ivory p-4 text-sm text-plum-soft">
               カテゴリ: {category}
               <a href={buildCasesUrl({ view: 'done' })} class="block mt-2 text-rose hover:underline">フィルタを解除</a>
             </div>
           )}
         </aside>
 
-        <div class="space-y-10">
+        <div>
+          {view !== 'done' && (
+            <MarketFilterSheet
+              {view}
+              {type}
+              {category}
+              {prefecture}
+              {city}
+              {minPrice}
+              {maxPrice}
+              {sort}
+              {q}
+              activeCount={activeFilterCount}
+            />
+          )}
+
+          {
+            activeFilterCount > 0 && view !== 'done' && (
+              <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+                {category && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">カテゴリ: {category}</span>}
+                {prefecture && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{prefecture}</span>}
+                {city && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{city}</span>}
+                <a href={buildCasesUrl({ view, type, sort })} class="text-rose hover:underline text-xs">クリア</a>
+              </div>
+            )
+          }
           {
             showMarket && (
-              <div>
-                {view === 'all' && (
-                  <h2 class="font-heading text-lg font-semibold text-plum mb-4">募集中</h2>
-                )}
-                {
-                  marketPosts.length === 0 ? (
-                    <EmptyState
-                      title="募集中の投稿がありません"
-                      message="条件を変えるか、運営に相談してマッチングを依頼できます。"
-                      actionHref="/contact"
-                      actionLabel="条件で相談する"
-                    />
-                  ) : (
-                    <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {marketPosts.map(({ kind, post }) => (
-                        <PostCard {post} {kind} />
-                      ))}
-                    </div>
-                  )
-                }
+              <div class="mb-4 flex items-center justify-between text-sm text-plum-soft">
+                <span class="tabular-nums">
+                  {marketPaged.total === 0
+                    ? '0件'
+                    : `${marketPaged.total}件（${marketPaged.from}–${marketPaged.to}件目）`}
+                </span>
+                <span>{sortLabels[sort] ?? '新着順'}</span>
               </div>
+            )
+          }
+
+          {
+            showDone && staticCases.length > 0 && (
+              <div class="mb-4 text-sm text-plum-soft tabular-nums">
+                {donePaged.total}件（{donePaged.from}–{donePaged.to}件目）
+              </div>
+            )
+          }
+
+          {
+            showMarket && (
+              marketPosts.length === 0 ? (
+                <EmptyState
+                  title="募集中の投稿がありません"
+                  message="条件を変えるか、運営に相談してマッチングを依頼できます。"
+                  actionHref="/contact"
+                  actionLabel="条件で相談する"
+                />
+              ) : (
+                <>
+                  <div class="divide-y divide-line border-t border-line">
+                    {marketPaged.slice.map(({ kind, post }) => (
+                      <PostRow {post} {kind} />
+                    ))}
+                  </div>
+                  <CmPagination
+                    class="mt-8"
+                    currentPage={marketPaged.currentPage}
+                    totalPages={marketPaged.totalPages}
+                    filters={filters}
+                  />
+                </>
+              )
             )
           }
 
           {
             showDone && (
-              <div>
-                {view === 'all' && (
-                  <h2 class="font-heading text-lg font-semibold text-plum mb-4">成約事例</h2>
-                )}
-                {
-                  staticCases.length === 0 ? (
-                    <EmptyState
-                      title="成約事例がありません"
-                      message="カテゴリを変えるか、相談フォームからお問い合わせください。"
-                      actionHref="/contact"
-                      actionLabel="相談する"
-                    />
-                  ) : (
-                    <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {staticCases.map((entry) => {
-                        const slug = entry.id.replace(/\.mdx?$/, '');
-                        const { data } = entry;
-                        return (
-                          <CaseCard
-                            {slug}
-                            title={data.title}
-                            categoryLabel={data.categoryLabel}
-                            manufacturedDate={data.manufacturedDate}
-                            transactionDate={data.transactionDate}
-                            manufacturer={data.manufacturer}
-                            model={data.model}
-                          />
-                        );
-                      })}
-                    </div>
-                  )
-                }
-              </div>
+              staticCases.length === 0 ? (
+                <EmptyState
+                  title="成約事例がありません"
+                  message="カテゴリを変えるか、相談フォームからお問い合わせください。"
+                  actionHref="/contact"
+                  actionLabel="相談する"
+                />
+              ) : (
+                <>
+                  <div class="divide-y divide-line border-t border-line">
+                    {donePaged.slice.map((entry) => {
+                      const slug = entry.id.replace(/\.mdx?$/, '');
+                      const { data } = entry;
+                      return (
+                        <CaseRow
+                          {slug}
+                          title={data.title}
+                          categoryLabel={data.categoryLabel}
+                          manufacturedDate={data.manufacturedDate}
+                          transactionDate={data.transactionDate}
+                          manufacturer={data.manufacturer}
+                          model={data.model}
+                        />
+                      );
+                    })}
+                  </div>
+                  <CmPagination
+                    class="mt-8"
+                    currentPage={donePaged.currentPage}
+                    totalPages={donePaged.totalPages}
+                    filters={filters}
+                  />
+                </>
+              )
             )
           }
 
-          <div class="rounded-2xl border border-dashed border-rose/40 bg-ivory p-6 text-center">
-            <p class="font-heading text-lg font-semibold text-plum">条件に合う在庫が見つからない？</p>
+          <div class="mt-10 rounded-card border border-dashed border-rose/40 bg-ivory p-6 text-center">
+            <h2 class="font-heading text-lg font-semibold text-plum">条件に合う在庫が見つからない？</h2>
             <p class="mt-2 text-sm text-plum-soft">匿名OK・約2分。運営が仲介してマッチングします。</p>
-            <a href="/contact" class="mt-4 cm-btn-primary">条件で相談する</a>
+            <a href="/contact" class="mt-4 cm-btn-primary inline-flex">条件で相談する</a>
           </div>
         </div>
       </div>
     </div>
   </section>
+
 </Layout>

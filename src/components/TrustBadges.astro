@@ -1,27 +1,28 @@
 ---
+import { Icon } from 'astro-icon/components';
+
 interface Props {
   compact?: boolean;
 }
 
 const { compact = false } = Astro.props;
 
-const badges = [
-  { label: '運営が仲介', icon: 'shield' },
-  { label: '匿名相談OK', icon: 'user' },
-  { label: '累計38件', icon: 'chart' },
-  { label: '平均14日でマッチ', icon: 'clock' },
+const items = [
+  { label: '運営が仲介', sub: '条件整理から合意まで', icon: 'tabler:shield-check' },
+  { label: '匿名相談OK', sub: '連絡先は合意後開示', icon: 'tabler:user-shield' },
+  { label: '累計38件', sub: '成約実績', icon: 'tabler:chart-bar' },
+  { label: '法人確認', sub: '法人番号で登録', icon: 'tabler:building-bank' },
 ];
 ---
 
-<div class:list={['flex flex-wrap gap-2', compact ? 'justify-center' : '']}>
+<div class:list={['cm-trust-bar', compact ? 'max-w-3xl mx-auto' : '']}>
   {
-    badges.map(({ label }) => (
-      <span class="inline-flex items-center gap-1.5 rounded-full border border-sage/30 bg-ivory px-3 py-1 text-xs font-medium text-plum-soft">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sage shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-        </svg>
-        {label}
-      </span>
+    items.map(({ label, sub, icon }) => (
+      <div>
+        <Icon name={icon} class="w-5 h-5 text-sage mx-auto mb-2" />
+        <p class="font-heading text-sm font-semibold text-plum">{label}</p>
+        <p class="mt-0.5 text-[11px] text-plum-soft tracking-wide">{sub}</p>
+      </div>
     ))
   }
 </div>

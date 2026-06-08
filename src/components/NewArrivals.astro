@@ -1,11 +1,11 @@
 ---
 ---
 
-<div id="new-arrivals" class="mt-12">
+<div id="new-arrivals">
   <div class="grid md:grid-cols-2 gap-8">
     <div>
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-heading text-lg font-semibold text-plum">新着の売りたい</h2>
+        <h3 class="font-heading text-lg font-semibold text-plum">新着の売りたい</h3>
         <a href="/cases?view=active&type=listing" class="text-sm text-rose hover:underline">すべて見る</a>
       </div>
       <div id="new-listings" class="flex gap-4 overflow-x-auto pb-2 snap-x">
@@ -14,7 +14,7 @@
     </div>
     <div>
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-heading text-lg font-semibold text-plum">新着の買いたい</h2>
+        <h3 class="font-heading text-lg font-semibold text-plum">新着の買いたい</h3>
         <a href="/cases?view=active&type=wanted" class="text-sm text-rose hover:underline">すべて見る</a>
       </div>
       <div id="new-wanted" class="flex gap-4 overflow-x-auto pb-2 snap-x">
@@ -32,20 +32,25 @@
 
   function cardHtml(kind: 'listing' | 'wanted', item: Record<string, unknown>) {
     const isListing = kind === 'listing';
-    const title = isListing
-      ? `${item.maker} ${item.model}`
-      : item.maker && item.model
-        ? `${item.maker} ${item.model}`
-        : (item.categories as { name?: string } | null)?.name ?? '買いたい';
+    const model = isListing ? item.model : item.model ?? (item.categories as { name?: string } | null)?.name ?? '買いたい';
+    const maker = isListing ? item.maker : item.maker;
     const price = isListing ? formatPrice(item.asking_price as number) : formatPrice(item.budget as number);
     const tagClass = isListing ? 'cm-tag-sell' : 'cm-tag-buy';
     const tagLabel = isListing ? '売りたい' : '買いたい';
     const href = `/cases/${item.id}?type=${kind}`;
+    const year = isListing && item.manufacture_year ? `${item.manufacture_year}年` : '';
     return `
-      <a href="${href}" class="snap-start shrink-0 w-56 rounded-2xl border border-line bg-ivory p-4 shadow-card hover:shadow-lg transition block">
-        <span class="inline-flex rounded-full ${isListing ? 'px-2 py-0.5 text-xs font-semibold' : 'px-2 py-0.5 text-xs font-semibold'} ${tagClass}">${tagLabel}</span>
-        <p class="mt-2 font-heading font-semibold text-sm text-plum line-clamp-2">${title}</p>
-        <p class="mt-2 text-sm font-bold text-rose tabular-nums">${price}</p>
+      <a href="${href}" class="cm-post-card group block shrink-0 w-56 snap-start">
+        <div class="cm-post-card-image">
+          <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>
+        </div>
+        <div class="p-4">
+          <span class="${tagClass}">${tagLabel}</span>
+          <h4 class="mt-2 font-bold text-[15px] text-plum line-clamp-2 group-hover:text-rose-deep">${model}</h4>
+          ${maker ? `<p class="mt-0.5 text-xs text-plum-soft truncate">${maker}</p>` : ''}
+          ${year ? `<p class="mt-2 text-[11px] text-plum-soft font-heading">${year}</p>` : ''}
+          <p class="mt-2 font-heading text-base font-semibold text-rose-deep tabular-nums">${price}</p>
+        </div>
       </a>
     `;
   }

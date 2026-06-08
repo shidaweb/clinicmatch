@@ -27,10 +27,11 @@ const LINE_URL = 'https://lin.ee/vepVhWc';
     この記事に関するご相談
   </h2>
 
-  <div class="flex flex-wrap gap-4 mb-10">
+  <div class="flex flex-wrap gap-4 mb-6">
+    <Button href="/cases?view=active" variant="secondary">在庫をさがす</Button>
     <Button href={FORM_SELL} variant="primary">売却を相談する</Button>
     <Button href={FORM_BUY} variant="secondary">購入を相談する</Button>
-    <Button href={LINE_URL} variant="secondary" target="_blank" rel="noopener noreferrer">LINEで相談</Button>
+    <Button href={LINE_URL} variant="line" target="_blank" rel="noopener noreferrer">LINEで相談</Button>
   </div>
 
   {

@@ -3,25 +3,59 @@
 @tailwind utilities;
 
 @layer components {
-  .cm-eyebrow {
-    @apply text-xs font-medium tracking-[0.22em] uppercase text-ink-muted;
+  /* キッカー：金ヘアライン＋日本語小ラベル（見出しレベルではない） */
+  .cm-kicker {
+    @apply flex items-center gap-3 text-[11px] tracking-[0.32em] text-gold mb-3;
+  }
+
+  .cm-kicker::before {
+    content: '';
+    width: 36px;
+    height: 1px;
+    background-color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .cm-kicker-center {
+    @apply cm-kicker justify-center;
+  }
+
+  .cm-kicker-center::after {
+    content: '';
+    width: 36px;
+    height: 1px;
+    background-color: var(--gold);
+    flex-shrink: 0;
   }
 
   .cm-heading {
-    @apply font-heading text-plum leading-tight;
+    @apply font-heading text-plum leading-[1.45] tracking-[0.02em];
   }
 
   .cm-card {
-    @apply rounded-2xl border border-line bg-ivory;
-    box-shadow: var(--shadow-card);
+    @apply rounded-card border border-line bg-ivory;
+  }
+
+  .cm-card-interactive {
+    @apply cm-card transition duration-200;
+  }
+
+  .cm-card-interactive:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
   }
 
   .cm-btn-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-rose px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition;
+    @apply inline-flex items-center justify-center rounded-pill px-[26px] py-3 text-sm font-medium text-white bg-rose hover:bg-rose-deep active:scale-[0.98] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-deep;
   }
 
   .cm-btn-secondary {
-    @apply inline-flex items-center justify-center rounded-full border border-line bg-ivory px-6 py-2.5 text-sm font-semibold text-plum hover:bg-cream transition;
+    @apply inline-flex items-center justify-center rounded-pill px-[26px] py-3 text-sm font-medium text-rose-deep bg-ivory border hover:bg-blush active:scale-[0.98] transition;
+    border-color: #d9b8af;
+  }
+
+  .cm-btn-dark {
+    @apply inline-flex items-center justify-center rounded-pill px-[26px] py-3 text-sm font-medium text-white bg-plum hover:opacity-90 active:scale-[0.98] transition;
   }
 
   .cm-tag-sell {
@@ -43,8 +77,9 @@
   }
 
   .cm-tag-sage {
-    @apply inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium text-sage;
-    background-color: rgb(143 169 155 / 0.15);
+    @apply inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium;
+    background-color: var(--color-sage-bg);
+    color: var(--color-sage-text);
   }
 
   .cm-segment-active {
@@ -67,16 +102,94 @@
     @apply block text-sm font-medium text-plum mb-1;
   }
 
+  .cm-stat-band {
+    @apply flex flex-wrap justify-center divide-x divide-line;
+  }
+
+  .cm-stat-band > div {
+    @apply px-8 py-2 text-center;
+  }
+
   .cm-stat-value {
-    @apply font-heading text-3xl md:text-4xl font-bold text-rose tabular-nums;
+    @apply font-heading text-3xl md:text-4xl font-semibold text-rose tabular-nums;
   }
 
   .cm-stat-label {
-    @apply mt-1 text-sm text-plum-soft;
+    @apply mt-1 text-xs text-plum-soft tracking-[0.2em];
+  }
+
+  .cm-search-float {
+    @apply rounded-pill border border-line bg-ivory px-4 py-3 shadow-soft -mt-2;
+  }
+
+  .cm-post-row {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 border-b border-line py-4 px-2 -mx-2 transition duration-200 hover:bg-[#fffcfa] hover:shadow-soft;
+  }
+
+  .cm-post-row .cm-post-row-price {
+    @apply w-full sm:w-auto text-left sm:text-right pl-0 sm:pl-2 pt-1 sm:pt-0 border-t border-line sm:border-0;
+  }
+
+  .cm-pagination {
+    @apply flex items-center justify-center gap-3 text-sm;
+  }
+
+  .cm-pagination-nav {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-pill border border-line text-plum-soft hover:text-rose transition;
+  }
+
+  .cm-pagination-nav:not(.is-disabled):hover {
+    border-color: rgb(201 139 151 / 0.4);
+  }
+
+  .cm-pagination-nav.is-disabled {
+    @apply opacity-30 pointer-events-none;
+  }
+
+  .cm-pagination-page {
+    @apply inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-pill px-2 text-plum-soft hover:text-rose hover:bg-cream transition;
+  }
+
+  .cm-pagination-current {
+    @apply inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-pill px-2 font-medium text-rose;
+    background-color: rgb(201 139 151 / 0.1);
+  }
+
+  .cm-spec-dots {
+    @apply text-sm text-plum-soft;
+  }
+
+  .cm-spec-dots .dot {
+    color: #d8c6bf;
+  }
+
+  .cm-post-card {
+    @apply cm-card-interactive overflow-hidden p-0;
+  }
+
+  .cm-post-card-image {
+    @apply relative h-24 bg-cream overflow-hidden;
+  }
+
+  .cm-post-card-image::after {
+    content: '';
+    position: absolute;
+    inset: 11px;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+
+  .cm-trust-bar {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x md:divide-line;
+  }
+
+  .cm-trust-bar > div {
+    @apply px-4 py-2 text-center md:py-0;
   }
 
   .cm-list-item {
-    @apply cm-card p-4;
+    @apply rounded-card border border-line bg-ivory p-4;
   }
 
   .cm-link {

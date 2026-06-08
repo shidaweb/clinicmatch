@@ -1,4 +1,6 @@
 ---
+import { Icon } from 'astro-icon/components';
+
 interface Props {
   title?: string;
   message?: string;
@@ -14,12 +16,13 @@ const {
 } = Astro.props;
 ---
 
-<div class="rounded-2xl border border-dashed border-line bg-cream px-6 py-12 text-center">
+<div class="rounded-card border border-dashed border-line bg-cream px-6 py-12 text-center">
+  <Icon name="tabler:search-off" class="w-10 h-10 text-muted mx-auto mb-4" aria-hidden="true" />
   <h3 class="font-heading text-lg font-semibold text-plum">{title}</h3>
-  <p class="mt-2 text-sm text-plum-soft">{message}</p>
+  <p class="mt-2 text-sm text-plum-soft max-w-md mx-auto leading-relaxed">{message}</p>
   {
     actionHref && actionLabel && (
-      <a href={actionHref} class="mt-6 cm-btn-primary">
+      <a href={actionHref} class="mt-6 cm-btn-primary inline-flex">
         {actionLabel}
       </a>
     )

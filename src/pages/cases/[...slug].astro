@@ -184,7 +184,7 @@ const staticSpecItems = staticData
             </div>
           )}
         </div>
-        <MatchSuggestions title="マッチする売りたい出品" matches={matchListings} />
+        <MatchSuggestions title="関連の在庫" matches={matchListings} />
       </div>
     </section>
     <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
@@ -225,9 +225,9 @@ const staticSpecItems = staticData
 {mode === 'listing' && listing && (
   <Layout metadata={metadata}>
     <section class="py-12 md:py-16 pb-28 lg:pb-16 bg-cream">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="max-w-content mx-auto px-4 sm:px-6">
         <Breadcrumb
-          class="mb-6 text-sm"
+          class="mb-6 text-sm text-plum-soft"
           items={[
             { name: 'トップ', url: getHomePermalink() },
             { name: '在庫・取引事例', url: getPermalink('cases') },
@@ -239,34 +239,41 @@ const staticSpecItems = staticData
           <span class="cm-tag-sage">審査済</span>
           <span class="text-sm text-plum-soft">{anonymousOrgLabel(listing.location_city)}</span>
         </div>
-        <div class="grid lg:grid-cols-2 gap-8">
+
+        <div class="grid lg:grid-cols-2 gap-8 lg:gap-10">
           <div class="space-y-3">
             {images.length ? (
-              images.map((img) =>
-                img.url ? <img src={img.url} alt="" class="w-full rounded-xl object-cover bg-cream" loading="lazy" /> : null
-              )
+              <>
+                {images.filter((img) => img.is_cover)[0]?.url || images[0]?.url ? (
+                  <img
+                    src={(images.find((img) => img.is_cover) ?? images[0])!.url!}
+                    alt={`${listing.maker} ${listing.model}`}
+                    class="w-full rounded-card object-cover bg-cream aspect-[4/3]"
+                    loading="eager"
+                  />
+                ) : null}
+                {images.length > 1 && (
+                  <div class="grid grid-cols-4 gap-2">
+                    {images.slice(0, 4).map((img) =>
+                      img.url ? (
+                        <img src={img.url} alt="" class="w-full rounded-input object-cover aspect-square bg-cream" loading="lazy" />
+                      ) : null
+                    )}
+                  </div>
+                )}
+              </>
             ) : (
-              <div class="h-64 rounded-xl bg-cream flex items-center justify-center text-plum-soft">画像なし</div>
+              <div class="aspect-[4/3] rounded-card bg-ivory border border-line flex items-center justify-center text-plum-soft">画像なし</div>
             )}
           </div>
+
           <div>
             <p class="text-sm text-plum-soft">{listing.categories?.name}</p>
-            <h1 class="font-heading text-3xl font-bold text-plum mt-1">{listing.maker} {listing.model}</h1>
-            <div class="mt-4 rounded-2xl bg-cream p-4">
-              <p class="text-xs text-plum-soft">希望価格</p>
-              <p class="text-2xl font-bold text-rose tabular-nums">{formatPriceYen(listing.asking_price)}</p>
-            </div>
-            <p class="mt-2 text-sm text-plum-soft">所在地：{formatLocation(listing.location_prefecture, listing.location_city)}</p>
-            <dl class="mt-6 grid grid-cols-2 gap-4 text-sm rounded-2xl border border-line p-4 bg-ivory">
-              <div>
-                <dt class="text-plum-soft text-xs">年式</dt>
-                <dd class="font-semibold tabular-nums">{listing.manufacture_year ? `${listing.manufacture_year}年` : '—'}</dd>
-              </div>
-              <div>
-                <dt class="text-plum-soft text-xs">状態</dt>
-                <dd class="font-semibold">{listing.condition ?? '—'}</dd>
-              </div>
-            </dl>
+            <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold text-plum mt-1">{listing.model}</h1>
+            <p class="mt-1 text-sm text-plum-soft">{listing.maker}</p>
+            <p class="mt-3 text-sm text-plum-soft">
+              所在地（匿名表示）：{formatLocation(listing.location_prefecture, listing.location_city)}
+            </p>
             <div class="mt-4">
               <MaintenanceBadge
                 makerMaintenance={listing.maker_maintenance}
@@ -274,16 +281,99 @@ const staticSpecItems = staticData
                 hasAccessories={listing.has_accessories}
               />
             </div>
-            {listing.accessories_detail && (
-              <div class="mt-4 rounded-xl bg-cream p-4 text-sm">
-                <p class="font-medium text-plum mb-1">付属品</p>
-                <p class="text-plum-soft whitespace-pre-wrap">{listing.accessories_detail}</p>
-              </div>
-            )}
-            {listing.description && <div class="mt-4 text-sm text-plum-soft whitespace-pre-wrap">{listing.description}</div>}
+            <div class="mt-5 rounded-card border border-rose/20 bg-ivory p-5 shadow-soft">
+              <p class="text-xs text-plum-soft">希望価格</p>
+              <p class="font-heading text-3xl font-semibold text-rose tabular-nums">{formatPriceYen(listing.asking_price)}</p>
+            </div>
+            <p class="mt-4 text-xs text-plum-soft leading-relaxed">
+              匿名でご利用いただけます。連絡先は双方の合意後に開示されます。
+            </p>
           </div>
         </div>
-        <MatchSuggestions title="マッチする買いたいリクエスト" matches={matchWanted} />
+
+        <section class="mt-12">
+          <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-4">スペック</h2>
+          <dl class="cm-card grid sm:grid-cols-2 lg:grid-cols-4 gap-4 p-5 text-sm">
+            <div>
+              <dt class="text-plum-soft text-xs">メーカー</dt>
+              <dd class="mt-0.5 font-medium text-plum">{listing.maker}</dd>
+            </div>
+            <div>
+              <dt class="text-plum-soft text-xs">型番</dt>
+              <dd class="mt-0.5 font-medium text-plum">{listing.model}</dd>
+            </div>
+            <div>
+              <dt class="text-plum-soft text-xs">年式</dt>
+              <dd class="mt-0.5 font-medium tabular-nums">{listing.manufacture_year ? `${listing.manufacture_year}年` : '—'}</dd>
+            </div>
+            <div>
+              <dt class="text-plum-soft text-xs">状態</dt>
+              <dd class="mt-0.5 font-medium">{listing.condition ?? '—'}</dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-plum-soft text-xs">カテゴリ</dt>
+              <dd class="mt-0.5 font-medium">{listing.categories?.name ?? '—'}</dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-plum-soft text-xs">所在地</dt>
+              <dd class="mt-0.5 font-medium">{formatLocation(listing.location_prefecture, listing.location_city)}</dd>
+            </div>
+          </dl>
+          {listing.description && (
+            <p class="mt-4 text-sm text-plum-soft whitespace-pre-wrap leading-relaxed">{listing.description}</p>
+          )}
+        </section>
+
+        <section class="mt-12">
+          <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-4">保守・付属品</h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <dl class="cm-card p-5 text-sm space-y-4">
+              <div>
+                <dt class="text-plum-soft text-xs">メーカー保守</dt>
+                <dd class="mt-0.5 font-medium">{listing.maker_maintenance ? '加入中' : '未加入・不明'}</dd>
+              </div>
+              <div>
+                <dt class="text-plum-soft text-xs">保守譲渡</dt>
+                <dd class="mt-0.5 font-medium">{listing.maintenance_transferable ? '可' : '要確認'}</dd>
+              </div>
+            </dl>
+            <dl class="cm-card p-5 text-sm space-y-4">
+              <div>
+                <dt class="text-plum-soft text-xs">付属品</dt>
+                <dd class="mt-0.5 font-medium">{listing.has_accessories ? 'あり' : 'なし・不明'}</dd>
+              </div>
+              {listing.accessories_detail && (
+                <div>
+                  <dt class="text-plum-soft text-xs">付属品詳細</dt>
+                  <dd class="mt-0.5 text-plum-soft whitespace-pre-wrap">{listing.accessories_detail}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+          <p class="mt-4 text-sm text-plum-soft">
+            保守・付属品については、画面下の「保守・付属品について質問」から匿名Q&Aができます。
+          </p>
+        </section>
+
+        <section class="mt-12">
+          <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-4">この先の進め方</h2>
+          <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { step: '1', title: '関心・相談', body: '関心ありまたは運営への相談からスタート' },
+              { step: '2', title: '運営が仲介', body: '条件整理・マッチングを匿名でサポート' },
+              { step: '3', title: '双方合意', body: '価格・条件が合えば次のステップへ' },
+              { step: '4', title: '連絡先開示・契約', body: '合意後に連絡先を開示し、当事者間で契約' },
+            ].map((item) => (
+              <li class="cm-card p-4">
+                <span class="font-heading text-2xl text-rose/40 font-semibold">{item.step}</span>
+                <p class="mt-2 font-heading font-semibold text-plum">{item.title}</p>
+                <p class="mt-1 text-xs text-plum-soft leading-relaxed">{item.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <MatchSuggestions title="関連の在庫" matches={matchWanted} />
       </div>
     </section>
     <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">

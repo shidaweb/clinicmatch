@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import FormStepProgress from '~/components/interactive/FormStepProgress';
 import { trackGaEvent } from '~/utils/analytics';
 
 const PRIMARY = '#C98B97';
 const PRIMARY_DEEP = '#A86A77';
+const REQUIRED = '#B5524E';
 
 const CATEGORY_OPTIONS = [
   { value: '', label: '選択してください' },
@@ -56,10 +58,15 @@ const initialData: SellFormData = {
 };
 
 const inputBase =
-  'w-full rounded-2xl border border-[#EADCD4] bg-white px-4 py-2.5 text-[#46343A] placeholder:text-[#9B848A] focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
+  'w-full h-11 rounded-[10px] border border-[#EADCD4] bg-white px-4 py-2.5 text-[#46343A] placeholder:text-[#9B848A] focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors';
 const inputFocus = 'focus:border-[#C98B97] focus:ring-[#C98B97]/30';
-const labelClass = 'block text-sm font-medium text-[#46343A] mb-1';
-const errorClass = 'text-red-600 dark:text-red-400 text-sm mt-1';
+const labelClass = 'block text-sm font-medium text-[#7A5C63] mb-1';
+const errorClass = 'text-sm mt-1';
+const errorStyle = { color: REQUIRED };
+const pillBase =
+  'rounded-full px-4 py-2 text-sm font-medium border transition-colors';
+const pillActive = 'bg-[#A86A77] text-white border-[#A86A77]';
+const pillIdle = 'bg-white text-[#46343A] border-[#EADCD4] hover:border-[#C98B97]';
 
 export default function SellForm() {
   const [step, setStep] = useState(1);
@@ -137,50 +144,32 @@ export default function SellForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Progress bar */}
-      <div className="flex items-center gap-2">
-        <div
-          className="h-2 flex-1 rounded-full bg-[#EADCD4] overflow-hidden"
-          role="progressbar"
-          aria-valuenow={step}
-          aria-valuemin={1}
-          aria-valuemax={3}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${(step / 3) * 100}%`, backgroundColor: PRIMARY }}
-          />
-        </div>
-        <span className="text-sm font-medium text-[#7A5C63] whitespace-nowrap">
-          Step {step}/3
-        </span>
-      </div>
+      <FormStepProgress step={step} />
 
       {/* Step 1: 機器の情報 */}
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <label htmlFor="sell-category" className={labelClass}>
-              カテゴリ
-            </label>
-            <select
-              id="sell-category"
-              value={data.category}
-              onChange={(e) => update('category', e.target.value)}
-              className={`${inputBase} ${inputFocus}`}
-              required
-            >
-              {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value || 'empty'} value={opt.value}>
+            <p className={labelClass}>
+              カテゴリ <span style={{ color: REQUIRED }}>*</span>
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {CATEGORY_OPTIONS.filter((opt) => opt.value).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('category', opt.value)}
+                  className={`${pillBase} ${data.category === opt.value ? pillActive : pillIdle}`}
+                >
                   {opt.label}
-                </option>
+                </button>
               ))}
-            </select>
-            {errors.category && <p className={errorClass}>{errors.category}</p>}
+            </div>
+            {errors.category && <p className={errorClass} style={errorStyle}>{errors.category}</p>}
           </div>
           <div>
             <label htmlFor="sell-machineName" className={labelClass}>
-              機器名・メーカー・型番 <span className="text-red-500">*</span>
+              機器名・メーカー・型番 <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="sell-machineName"
@@ -191,12 +180,12 @@ export default function SellForm() {
               placeholder="例: ジェントルマックスプロ / シネロン・キャンデラ / GentleMax Pro"
               required
             />
-            {errors.machineName && <p className={errorClass}>{errors.machineName}</p>}
+            {errors.machineName && <p className={errorClass} style={errorStyle}>{errors.machineName}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="sell-year" className={labelClass}>
-                製造年 <span className="text-red-500">*</span>
+                製造年 <span style={{ color: REQUIRED }}>*</span>
               </label>
               <select
                 id="sell-year"
@@ -212,11 +201,11 @@ export default function SellForm() {
                   </option>
                 ))}
               </select>
-              {errors.manufacturedYear && <p className={errorClass}>{errors.manufacturedYear}</p>}
+              {errors.manufacturedYear && <p className={errorClass} style={errorStyle}>{errors.manufacturedYear}</p>}
             </div>
             <div>
               <label htmlFor="sell-month" className={labelClass}>
-                製造月 <span className="text-red-500">*</span>
+                製造月 <span style={{ color: REQUIRED }}>*</span>
               </label>
               <select
                 id="sell-month"
@@ -232,7 +221,7 @@ export default function SellForm() {
                   </option>
                 ))}
               </select>
-              {errors.manufacturedMonth && <p className={errorClass}>{errors.manufacturedMonth}</p>}
+              {errors.manufacturedMonth && <p className={errorClass} style={errorStyle}>{errors.manufacturedMonth}</p>}
             </div>
           </div>
           <div>
@@ -308,7 +297,7 @@ export default function SellForm() {
         <div className="space-y-5">
           <div>
             <label htmlFor="sell-name" className={labelClass}>
-              お名前 <span className="text-red-500">*</span>
+              お名前 <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="sell-name"
@@ -319,7 +308,7 @@ export default function SellForm() {
               placeholder="山田 太郎"
               required
             />
-            {errors.name && <p className={errorClass}>{errors.name}</p>}
+            {errors.name && <p className={errorClass} style={errorStyle}>{errors.name}</p>}
           </div>
           <div>
             <label htmlFor="sell-clinic" className={labelClass}>
@@ -336,7 +325,7 @@ export default function SellForm() {
           </div>
           <div>
             <label htmlFor="sell-email" className={labelClass}>
-              メールアドレス <span className="text-red-500">*</span>
+              メールアドレス <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="sell-email"
@@ -347,7 +336,7 @@ export default function SellForm() {
               placeholder="example@clinic.jp"
               required
             />
-            {errors.email && <p className={errorClass}>{errors.email}</p>}
+            {errors.email && <p className={errorClass} style={errorStyle}>{errors.email}</p>}
           </div>
           <div>
             <label htmlFor="sell-phone" className={labelClass}>
@@ -362,12 +351,12 @@ export default function SellForm() {
               placeholder="03-1234-5678"
             />
           </div>
-          {errors.submit && <p className={errorClass}>{errors.submit}</p>}
+          {errors.submit && <p className={errorClass} style={errorStyle}>{errors.submit}</p>}
         </div>
       )}
 
       {/* Buttons */}
-      <div className="flex flex-wrap gap-3 pt-4">
+      <div className="flex flex-wrap gap-3 pt-4 sticky bottom-0 bg-ivory pb-2 -mx-1 px-1">
         {step > 1 && (
           <button
             type="button"
@@ -381,7 +370,7 @@ export default function SellForm() {
           <button
             type="button"
             onClick={handleNext}
-            className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90"
+            className="flex-1 min-w-[140px] px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: PRIMARY }}
           >
             次へ
@@ -390,7 +379,7 @@ export default function SellForm() {
           <button
             type="submit"
             disabled={sending}
-            className="px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="flex-1 min-w-[140px] px-6 py-2.5 rounded-full text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: PRIMARY }}
           >
             {sending ? '送信中...' : '送信する'}

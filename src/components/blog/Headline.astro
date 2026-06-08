@@ -3,10 +3,10 @@ const { title = await Astro.slots.render('default'), subtitle = await Astro.slot
 ---
 
 <header class="mb-8 md:mb-16 text-center max-w-3xl mx-auto">
-  <h1 class="text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading text-plum" set:html={title} />
+  <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold" set:html={title} />
   {
     subtitle && (
-      <div class="mt-2 md:mt-3 mx-auto cm-eyebrow" set:html={subtitle} />
+      <div class="mt-2 md:mt-3 mx-auto text-sm text-plum-soft max-w-2xl" set:html={subtitle} />
     )
   }
 </header>

@@ -14,15 +14,14 @@ const { metadata, title, subtitle, maxWidth = '5xl' } = Astro.props;
 
 const widthClass = {
   '4xl': 'max-w-4xl',
-  '5xl': 'max-w-5xl',
-  '6xl': 'max-w-6xl',
+  '5xl': 'max-w-content',
+  '6xl': 'max-w-content',
 }[maxWidth];
 ---
 
-<Layout metadata={metadata}>
+<Layout metadata={{ ...metadata, showConsultBlock: false }}>
   <section class="py-10 md:py-14 bg-cream min-h-[60vh]">
     <div class={`${widthClass} mx-auto px-4 sm:px-6`}>
-      <p class="cm-eyebrow mb-2">Admin</p>
       <AdminNav />
       {
         title && (

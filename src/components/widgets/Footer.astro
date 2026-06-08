@@ -1,7 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { SITE } from 'astrowind:config';
-import ConsultButton from '~/components/ConsultButton.astro';
 import { getHomePermalink } from '~/utils/permalinks';
 
 interface Link {
@@ -27,44 +26,33 @@ export interface Props {
   showConsult?: boolean;
 }
 
-const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme = 'light', showConsult = false } = Astro.props;
+const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astro.props;
 ---
 
-<footer class:list={[{ dark: theme === 'dark' }, 'relative border-t border-plum-soft/20 not-prose bg-plum text-cream']}>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
-    <div class="grid grid-cols-12 gap-4 gap-y-8 sm:gap-8 py-8 md:py-12">
+<footer class:list={[{ dark: theme === 'dark' }, 'relative not-prose bg-plum']}>
+  <div class="relative max-w-content mx-auto px-4 sm:px-6 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+    <div class="grid grid-cols-12 gap-4 gap-y-8 sm:gap-8 py-10 md:py-14">
       <div class="col-span-12 lg:col-span-4">
-        <div class="mb-2">
-          <a class="inline-flex items-center gap-2 font-heading font-bold text-3xl text-cream hover:text-rose transition" href={getHomePermalink()}>
+        <div class="mb-3">
+          <a class="inline-flex items-center gap-2 font-heading font-bold text-2xl md:text-3xl hover:text-rose transition" style="color: #F4E3DD;" href={getHomePermalink()}>
             <Icon name="tabler:stethoscope" class="w-7 h-7 flex-shrink-0 text-rose" />
             {SITE?.name}
           </a>
         </div>
-        <div class="text-sm text-cream/70 flex gap-1">
-          {
-            secondaryLinks.map(({ text, href }, index) => (
-              <>
-                {index !== 0 ? ' · ' : ''}
-                <a
-                  class="text-cream/70 hover:text-cream hover:underline transition duration-150 ease-in-out"
-                  href={href}
-                  set:html={text}
-                />
-              </>
-            ))
-          }
-        </div>
+        <p class="text-sm leading-relaxed max-w-xs" style="color: #D8C4BD;">
+          美容医療機器の中古売買マーケット。匿名で探せて、運営が仲介。連絡先は合意後に開示されます。
+        </p>
       </div>
       {
         links.map(({ title, links }) => (
           <div class="col-span-6 md:col-span-3 lg:col-span-2">
-            <div class="text-cream/90 font-heading font-medium mb-2">{title}</div>
+            <div class="font-heading font-medium mb-3" style="color: #F4E3DD;">{title}</div>
             {links && Array.isArray(links) && links.length > 0 && (
               <ul class="text-sm">
                 {links.map(({ text, href, ariaLabel, target, dataOpenAsPopup }) => (
                   <li class="mb-2">
                     <a
-                      class="text-cream/70 hover:text-cream hover:underline transition duration-150 ease-in-out"
+                      class="text-[#D8C4BD] hover:text-[#F4E3DD] hover:underline transition duration-150 ease-in-out"
                       href={href}
                       aria-label={ariaLabel}
                       {...(target ? { target, rel: 'noopener noreferrer' } : {})}
@@ -80,20 +68,20 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
         ))
       }
     </div>
-    {(socialLinks?.length || (footNote && footNote.trim()) || showConsult) && (
-      <div class="md:flex md:items-center md:justify-between py-6 md:py-8 gap-4 border-t border-cream/10">
-        {showConsult && (
-          <ConsultButton variant="primary" class="!text-white" />
-        )}
+    <div class="border-t py-6 md:py-8" style="border-color: rgb(216 196 189 / 0.2);">
+      <div class="md:flex md:items-center md:justify-between gap-4">
         {
           socialLinks?.length ? (
-            <ul class="flex mb-4 md:order-1 -ml-2 md:ml-4 md:mb-0 rtl:ml-0 rtl:-mr-2 rtl:md:ml-0 rtl:md:mr-4">
+            <ul class="flex mb-4 md:mb-0 -ml-2 md:ml-0">
               {socialLinks.map(({ ariaLabel, href, text, icon }) => (
                 <li>
                   <a
-                    class="text-cream/70 hover:bg-cream/10 focus:outline-none focus:ring-4 focus:ring-cream/20 rounded-lg text-sm p-2.5 inline-flex items-center"
+                    class="rounded-lg text-sm p-2.5 inline-flex items-center hover:bg-white/5 transition"
+                    style="color: #D8C4BD;"
                     aria-label={ariaLabel}
                     href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {icon && <Icon name={icon} class="w-5 h-5" />}
                     <Fragment set:html={text} />
@@ -101,17 +89,21 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
                 </li>
               ))}
             </ul>
-          ) : (
-            ''
-          )
+          ) : null
         }
-
         {footNote && footNote.trim() && (
-          <div class="text-sm mr-4 text-cream/60">
+          <div class="text-sm" style="color: #D8C4BD;">
             <Fragment set:html={footNote} />
           </div>
         )}
+        <div class="text-sm flex gap-3 mt-4 md:mt-0">
+          {
+            secondaryLinks.map(({ text, href }) => (
+              <a href={href} class="hover:underline" style="color: #D8C4BD;">{text}</a>
+            ))
+          }
+        </div>
       </div>
-    )}
+    </div>
   </div>
 </footer>
