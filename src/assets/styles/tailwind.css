@@ -172,7 +172,7 @@
   }
 
   .cm-post-card-image {
-    @apply relative h-24 bg-cream overflow-hidden;
+    @apply relative h-40 bg-cream overflow-hidden;
   }
 
   .cm-post-card-image::after {

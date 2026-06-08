@@ -139,7 +139,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
         </a>
       </div>
 
-      <div class="grid lg:grid-cols-[180px_1fr] gap-8">
+      <div class="grid lg:grid-cols-[260px_1fr] gap-8">
         <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {view !== 'done' && (
             <MarketFilters {view} {type} {category} {prefecture} {city} {minPrice} {maxPrice} {sort} {q} />
@@ -210,7 +210,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
                 />
               ) : (
                 <>
-                  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {marketPaged.slice.map(({ kind, post }) => (
                       <PostCard {post} {kind} />
                     ))}

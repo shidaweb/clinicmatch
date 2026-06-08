@@ -42,7 +42,7 @@ const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
 ---
 
 <a href={href} class="cm-post-card group block">
-  <div class="cm-post-card-image aspect-square">
+  <div class="cm-post-card-image">
     {
       imageUrl ? (
         <img src={imageUrl} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />

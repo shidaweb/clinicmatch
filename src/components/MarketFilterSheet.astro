@@ -14,14 +14,23 @@ const { activeCount = 0, ...filterProps } = props;
   <button
     type="button"
     id="filter-open"
-    class="cm-btn-secondary w-full justify-center gap-2"
+    class="w-full rounded-pill border border-rose/35 bg-ivory px-4 py-3 text-left shadow-sm"
     aria-expanded="false"
     aria-controls="filter-sheet-panel"
   >
-    絞り込み
-    {activeCount > 0 && (
-      <span class="inline-flex rounded-pill bg-rose text-white text-xs px-2 py-0.5">{activeCount}</span>
-    )}
+    <span class="flex items-center justify-between gap-3">
+      <span>
+        <span class="block text-sm font-semibold text-plum">
+          {activeCount > 0 ? '条件を変更する' : '条件を指定して探す'}
+        </span>
+        <span class="mt-0.5 block text-xs text-plum-soft">カテゴリ・価格・エリアで絞り込めます</span>
+      </span>
+      {activeCount > 0 ? (
+        <span class="inline-flex rounded-pill bg-rose px-2.5 py-1 text-xs font-semibold text-white">{activeCount}件</span>
+      ) : (
+        <span class="text-xs text-rose">設定</span>
+      )}
+    </span>
   </button>
 </div>
 
@@ -38,7 +47,7 @@ const { activeCount = 0, ...filterProps } = props;
     class="absolute bottom-0 inset-x-0 bg-ivory rounded-t-card border-t border-line p-6 max-h-[88vh] overflow-y-auto shadow-float"
   >
     <div class="flex items-center justify-between mb-4">
-      <h2 id="filter-sheet-title" class="font-heading text-lg font-semibold text-plum">絞り込み</h2>
+      <h2 id="filter-sheet-title" class="font-heading text-lg font-semibold text-plum">検索条件を設定</h2>
       <button type="button" id="filter-close" class="text-sm text-plum-soft hover:text-rose px-2 py-1">閉じる</button>
     </div>
     <MarketFilters {...filterProps} />

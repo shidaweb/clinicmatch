@@ -74,14 +74,31 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
     />
   </div>
 
-  <div class="grid grid-cols-2 gap-3">
+  <div class="space-y-3">
+    <p class="cm-label mb-0">価格帯</p>
     <div>
-      <label for="minPrice" class="cm-label">価格下限</label>
-      <input id="minPrice" name="minPrice" type="number" value={minPrice} placeholder="円" class="cm-input" />
+      <label for="minPrice" class="cm-label text-xs">下限</label>
+      <input
+        id="minPrice"
+        name="minPrice"
+        type="number"
+        inputmode="numeric"
+        value={minPrice}
+        placeholder="例：3000000"
+        class="cm-input"
+      />
     </div>
     <div>
-      <label for="maxPrice" class="cm-label">価格上限</label>
-      <input id="maxPrice" name="maxPrice" type="number" value={maxPrice} placeholder="円" class="cm-input" />
+      <label for="maxPrice" class="cm-label text-xs">上限</label>
+      <input
+        id="maxPrice"
+        name="maxPrice"
+        type="number"
+        inputmode="numeric"
+        value={maxPrice}
+        placeholder="例：10000000"
+        class="cm-input"
+      />
     </div>
   </div>
 
