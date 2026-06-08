@@ -7,6 +7,7 @@ alwaysApply: true
 
 - docs/spec.md を常に参照し、これを唯一の正とする。
 - 通知メールは docs/notifications-cursor-spec.md を正とする。取引通知は `renderEmail()` 経由。メール本文に当事者の実名・連絡先・番地を出さない（匿名）。
+- `/cases` の SEO・デザインは docs/cases-seo-design-cursor-spec.md を正とする。静的事例はインデックス、UUID詳細は noindex。
 - 第3章「ビジネスルール」を変更・緩和しない（純粋仲介／双方向登録／匿名／合意後開示／仲介契約先行／成約時7.5%請求）。
 - ブログ・既存URL（/blog, /categories, /cases, /about, /terms, /privacy）を変更・削除しない。
 - デザインは第A章のトークン/コンポーネント規約に従う。色・余白・角丸を勝手に増やさない。

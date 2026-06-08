@@ -73,12 +73,13 @@ const tabListingActive = showMarket && type !== 'wanted';
 const tabWantedActive = showMarket && type === 'wanted';
 
 const casesCanonical = String(getCanonical(getPermalink('cases')));
+const hasDerivedParams = Astro.url.searchParams.toString().length > 0;
 const metadata = {
   title: view === 'done' ? '成約事例' : '在庫・取引事例をさがす',
   description:
     '美容医療機器の募集中在庫と成約事例。脱毛機・ピコレーザー・IPL・HIFU・RF・痩身機器をカテゴリ・エリア・価格で探せます。',
-  canonical: category || view !== 'active' ? casesCanonical : String(getCanonical(Astro.url.pathname)),
-  robots: category || view !== 'active' ? { index: false, follow: true } : undefined,
+  canonical: hasDerivedParams ? casesCanonical : String(getCanonical(Astro.url.pathname)),
+  robots: hasDerivedParams ? { index: false, follow: true } : undefined,
 };
 
 const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segment');
