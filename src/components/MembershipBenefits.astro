@@ -1,0 +1,76 @@
+---
+interface Props {
+  totalDeals: number;
+  avgMatchDays: number;
+}
+
+const { totalDeals, avgMatchDays } = Astro.props;
+---
+
+<section class="py-12 md:py-16 bg-cream border-y border-line">
+  <div class="max-w-content mx-auto px-4 sm:px-6">
+    <p class="cm-kicker-center mb-2">マイページ登録メリット</p>
+    <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum text-center">
+      登録しておくと、条件が合った時に「通知」が届く
+    </h2>
+    <p class="mt-3 text-center text-plum-soft leading-relaxed max-w-3xl mx-auto">
+      中古機器は1点もの・早い者勝ち。マイページに条件を登録しておけば、
+      ぴったりの相手が出た瞬間にお知らせします。（匿名・登録は約2分）
+    </p>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      <article class="cm-card p-6">
+        <div class="flex items-center gap-2">
+          <span class="cm-tag-sell">売りたい方へ</span>
+          <span class="rounded-pill bg-cream px-2 py-0.5 text-xs text-plum-soft">匿名OK</span>
+        </div>
+        <h3 class="mt-3 font-heading text-lg font-semibold text-plum">
+          売り急がなくていい。条件が合う買い手が出たら、通知が届く
+        </h3>
+        <ul class="mt-4 space-y-2 text-sm text-plum-soft leading-relaxed">
+          <li><strong class="text-plum">買い手を待てる</strong> ― 「この機種を探している買い手」が現れた瞬間に通知。焦って安く手放さずに済む</li>
+          <li><strong class="text-plum">非公開のまま打診を受けられる</strong> ― 院名・連絡先は伏せたまま打診だけ受け取れる（開示は合意後）</li>
+          <li><strong class="text-plum">相場の目安が分かる</strong> ― 型番・年式を登録すると、近い成約事例ベースの相場感が見える</li>
+          <li><strong class="text-plum">入れ替え・複数台もまとめて管理</strong> ― リプレイスで出る機器を一括登録・進捗管理</li>
+        </ul>
+        <a href="/contact/sell" class="cm-btn-primary mt-6 w-full text-center">売りたいを登録する（匿名OK）</a>
+        <p class="mt-3 text-xs text-plum-soft">平均{avgMatchDays}日でマッチング／累計{totalDeals}件の成約実績</p>
+      </article>
+
+      <article class="cm-card p-6">
+        <div class="flex items-center gap-2">
+          <span class="cm-tag-buy">買いたい方へ</span>
+          <span class="rounded-pill bg-cream px-2 py-0.5 text-xs text-plum-soft">匿名OK</span>
+        </div>
+        <h3 class="mt-3 font-heading text-lg font-semibold text-plum">
+          欲しい型番を登録。入荷したら、いちばん早くあなたに
+        </h3>
+        <ul class="mt-4 space-y-2 text-sm text-plum-soft leading-relaxed">
+          <li><strong class="text-plum">新着を先取り</strong> ― 探している機種・エリア・予算を登録すると、入荷の瞬間に通知。良い個体は数日で消える</li>
+          <li><strong class="text-plum">非公開在庫にアクセス</strong> ― 表に出さない案件も、条件が合えば優先的にご案内</li>
+          <li><strong class="text-plum">比較・検討が残る</strong> ― 気になる機器を保存して横並び比較、商談履歴も一元管理</li>
+          <li><strong class="text-plum">相場で判断できる</strong> ― 成約事例と照らして「この値段は妥当か」を確認できる</li>
+        </ul>
+        <a href="/contact/buy" class="cm-btn-primary mt-6 w-full text-center">買いたいを登録する（匿名OK）</a>
+        <p class="mt-3 text-xs text-plum-soft">脱毛・ピコ・HIFU・RF・痩身など主要カテゴリに対応</p>
+      </article>
+    </div>
+
+    <div class="mt-6 rounded-card border border-line bg-ivory p-5">
+      <p class="text-sm text-plum-soft">
+        まだ売る・買うと決めてなくてもOK。写真と型番だけ、まずは相談。
+      </p>
+      <div class="mt-3 flex flex-wrap gap-3">
+        <a
+          href="https://lin.ee/vepVhWc"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cm-btn-secondary text-sm"
+        >
+          LINEで相談する
+        </a>
+        <a href="/contact" class="cm-btn-secondary text-sm">フォームで相談する</a>
+      </div>
+    </div>
+  </div>
+</section>

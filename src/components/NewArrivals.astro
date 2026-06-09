@@ -77,6 +77,10 @@
     const safePrice = escapeHtml(price);
     const safeHref = escapeHtml(href);
     const safeYear = escapeHtml(year);
+    const commentCount = Number(item.comment_count ?? 0);
+    const commentHtml = commentCount > 0
+      ? `<span class="inline-flex items-center gap-1 text-xs text-plum-soft">💬 ${escapeHtml(commentCount)}</span>`
+      : '';
     return `
       <a href="${safeHref}" class="cm-post-card group block shrink-0 w-56 snap-start">
         <div class="cm-post-card-image">
@@ -88,6 +92,7 @@
           ${maker ? `<p class="mt-0.5 text-xs text-plum-soft truncate">${safeMaker}</p>` : ''}
           ${year ? `<p class="mt-2 text-[11px] text-plum-soft font-heading">${safeYear}</p>` : ''}
           <p class="mt-2 font-heading text-base font-semibold text-rose-deep tabular-nums">${safePrice}</p>
+          ${commentHtml}
         </div>
       </a>
     `;

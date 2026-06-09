@@ -11,7 +11,10 @@ const metadata = { title: '会員登録' };
   <section class="py-12 md:py-16 bg-cream">
     <div class="max-w-lg mx-auto px-4 sm:px-6">
       <h1 class="cm-heading text-3xl font-bold mb-2">会員登録</h1>
-      <p class="text-plum-soft mb-8">法人番号（13桁）と所在地で、数ステップで登録完了。売り手・買い手の兼任が可能です。</p>
+      <p class="text-plum-soft mb-2">
+        登録すると、機器の出品・購入希望の投稿と、相手との<strong>コメント（取引相談）</strong>ができます。
+      </p>
+      <p class="text-plum-soft mb-8 text-sm">法人番号で登録するから、信頼できるクリニック同士でやり取りできます。</p>
 
       <form id="register-form" class="cm-card p-6 space-y-4" novalidate>
         <div>
@@ -75,6 +78,36 @@ const metadata = { title: '会員登録' };
           <label class="cm-label" for="city">市区町村</label>
           <input id="city" name="city" required placeholder="例：渋谷区" class="cm-input" />
         </div>
+        <div>
+          <label class="cm-label" for="display_name">表示名</label>
+          <input
+            id="display_name"
+            name="display_name"
+            required
+            class="cm-input"
+            placeholder="例：渋谷美容クリニック"
+          />
+          <p class="mt-1 text-xs text-plum-soft">
+            投稿・コメントで相手に表示される名前です。屋号や任意の名称でOK（組織名とは別に設定できます）。
+          </p>
+        </div>
+        <fieldset>
+          <legend class="cm-label">取引区分</legend>
+          <div class="flex gap-4 text-sm">
+            <label class="inline-flex items-center gap-1">
+              <input type="radio" name="trade_side" value="sell" required />
+              売りたい
+            </label>
+            <label class="inline-flex items-center gap-1">
+              <input type="radio" name="trade_side" value="buy" />
+              買いたい
+            </label>
+            <label class="inline-flex items-center gap-1">
+              <input type="radio" name="trade_side" value="both" checked />
+              両方
+            </label>
+          </div>
+        </fieldset>
         <button type="submit" class="cm-btn-primary w-full">登録する</button>
         <p id="register-status" class="text-sm text-plum-soft hidden" role="alert"></p>
       </form>
@@ -124,6 +157,8 @@ const metadata = { title: '会員登録' };
     const fullName = String(raw.get('full_name') ?? '').trim();
     const prefecture = String(raw.get('prefecture') ?? '').trim();
     const city = String(raw.get('city') ?? '').trim();
+    const displayName = String(raw.get('display_name') ?? '').trim();
+    const tradeSide = String(raw.get('trade_side') ?? '').trim();
 
     if (!email) {
       showError('メールアドレスを入力してください');
@@ -159,6 +194,14 @@ const metadata = { title: '会員登録' };
     }
     if (!city) {
       showError('市区町村を入力してください');
+      return;
+    }
+    if (!displayName) {
+      showError('表示名を入力してください');
+      return;
+    }
+    if (!['sell', 'buy', 'both'].includes(tradeSide)) {
+      showError('取引区分を選択してください');
       return;
     }
 

@@ -73,6 +73,11 @@ const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
     </div>
 
     <p class="mt-3 font-heading text-base font-semibold text-rose-deep tabular-nums">{priceLabel}</p>
-    <p class="mt-1 text-xs text-plum-soft truncate">{location}</p>
+    <div class="mt-1 flex items-center justify-between gap-2">
+      <p class="text-xs text-plum-soft truncate">{location}</p>
+      {post.comment_count > 0 && (
+        <span class="inline-flex shrink-0 items-center gap-1 text-xs text-plum-soft">💬 {post.comment_count}</span>
+      )}
+    </div>
   </div>
 </a>

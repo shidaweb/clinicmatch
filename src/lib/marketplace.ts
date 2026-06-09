@@ -99,6 +99,7 @@ export type PublicListing = {
   maintenance_transferable: string | null;
   maintenance_notes: string | null;
   description: string | null;
+  comment_count: number;
   published_at: string | null;
   created_at: string;
   categories?: { name: string } | null;
@@ -117,6 +118,7 @@ export type PublicWanted = {
   area_city: string | null;
   requirements: string | null;
   reference_image_path: string | null;
+  comment_count: number;
   published_at: string | null;
   created_at: string;
   categories?: { name: string } | null;
@@ -128,6 +130,7 @@ export const PUBLIC_LISTING_SELECT = `
   asking_price, location_prefecture, location_city,
   has_accessories, accessories_detail, maker_maintenance,
   maintenance_transferable, maintenance_notes, description,
+  comment_count,
   published_at, created_at,
   categories(name),
   listing_images(storage_path, is_cover, sort_order)
@@ -136,6 +139,7 @@ export const PUBLIC_LISTING_SELECT = `
 export const PUBLIC_WANTED_SELECT = `
   id, category_slug, maker, model, condition_pref, budget,
   desired_timing, area_prefecture, area_city, requirements, reference_image_path,
+  comment_count,
   published_at, created_at,
   categories(name)
 `;

@@ -10,6 +10,10 @@ type Props = {
   sellerOrgId: string;
   isAdmin: boolean;
   threadClosed: boolean;
+  participants?: {
+    buyer?: { displayName: string; avatarUrl: string | null };
+    seller?: { displayName: string; avatarUrl: string | null };
+  };
 };
 
 export default function MessageThread({
@@ -20,6 +24,7 @@ export default function MessageThread({
   sellerOrgId,
   isAdmin,
   threadClosed,
+  participants,
 }: Props) {
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
   const [body, setBody] = useState('');
@@ -58,6 +63,34 @@ export default function MessageThread({
     !threadClosed &&
     (isAdmin || viewerOrgId === buyerOrgId || viewerOrgId === sellerOrgId);
 
+  function senderDisplay(
+    senderType: MessageRow['sender_type']
+  ): { name: string; avatarUrl: string | null; showAvatar: boolean } {
+    if (senderType === 'buyer') {
+      return {
+        name: participants?.buyer?.displayName ?? SENDER_LABELS[senderType] ?? senderType,
+        avatarUrl: participants?.buyer?.avatarUrl ?? null,
+        showAvatar: true,
+      };
+    }
+    if (senderType === 'seller') {
+      return {
+        name: participants?.seller?.displayName ?? SENDER_LABELS[senderType] ?? senderType,
+        avatarUrl: participants?.seller?.avatarUrl ?? null,
+        showAvatar: true,
+      };
+    }
+    return {
+      name: SENDER_LABELS[senderType] ?? senderType,
+      avatarUrl: null,
+      showAvatar: false,
+    };
+  }
+
+  function initialFrom(name: string): string {
+    return (name || '?').trim().slice(0, 1);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim() || sending) return;
@@ -89,9 +122,27 @@ export default function MessageThread({
         {messages.map((msg) => (
           <div key={msg.id} className="rounded-xl bg-white border border-[var(--color-border)] px-4 py-3 shadow-sm">
             <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mb-1">
-              <span className="font-semibold text-[var(--color-text)]">
-                {SENDER_LABELS[msg.sender_type] ?? msg.sender_type}
-              </span>
+              {(() => {
+                const sender = senderDisplay(msg.sender_type);
+                return (
+                  <>
+                    {sender.showAvatar && (
+                      sender.avatarUrl ? (
+                        <img
+                          src={sender.avatarUrl}
+                          alt={sender.name}
+                          className="h-5 w-5 rounded-full border border-[var(--color-border)] object-cover"
+                        />
+                      ) : (
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[10px] font-semibold text-[var(--color-text-muted)]">
+                          {initialFrom(sender.name)}
+                        </span>
+                      )
+                    )}
+                    <span className="font-semibold text-[var(--color-text)]">{sender.name}</span>
+                  </>
+                );
+              })()}
               <span>{new Date(msg.created_at).toLocaleString('ja-JP')}</span>
               {isAdmin && msg.visible_to !== 'all' && (
                 <span className="rounded bg-[var(--color-surface-muted)] px-1.5 py-0.5">

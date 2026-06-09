@@ -26,6 +26,8 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const prefecture = String(body.prefecture ?? '').trim();
   const city = String(body.city ?? '').trim();
   const fullName = String(body.full_name ?? '').trim();
+  const displayName = String(body.display_name ?? '').trim();
+  const tradeSide = String(body.trade_side ?? 'both').trim();
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const admin = createSupabaseAdminClient(locals as never);
@@ -68,6 +70,8 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     id: userId,
     org_id: org.id,
     full_name: fullName,
+    display_name: displayName,
+    trade_side: tradeSide,
     role: 'member',
   });
 

@@ -22,7 +22,9 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
   const supabase = createSupabaseServerClient(cookies, locals);
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, org_id, full_name, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email)')
+    .select(
+      'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email, address_detail)'
+    )
     .eq('id', session.user.id)
     .single();
 
@@ -171,6 +173,8 @@ export function validateRegisterPayload(body: Record<string, unknown>): string |
   const fullName = String(body.full_name ?? '').trim();
   const prefecture = String(body.prefecture ?? '').trim();
   const city = String(body.city ?? '').trim();
+  const displayName = String(body.display_name ?? '').trim();
+  const tradeSide = String(body.trade_side ?? '').trim();
 
   if (!email) return 'メールアドレスを入力してください';
   if (!password) return 'パスワードを入力してください';
@@ -183,6 +187,8 @@ export function validateRegisterPayload(body: Record<string, unknown>): string |
   if (!fullName) return '担当者名を入力してください';
   if (!prefecture) return '都道府県を選択してください';
   if (!city) return '市区町村を入力してください';
+  if (!displayName) return '表示名を入力してください';
+  if (!['sell', 'buy', 'both'].includes(tradeSide)) return '取引区分を選択してください';
 
   return null;
 }

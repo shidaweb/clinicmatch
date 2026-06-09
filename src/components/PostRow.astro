@@ -79,6 +79,9 @@ const imageUrl = coverImage && supabaseUrl
         </>
       ))}
     </p>
+    {post.comment_count > 0 && (
+      <p class="mt-1 inline-flex items-center gap-1 text-xs text-plum-soft">💬 {post.comment_count}</p>
+    )}
   </div>
 
   <div class="shrink-0 cm-post-row-price">

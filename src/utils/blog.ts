@@ -65,15 +65,66 @@ type PTBlock = {
   children?: PTSpan[];
 };
 
+const MARKDOWN_LINK_RE = /\[([^\]\n]+)\]\((\/[^)\s]+|https?:\/\/[^)\s]+)\)/g;
+
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function renderSpans(children: PTSpan[], markDefs: Array<{ _key: string; _type: string; href?: string }> = []): string {
+function isInternalBlogPath(url: string): boolean {
+  return url.startsWith('/blog/');
+}
+
+function getBlogSlugFromPath(url: string): string | null {
+  const match = url.match(/^\/blog\/([^/?#]+)\/?/);
+  return match?.[1] ?? null;
+}
+
+function renderMarkdownLinks(text: string, publishedSlugs: Set<string>): string {
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let html = '';
+  MARKDOWN_LINK_RE.lastIndex = 0;
+
+  while ((match = MARKDOWN_LINK_RE.exec(text)) !== null) {
+    const [full, label, rawUrl] = match;
+    const start = match.index;
+    if (start > lastIndex) {
+      html += esc(text.slice(lastIndex, start));
+    }
+
+    if (isInternalBlogPath(rawUrl)) {
+      const slug = getBlogSlugFromPath(rawUrl);
+      if (!slug || !publishedSlugs.has(slug)) {
+        html += esc(label);
+      } else {
+        html += `<a href="/blog/${esc(slug)}">${esc(label)}</a>`;
+      }
+    } else if (/^https?:\/\//.test(rawUrl)) {
+      html += `<a href="${esc(rawUrl)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`;
+    } else {
+      html += `<a href="${esc(rawUrl)}">${esc(label)}</a>`;
+    }
+
+    lastIndex = start + full.length;
+  }
+
+  if (lastIndex < text.length) {
+    html += esc(text.slice(lastIndex));
+  }
+
+  return html;
+}
+
+function renderSpans(
+  children: PTSpan[],
+  markDefs: Array<{ _key: string; _type: string; href?: string }> = [],
+  publishedSlugs: Set<string> = new Set()
+): string {
   return (children || [])
     .map((span) => {
       if (span._type !== 'span') return '';
-      let text = esc(span.text || '');
+      let text = renderMarkdownLinks(span.text || '', publishedSlugs);
       const marks = span.marks || [];
       for (const mark of marks) {
         if (mark === 'strong') text = `<strong>${text}</strong>`;
@@ -93,7 +144,10 @@ function renderSpans(children: PTSpan[], markDefs: Array<{ _key: string; _type: 
     .join('');
 }
 
-function portableTextToHtml(blocks: PTBlock[] | null | undefined): string {
+function portableTextToHtml(
+  blocks: PTBlock[] | null | undefined,
+  publishedSlugs: Set<string>
+): string {
   if (!blocks || !Array.isArray(blocks)) return '';
 
   const html: string[] = [];
@@ -108,7 +162,7 @@ function portableTextToHtml(blocks: PTBlock[] | null | undefined): string {
   for (const block of blocks) {
     if (block._type !== 'block') continue;
 
-    const inner = renderSpans(block.children || [], block.markDefs || []);
+    const inner = renderSpans(block.children || [], block.markDefs || [], publishedSlugs);
 
     // List items
     if (block.listItem) {
@@ -219,7 +273,7 @@ function sanityPostToPost(p: SanityPost): Post {
     metadata: {},
 
     Content: undefined,
-    content: portableTextToHtml(p.body),
+    content: '',
 
     readingTime: undefined,
 
@@ -233,8 +287,18 @@ const load = async function (): Promise<Array<Post>> {
   try {
     const client = getSanityClient();
     const raw = (await client.fetch<SanityPost[]>(POSTS_GROQ)) || [];
+    const publishedSlugs = new Set(
+      raw
+        .map((post) => post.slug)
+        .filter((slug): slug is string => typeof slug === 'string' && Boolean(slug))
+    );
 
-    const posts = raw.filter((p) => p && (p.slug || p._id)).map(sanityPostToPost);
+    const posts = raw
+      .filter((p) => p && (p.slug || p._id))
+      .map((p) => ({
+        ...sanityPostToPost(p),
+        content: portableTextToHtml(p.body, publishedSlugs),
+      }));
 
     const withImages = await Promise.all(
       posts.map(async (post) => ({

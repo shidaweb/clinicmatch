@@ -3,7 +3,6 @@ export const prerender = false;
 
 import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
-import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { PREFECTURES } from '~/lib/marketplace';
 
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
@@ -20,6 +19,12 @@ const org = profile.organizations as {
 } | null;
 
 const metadata = { title: '設定' };
+const avatarUrl =
+  profile.avatar_path && import.meta.env.PUBLIC_SUPABASE_URL
+    ? `${import.meta.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${profile.avatar_path}`
+    : '';
+const avatarPlaceholder =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f2f4f7'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23c9d2dc'/%3E%3Cpath d='M12 56c4-11 13-16 20-16s16 5 20 16' fill='%23c9d2dc'/%3E%3C/svg%3E";
 ---
 
 <AccountLayout
@@ -28,7 +33,7 @@ const metadata = { title: '設定' };
   subtitle="組織名・法人番号は非公開です。連絡先は合意成立後にのみ取引先へ開示されます。"
   maxWidth="lg"
 >
-  <form id="settings-form" class="cm-card p-6 space-y-4">
+  <form id="settings-form" class="cm-card p-6 space-y-4" data-user-id={profile.id}>
     <div>
       <label class="cm-label">組織名（非公開）</label>
       <input value={org?.name ?? ''} disabled class="cm-input bg-surface-muted" />
@@ -41,10 +46,57 @@ const metadata = { title: '設定' };
       <label class="cm-label" for="full_name">担当者名</label>
       <input id="full_name" name="full_name" value={profile.full_name ?? ''} class="cm-input" />
     </div>
+    <div>
+      <label class="cm-label" for="display_name">表示名</label>
+      <input
+        id="display_name"
+        name="display_name"
+        value={profile.display_name ?? ''}
+        required
+        class="cm-input"
+        placeholder="例：渋谷美容クリニック"
+      />
+      <p class="mt-1 text-xs text-plum-soft">投稿・コメント時に表示される公開名です。</p>
+    </div>
+    <fieldset>
+      <legend class="cm-label">取引区分</legend>
+      <div class="flex flex-wrap gap-4 text-sm">
+        <label class="inline-flex items-center gap-1">
+          <input type="radio" name="trade_side" value="sell" checked={profile.trade_side === 'sell'} />
+          売りたい
+        </label>
+        <label class="inline-flex items-center gap-1">
+          <input type="radio" name="trade_side" value="buy" checked={profile.trade_side === 'buy'} />
+          買いたい
+        </label>
+        <label class="inline-flex items-center gap-1">
+          <input type="radio" name="trade_side" value="both" checked={!profile.trade_side || profile.trade_side === 'both'} />
+          両方
+        </label>
+      </div>
+    </fieldset>
+    <div>
+      <label class="cm-label" for="avatar_file">アイコン（任意）</label>
+      <div class="flex items-center gap-4">
+        <div class="h-16 w-16 overflow-hidden rounded-full border border-line bg-cream">
+          <img
+            id="avatar-preview"
+            src={avatarUrl || avatarPlaceholder}
+            alt="アイコンプレビュー"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <div class="flex-1">
+          <input id="avatar_file" name="avatar_file" type="file" accept="image/jpeg,image/png,image/webp" class="cm-input" />
+          <p class="mt-1 text-xs text-plum-soft">JPEG / PNG / WebP（5MB以下）</p>
+        </div>
+      </div>
+      <input id="avatar_path" name="avatar_path" type="hidden" value={profile.avatar_path ?? ''} />
+    </div>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label" for="prefecture">都道府県</label>
-        <select id="prefecture" name="prefecture" class="cm-input">
+        <select id="prefecture" name="prefecture" class="cm-input bg-surface-muted" disabled>
           {PREFECTURES.map((pref) => (
             <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
           ))}
@@ -52,7 +104,7 @@ const metadata = { title: '設定' };
       </div>
       <div>
         <label class="cm-label" for="city">市区町村</label>
-        <input id="city" name="city" value={org?.city ?? ''} class="cm-input" />
+        <input id="city" name="city" value={org?.city ?? ''} class="cm-input bg-surface-muted" disabled />
       </div>
     </div>
     <div>
@@ -72,15 +124,63 @@ const metadata = { title: '設定' };
   </form>
 </AccountLayout>
 
-<script>
+<script type="module">
+  import { createSupabaseBrowserClient } from '~/lib/supabase/client';
+
   const form = document.getElementById('settings-form') as HTMLFormElement;
   const status = document.getElementById('settings-status');
+  const avatarInput = document.getElementById('avatar_file') as HTMLInputElement | null;
+  const avatarPreview = document.getElementById('avatar-preview') as HTMLImageElement | null;
+  const avatarPathInput = document.getElementById('avatar_path') as HTMLInputElement | null;
+  const userId = form?.dataset.userId ?? '';
+  let avatarFile: File | null = null;
+
+  avatarInput?.addEventListener('change', () => {
+    const file = avatarInput.files?.[0] ?? null;
+    if (file && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      if (status) {
+        status.classList.remove('hidden');
+        status.textContent = 'アイコン画像はJPEG/PNG/WebPのみ対応しています';
+      }
+      avatarInput.value = '';
+      avatarFile = null;
+      return;
+    }
+    avatarFile = file;
+    if (file && avatarPreview) {
+      avatarPreview.src = URL.createObjectURL(file);
+    }
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!status) return;
     status.classList.remove('hidden');
     status.textContent = '保存中…';
+
+    if (avatarFile) {
+      if (avatarFile.size > 5 * 1024 * 1024) {
+        status.textContent = 'アイコン画像は5MB以下にしてください';
+        return;
+      }
+      if (!userId) {
+        status.textContent = 'ユーザー情報の取得に失敗しました';
+        return;
+      }
+      const ext = avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      const supabase = createSupabaseBrowserClient();
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: avatarFile.type,
+      });
+      if (uploadError) {
+        status.textContent = uploadError.message || 'アイコン画像のアップロードに失敗しました';
+        return;
+      }
+      if (avatarPathInput) avatarPathInput.value = path;
+    }
 
     const res = await fetch('/api/account/settings', {
       method: 'PATCH',

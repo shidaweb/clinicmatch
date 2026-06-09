@@ -42,12 +42,50 @@ let counterpart: {
   prefecture?: string;
   city?: string;
 } | null = null;
+let participants: {
+  buyer?: { displayName: string; avatarUrl: string | null };
+  seller?: { displayName: string; avatarUrl: string | null };
+} = {};
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const admin = createSupabaseAdminClient(Astro.locals as never);
+
+const [{ data: buyerProfile }, { data: sellerProfile }] = await Promise.all([
+  admin
+    .from('profiles')
+    .select('display_name, avatar_path')
+    .eq('org_id', thread.buyer_org_id)
+    .limit(1)
+    .maybeSingle(),
+  admin
+    .from('profiles')
+    .select('display_name, avatar_path')
+    .eq('org_id', thread.seller_org_id)
+    .limit(1)
+    .maybeSingle(),
+]);
+
+participants = {
+  buyer: {
+    displayName: buyerProfile?.display_name ?? '買い手',
+    avatarUrl:
+      buyerProfile?.avatar_path && supabaseUrl
+        ? `${supabaseUrl}/storage/v1/object/public/avatars/${buyerProfile.avatar_path}`
+        : null,
+  },
+  seller: {
+    displayName: sellerProfile?.display_name ?? '売り手',
+    avatarUrl:
+      sellerProfile?.avatar_path && supabaseUrl
+        ? `${supabaseUrl}/storage/v1/object/public/avatars/${sellerProfile.avatar_path}`
+        : null,
+  },
+};
 
 if (thread.contact_disclosed && isParticipant) {
   const counterpartOrgId =
     profile.org_id === thread.buyer_org_id ? thread.seller_org_id : thread.buyer_org_id;
 
-  const admin = createSupabaseAdminClient(Astro.locals as never);
   const { data: org } = await admin
     .from('organizations')
     .select('name, phone, contact_email, prefecture, city')
@@ -73,9 +111,9 @@ if (thread.contact_disclosed && isParticipant) {
   }
 }
 
-const threadTitle = thread.kind === 'qa' ? '保守・付属品 Q&A' : '仲介メッセージ';
+const threadTitle = thread.kind === 'qa' ? 'コメント（取引相談）' : '仲介メッセージ';
 const threadSubtitle = thread.kind === 'mediation' ? '運営が仲介中です。匿名のままやり取りできます。' : undefined;
-const metadata = { title: thread.kind === 'qa' ? '保守Q&A' : '仲介メッセージ' };
+const metadata = { title: thread.kind === 'qa' ? 'コメント（取引相談）' : '仲介メッセージ' };
 ---
 
 <AccountLayout metadata={metadata} title={threadTitle} subtitle={threadSubtitle} maxWidth="3xl">
@@ -98,5 +136,6 @@ const metadata = { title: thread.kind === 'qa' ? '保守Q&A' : '仲介メッセ�
     sellerOrgId={thread.seller_org_id}
     isAdmin={isAdmin}
     threadClosed={thread.status === 'closed'}
+    participants={participants}
   />
 </AccountLayout>

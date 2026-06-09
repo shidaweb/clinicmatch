@@ -6,6 +6,7 @@ import Image from '~/components/common/Image.astro';
 import { Icon } from 'astro-icon/components';
 import TrustBadges from '~/components/TrustBadges.astro';
 import NewArrivals from '~/components/NewArrivals.astro';
+import MembershipBenefits from '~/components/MembershipBenefits.astro';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
 import FAQPageJsonLd from '~/components/seo/FAQPageJsonLd.astro';
@@ -32,6 +33,9 @@ const flowSteps = [
   { num: '02', title: '条件整理', desc: '運営が仲介して論点を揃える' },
   { num: '03', title: 'マッチング', desc: '合意後に連絡先を開示' },
 ];
+
+const totalDeals = 38;
+const avgMatchDays = 14;
 ---
 
 <Layout metadata={metadata}>
@@ -51,11 +55,11 @@ const flowSteps = [
           </div>
           <div class="cm-stat-band mt-10 justify-start">
             <div>
-              <p class="cm-stat-value">38</p>
+              <p class="cm-stat-value">{totalDeals}</p>
               <p class="cm-stat-label">累計成約</p>
             </div>
             <div>
-              <p class="cm-stat-value">14<span class="text-lg">日</span></p>
+              <p class="cm-stat-value">{avgMatchDays}<span class="text-lg">日</span></p>
               <p class="cm-stat-label">平均マッチング</p>
             </div>
             <div>
@@ -118,6 +122,8 @@ const flowSteps = [
       </form>
     </div>
   </section>
+
+  <MembershipBenefits totalDeals={totalDeals} avgMatchDays={avgMatchDays} />
 
   <section class="py-12 md:py-16 bg-ivory border-y border-line">
     <div class="max-w-content mx-auto px-4 sm:px-6">

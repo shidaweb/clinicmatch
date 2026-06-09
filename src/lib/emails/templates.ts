@@ -250,6 +250,68 @@ export function qaThreadToAdmin(params: {
   };
 }
 
+// --- Comments ---
+
+export function commentToOwner(
+  siteUrl: string,
+  params: { subjectTitle: string; threadUrl: string }
+): EmailContent {
+  return {
+    subject: '【クリニックマッチ】あなたの投稿にコメントが届きました',
+    html: renderEmail({
+      heading: 'あなたの投稿にコメントが届きました',
+      paragraphs: [
+        `「${p(params.subjectTitle)}」にコメントが届きました。`,
+        '内容を確認して返信できます。',
+      ],
+      button: { label: 'コメントを確認する', url: params.threadUrl || `${siteUrl}/account/threads` },
+      note: DEFAULT_NOTE,
+    }),
+  };
+}
+
+export function commentAck(
+  siteUrl: string,
+  params: { subjectTitle: string; threadUrl: string }
+): EmailContent {
+  return {
+    subject: '【クリニックマッチ】コメントを送信しました',
+    html: renderEmail({
+      heading: 'コメントを送信しました',
+      paragraphs: [
+        `「${p(params.subjectTitle)}」にコメントしました。`,
+        '相手と運営に通知しました。返信が届くとメールでお知らせします。',
+      ],
+      button: { label: 'スレッドを開く', url: params.threadUrl || `${siteUrl}/account/threads` },
+      note: DEFAULT_NOTE,
+    }),
+  };
+}
+
+export function commentToAdmin(params: {
+  threadId: string;
+  subjectType: 'listing' | 'wanted';
+  subjectId: string;
+  subjectTitle: string;
+  preview: string;
+  adminUrl: string;
+}): EmailContent {
+  return {
+    subject: '【クリニックマッチ】新規コメント（要対応）',
+    html: renderEmail({
+      heading: '新規コメント（要対応）',
+      paragraphs: [
+        p(`スレッドID: ${params.threadId}`),
+        p(`種別: ${params.subjectType}`),
+        p(`対象ID: ${params.subjectId}`),
+        p(`タイトル: ${params.subjectTitle}`),
+        p(`内容: ${params.preview}`),
+      ],
+      button: { label: '対応する', url: params.adminUrl },
+    }),
+  };
+}
+
 // --- 新着メッセージ ---
 
 export function newMessageToUser(siteUrl: string, params: { threadId: string }): EmailContent {
