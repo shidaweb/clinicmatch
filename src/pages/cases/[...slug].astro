@@ -281,14 +281,19 @@ const staticSpecItems = staticData
       <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
         {profile ? (
           isOwnWanted ? (
-            <a href="/account/wanted" class="btn-market-offer flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
+            <a href="/account/wanted" class="cm-btn-primary flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
           ) : (
-            <button id="comment-btn" class="btn-market-offer flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
+            <button id="comment-btn" class="cm-btn-primary flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
           )
         ) : (
-          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-offer flex-1 sm:flex-none">ログインしてコメントする</a>
+          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="cm-btn-primary flex-1 sm:flex-none">ログインしてコメントする</a>
         )}
-        <ConsultButton label="運営に相談する" relatedWantedId={wanted.id} class="flex-1 sm:flex-none justify-center" />
+        <ConsultButton
+          label="運営に相談する"
+          variant="inline"
+          relatedWantedId={wanted.id}
+          class="flex-1 sm:flex-none justify-center !px-5 !py-2.5 !text-sm !font-semibold shadow-sm"
+        />
       </div>
       <p id="comment-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
     </div>
@@ -314,11 +319,6 @@ const staticSpecItems = staticData
         }
       });
     </script>
-    <style>
-      .btn-market-offer {
-        @apply inline-flex items-center justify-center rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition;
-      }
-    </style>
   </Layout>
 )}
 
@@ -495,7 +495,12 @@ const staticSpecItems = staticData
         ) : (
           <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary flex-1 sm:flex-none">ログインしてコメントする</a>
         )}
-        <ConsultButton label="運営に相談する" relatedListingId={listing.id} class="flex-1 sm:flex-none justify-center" />
+        <ConsultButton
+          label="運営に相談する"
+          variant="inline"
+          relatedListingId={listing.id}
+          class="flex-1 sm:flex-none justify-center !px-5 !py-2.5 !text-sm !font-semibold shadow-sm"
+        />
       </div>
       <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
       <p id="comment-status" class="max-w-5xl mx-auto mt-1 text-sm text-plum-soft hidden"></p>
