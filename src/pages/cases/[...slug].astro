@@ -278,21 +278,21 @@ const staticSpecItems = staticData
       </div>
     </section>
     <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
-      <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-stretch gap-3">
         {profile ? (
           isOwnWanted ? (
-            <a href="/account/wanted" class="cm-btn-primary flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
+            <a href="/account/wanted" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
           ) : (
-            <button id="comment-btn" class="cm-btn-primary flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
+            <button id="comment-btn" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
           )
         ) : (
-          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="cm-btn-primary flex-1 sm:flex-none">ログインしてコメントする</a>
+          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
         )}
         <ConsultButton
           label="運営に相談する"
           variant="inline"
           relatedWantedId={wanted.id}
-          class="flex-1 sm:flex-none justify-center !px-5 !py-2.5 !text-sm !font-semibold shadow-sm"
+          class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
         />
       </div>
       <p id="comment-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
@@ -482,24 +482,24 @@ const staticSpecItems = staticData
       </div>
     </section>
     <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
-      <div class="max-w-5xl mx-auto flex flex-wrap gap-3">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-stretch gap-3">
         {profile ? (
           isOwnListing ? (
-            <a href="/account/listings" class="btn-market-secondary flex-1 sm:flex-none">あなたの出品 — コメントを確認</a>
+            <a href="/account/listings" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none">あなたの出品 — コメントを確認</a>
           ) : (
             <>
-              <button id="comment-btn" class="btn-market-primary flex-1 sm:flex-none" data-listing-id={listing.id}>コメントで取引相談する</button>
-              <button id="interest-btn" class="btn-market-secondary flex-1 sm:flex-none" data-listing-id={listing.id}>関心あり</button>
+              <button id="comment-btn" class="btn-market-primary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>コメントで取引相談する</button>
+              <button id="interest-btn" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>関心あり</button>
             </>
           )
         ) : (
-          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary flex-1 sm:flex-none">ログインしてコメントする</a>
+          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
         )}
         <ConsultButton
           label="運営に相談する"
           variant="inline"
           relatedListingId={listing.id}
-          class="flex-1 sm:flex-none justify-center !px-5 !py-2.5 !text-sm !font-semibold shadow-sm"
+          class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
         />
       </div>
       <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
@@ -541,6 +541,10 @@ const staticSpecItems = staticData
       });
     </script>
     <style>
+      .detail-cta-btn {
+        @apply min-h-[46px] !py-3;
+      }
+
       .btn-market-primary {
         @apply inline-flex items-center justify-center rounded-full bg-rose px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-deep transition;
       }
