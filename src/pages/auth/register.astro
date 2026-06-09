@@ -5,6 +5,9 @@ import Layout from '~/layouts/PageLayout.astro';
 import { PREFECTURES } from '~/lib/marketplace';
 
 const metadata = { title: '会員登録' };
+const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams.get('trade_side') ?? '')
+  ? (Astro.url.searchParams.get('trade_side') as 'sell' | 'buy' | 'both')
+  : 'both';
 ---
 
 <Layout metadata={metadata}>
@@ -95,15 +98,15 @@ const metadata = { title: '会員登録' };
           <legend class="cm-label">取引区分</legend>
           <div class="flex gap-4 text-sm">
             <label class="inline-flex items-center gap-1">
-              <input type="radio" name="trade_side" value="sell" required />
+              <input type="radio" name="trade_side" value="sell" required checked={initialTradeSide === 'sell'} />
               売りたい
             </label>
             <label class="inline-flex items-center gap-1">
-              <input type="radio" name="trade_side" value="buy" />
+              <input type="radio" name="trade_side" value="buy" checked={initialTradeSide === 'buy'} />
               買いたい
             </label>
             <label class="inline-flex items-center gap-1">
-              <input type="radio" name="trade_side" value="both" checked />
+              <input type="radio" name="trade_side" value="both" checked={initialTradeSide === 'both'} />
               両方
             </label>
           </div>
