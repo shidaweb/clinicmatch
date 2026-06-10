@@ -23,7 +23,21 @@ import {
 } from '~/lib/cases-page';
 
 const filters = parseCasesFilters(Astro.url);
-let { view, type, category, prefecture, city, minPrice, maxPrice, sort, q, page: pageParam } = filters;
+let {
+  view,
+  type,
+  category,
+  prefecture,
+  city,
+  minPrice,
+  maxPrice,
+  sort,
+  q,
+  listingKind,
+  clinicalUse,
+  validOnly,
+  page: pageParam,
+} = filters;
 const currentPage = parseCasesPage(pageParam);
 
 if (view === 'all') {
@@ -53,6 +67,9 @@ if (hasSupabaseConfig(Astro.locals as never)) {
     maxPrice: '',
     sort: 'new',
     q: '',
+    listingKind: '',
+    clinicalUse: '',
+    validOnly: '',
   });
   listingCount = countData.listings.length;
   wantedCount = countData.wanted.length;
@@ -87,7 +104,7 @@ const metadata = {
 const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segment');
 const sortLabels: Record<string, string> = { new: '新着順', price: '価格順', year: '年式順' };
 
-const activeFilterCount = [category, prefecture, city, minPrice, maxPrice, q].filter(Boolean).length;
+const activeFilterCount = [category, prefecture, city, minPrice, maxPrice, q, listingKind, clinicalUse, validOnly].filter(Boolean).length;
 
 const donePaged = paginateList(staticCases, currentPage);
 const marketPaged = paginateList(marketPosts, currentPage);
@@ -116,7 +133,20 @@ const marketPaged = paginateList(marketPosts, currentPage);
 
       <div class="flex flex-wrap items-center gap-2 mb-6" role="tablist" aria-label="在庫の種別">
         <a
-          href={buildCasesUrl({ view: 'active', type: 'listing', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          href={buildCasesUrl({
+            view: 'active',
+            type: 'listing',
+            category,
+            prefecture,
+            city,
+            minPrice,
+            maxPrice,
+            sort,
+            q,
+            listingKind,
+            clinicalUse,
+            validOnly,
+          })}
           class={tabClass(tabListingActive)}
           role="tab"
           aria-selected={tabListingActive}
@@ -124,7 +154,20 @@ const marketPaged = paginateList(marketPosts, currentPage);
           在庫（売り）（{listingCount}）
         </a>
         <a
-          href={buildCasesUrl({ view: 'active', type: 'wanted', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          href={buildCasesUrl({
+            view: 'active',
+            type: 'wanted',
+            category,
+            prefecture,
+            city,
+            minPrice,
+            maxPrice,
+            sort,
+            q,
+            listingKind,
+            clinicalUse,
+            validOnly,
+          })}
           class={tabClass(tabWantedActive)}
           role="tab"
           aria-selected={tabWantedActive}
@@ -132,7 +175,20 @@ const marketPaged = paginateList(marketPosts, currentPage);
           買いたい（{wantedCount}）
         </a>
         <a
-          href={buildCasesUrl({ view: 'done', type: 'listing', category, prefecture, city, minPrice, maxPrice, sort, q })}
+          href={buildCasesUrl({
+            view: 'done',
+            type: 'listing',
+            category,
+            prefecture,
+            city,
+            minPrice,
+            maxPrice,
+            sort,
+            q,
+            listingKind,
+            clinicalUse,
+            validOnly,
+          })}
           class={tabClass(showDone)}
           role="tab"
           aria-selected={showDone}
@@ -144,7 +200,20 @@ const marketPaged = paginateList(marketPosts, currentPage);
       <div class="grid lg:grid-cols-[260px_1fr] gap-8">
         <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {view !== 'done' && (
-            <MarketFilters {view} {type} {category} {prefecture} {city} {minPrice} {maxPrice} {sort} {q} />
+            <MarketFilters
+              {view}
+              {type}
+              {category}
+              {prefecture}
+              {city}
+              {minPrice}
+              {maxPrice}
+              {sort}
+              {q}
+              listingKind={listingKind}
+              clinicalUse={clinicalUse}
+              validOnly={validOnly}
+            />
           )}
           {view === 'done' && category && (
             <div class="rounded-card border border-line bg-ivory p-4 text-sm text-plum-soft">
@@ -166,6 +235,9 @@ const marketPaged = paginateList(marketPosts, currentPage);
               {maxPrice}
               {sort}
               {q}
+              listingKind={listingKind}
+              clinicalUse={clinicalUse}
+              validOnly={validOnly}
               activeCount={activeFilterCount}
             />
           )}
@@ -176,6 +248,9 @@ const marketPaged = paginateList(marketPosts, currentPage);
                 {category && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">カテゴリ: {category}</span>}
                 {prefecture && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{prefecture}</span>}
                 {city && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{city}</span>}
+                {listingKind && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{listingKind}</span>}
+                {clinicalUse && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{clinicalUse}</span>}
+                {validOnly === '1' && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">期限内のみ</span>}
                 <a href={buildCasesUrl({ view, type, sort })} class="text-rose hover:underline text-xs">クリア</a>
               </div>
             )

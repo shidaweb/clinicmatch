@@ -31,6 +31,18 @@ export const POST_STATUS_LABELS: Record<string, string> = {
   published: '公開中',
   reserved: '保留',
   closed: '終了',
+  rejected: '差し戻し',
+};
+
+export const LISTING_KIND_LABELS: Record<string, string> = {
+  device: '機器本体',
+  consumable_valid: '消耗品（期限内）',
+  consumable_expired: '消耗品（期限切れ・研修用）',
+};
+
+export const CLINICAL_USE_LABELS: Record<string, string> = {
+  patient_ok: '患者施術可',
+  training_only: '患者施術不可',
 };
 
 export const PREFECTURES = [
@@ -99,6 +111,20 @@ export type PublicListing = {
   maintenance_transferable: string | null;
   maintenance_notes: string | null;
   description: string | null;
+  listing_kind: 'device' | 'consumable_valid' | 'consumable_expired';
+  consumable_master_id: string | null;
+  quantity: number;
+  open_state: 'sealed' | 'opened' | 'used' | null;
+  expiry_date: string | null;
+  remaining_shots: number | null;
+  remaining_life: string | null;
+  lot_number: string | null;
+  clinical_use: 'patient_ok' | 'training_only';
+  condition_note: string | null;
+  negotiable: boolean;
+  reuse_attestation: boolean | null;
+  shipping_flags: string[] | null;
+  compliance_note: string | null;
   comment_count: number;
   published_at: string | null;
   created_at: string;
@@ -117,6 +143,11 @@ export type PublicWanted = {
   area_prefecture: string | null;
   area_city: string | null;
   requirements: string | null;
+  listing_kind_pref: 'device' | 'consumable_valid' | 'consumable_expired';
+  consumable_master_id: string | null;
+  only_unexpired: boolean;
+  min_remaining_shots: number | null;
+  open_state_pref: 'sealed_only' | 'opened_allowed' | 'used_allowed' | null;
   reference_image_path: string | null;
   comment_count: number;
   published_at: string | null;
@@ -130,6 +161,10 @@ export const PUBLIC_LISTING_SELECT = `
   asking_price, location_prefecture, location_city,
   has_accessories, accessories_detail, maker_maintenance,
   maintenance_transferable, maintenance_notes, description,
+  listing_kind, consumable_master_id, quantity, open_state,
+  expiry_date, remaining_shots, remaining_life, lot_number,
+  clinical_use, condition_note, negotiable, reuse_attestation,
+  shipping_flags, compliance_note,
   comment_count,
   published_at, created_at,
   categories(name),
@@ -138,7 +173,9 @@ export const PUBLIC_LISTING_SELECT = `
 
 export const PUBLIC_WANTED_SELECT = `
   id, category_slug, maker, model, condition_pref, budget,
-  desired_timing, area_prefecture, area_city, requirements, reference_image_path,
+  desired_timing, area_prefecture, area_city, requirements,
+  listing_kind_pref, consumable_master_id, only_unexpired, min_remaining_shots, open_state_pref,
+  reference_image_path,
   comment_count,
   published_at, created_at,
   categories(name)

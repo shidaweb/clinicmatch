@@ -23,7 +23,7 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
   const { data: profile } = await supabase
     .from('profiles')
     .select(
-      'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email, address_detail)'
+      'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email, address_detail, verified_at)'
     )
     .eq('id', session.user.id)
     .single();

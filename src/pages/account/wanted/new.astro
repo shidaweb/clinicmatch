@@ -53,13 +53,48 @@ const metadata = { title: '買いたいを出す' };
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">メーカー（任意）</label>
-        <input name="maker" class="cm-input" />
+        <input id="wanted-maker" name="maker" class="cm-input" />
       </div>
       <div>
         <label class="cm-label">型番（任意）</label>
-        <input name="model" class="cm-input" />
+        <input id="wanted-model" name="model" class="cm-input" />
       </div>
     </div>
+    <div>
+      <label class="cm-label">希望する出品種別</label>
+      <select id="wanted-listing-kind" name="listing_kind_pref" class="cm-input">
+        <option value="device">機器本体</option>
+        <option value="consumable_valid">消耗品（期限内）</option>
+        <option value="consumable_expired">消耗品（期限切れ・研修用）</option>
+      </select>
+    </div>
+    <section id="wanted-consumable-fields" class="hidden rounded-card border border-line bg-cream p-4 space-y-4">
+      <div>
+        <label class="cm-label">希望消耗品</label>
+        <select id="wanted-consumable-master-id" name="consumable_master_id" class="cm-input">
+          <option value="">メーカー・型番に紐づく品目を選択</option>
+        </select>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" name="only_unexpired" value="true" />
+          期限内のみ希望
+        </label>
+        <div>
+          <label class="cm-label">最低残ショット数（任意）</label>
+          <input name="min_remaining_shots" type="number" min="0" class="cm-input" />
+        </div>
+      </div>
+      <div>
+        <label class="cm-label">開封状態の希望</label>
+        <select name="open_state_pref" class="cm-input">
+          <option value="">指定なし</option>
+          <option value="sealed_only">未開封のみ</option>
+          <option value="opened_allowed">開封済み可（使用済み不可）</option>
+          <option value="used_allowed">使用済み可</option>
+        </select>
+      </div>
+    </section>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">予算（円）</label>
@@ -97,6 +132,7 @@ const metadata = { title: '買いたいを出す' };
 </AccountLayout>
 
 <script>
+  type ConsumableMaster = { id: string; name: string };
   const form = document.getElementById('wanted-form') as HTMLFormElement;
   const status = document.getElementById('wanted-status');
   const imageInput = document.getElementById('wanted-image-input') as HTMLInputElement;
@@ -105,10 +141,17 @@ const metadata = { title: '買いたいを出す' };
   const imagePreviewImg = document.getElementById('wanted-image-preview-img') as HTMLImageElement;
   const imageRemove = document.getElementById('wanted-image-remove');
   const imageError = document.getElementById('wanted-image-error');
+  const categorySelect = form?.querySelector('select[name="category_slug"]') as HTMLSelectElement | null;
+  const makerInput = document.getElementById('wanted-maker') as HTMLInputElement | null;
+  const modelInput = document.getElementById('wanted-model') as HTMLInputElement | null;
+  const listingKindSelect = document.getElementById('wanted-listing-kind') as HTMLSelectElement | null;
+  const consumableSection = document.getElementById('wanted-consumable-fields') as HTMLElement | null;
+  const masterSelect = document.getElementById('wanted-consumable-master-id') as HTMLSelectElement | null;
 
   let wantedId = '';
   let referenceImage: File | null = null;
   let imagePreviewUrl = '';
+  let masterItems: ConsumableMaster[] = [];
 
   const showImageError = (message: string) => {
     imageError?.classList.remove('hidden');
@@ -148,12 +191,49 @@ const metadata = { title: '買いたいを出す' };
     imagePreviewImg.src = '';
   });
 
+  const isConsumable = () => (listingKindSelect?.value ?? 'device') !== 'device';
+  const syncConsumableVisibility = () => {
+    const visible = isConsumable();
+    consumableSection?.classList.toggle('hidden', !visible);
+    if (masterSelect) masterSelect.required = visible;
+  };
+  const renderMasterOptions = () => {
+    if (!masterSelect) return;
+    masterSelect.innerHTML = '<option value="">メーカー・型番に紐づく品目を選択</option>';
+    for (const item of masterItems) {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.name;
+      masterSelect.appendChild(option);
+    }
+  };
+  const loadMasterOptions = async () => {
+    if (!isConsumable()) return;
+    const params = new URLSearchParams();
+    if (categorySelect?.value) params.set('category', categorySelect.value);
+    if (makerInput?.value.trim()) params.set('maker', makerInput.value.trim());
+    if (modelInput?.value.trim()) params.set('model', modelInput.value.trim());
+    const res = await fetch(`/api/consumables/master?${params.toString()}`);
+    const json = (await res.json().catch(() => ({ items: [] }))) as { items?: ConsumableMaster[] };
+    masterItems = json.items ?? [];
+    renderMasterOptions();
+  };
+  listingKindSelect?.addEventListener('change', async () => {
+    syncConsumableVisibility();
+    await loadMasterOptions();
+  });
+  categorySelect?.addEventListener('change', loadMasterOptions);
+  makerInput?.addEventListener('change', loadMasterOptions);
+  modelInput?.addEventListener('change', loadMasterOptions);
+
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!status) return;
     const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
     const submit = submitter === 'submit';
-    const data = Object.fromEntries(new FormData(form));
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd);
+    data.only_unexpired = fd.has('only_unexpired');
     data.submit = false;
 
     status.classList.remove('hidden');
@@ -206,4 +286,7 @@ const metadata = { title: '買いたいを出す' };
       status.classList.add('text-danger');
     }
   });
+
+  syncConsumableVisibility();
+  loadMasterOptions();
 </script>

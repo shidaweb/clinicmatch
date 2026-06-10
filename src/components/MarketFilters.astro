@@ -16,10 +16,27 @@ const {
   maxPrice = '',
   sort = 'new',
   q = '',
+  listingKind = '',
+  clinicalUse = '',
+  validOnly = '',
   basePath = '/cases',
 } = Astro.props;
 
-const filters: CasesFilterParams = { view, type, category, prefecture, city, minPrice, maxPrice, sort, q };
+const filters: CasesFilterParams = {
+  view,
+  type,
+  category,
+  prefecture,
+  city,
+  minPrice,
+  maxPrice,
+  sort,
+  q,
+  listingKind,
+  clinicalUse,
+  validOnly,
+  page: '',
+};
 
 const buildUrl = (overrides: Partial<CasesFilterParams>) => {
   const url = buildCasesUrl(overrides, filters);
@@ -51,6 +68,30 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
       <option value="wanted" selected={type === 'wanted'}>買いたいのみ</option>
     </select>
   </div>
+
+  <div>
+    <label for="listingKind" class="cm-label">出品種別（売りたい）</label>
+    <select id="listingKind" name="listingKind" class="cm-input">
+      <option value="">すべて</option>
+      <option value="device" selected={listingKind === 'device'}>機器本体</option>
+      <option value="consumable_valid" selected={listingKind === 'consumable_valid'}>消耗品（期限内）</option>
+      <option value="consumable_expired" selected={listingKind === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="clinicalUse" class="cm-label">患者施術可否（売りたい）</label>
+    <select id="clinicalUse" name="clinicalUse" class="cm-input">
+      <option value="">すべて</option>
+      <option value="patient_ok" selected={clinicalUse === 'patient_ok'}>患者施術可</option>
+      <option value="training_only" selected={clinicalUse === 'training_only'}>患者施術不可</option>
+    </select>
+  </div>
+
+  <label class="inline-flex items-center gap-2 text-sm">
+    <input type="checkbox" name="validOnly" value="1" checked={validOnly === '1'} />
+    期限内のみ表示（消耗品）
+  </label>
 
   <div>
     <label for="prefecture" class="cm-label">都道府県</label>

@@ -1,5 +1,7 @@
 ---
 import {
+  CLINICAL_USE_LABELS,
+  LISTING_KIND_LABELS,
   anonymousOrgLabel,
   formatLocation,
   formatPriceYen,
@@ -81,6 +83,18 @@ const imageUrl = coverImage && supabaseUrl
     </p>
     {post.comment_count > 0 && (
       <p class="mt-1 inline-flex items-center gap-1 text-xs text-plum-soft">💬 {post.comment_count}</p>
+    )}
+    {isListing && listing!.listing_kind !== 'device' && (
+      <p class="mt-1 text-xs text-plum-soft">
+        {LISTING_KIND_LABELS[listing!.listing_kind] ?? '消耗品'}
+        {listing!.clinical_use === 'training_only' ? ` / ${CLINICAL_USE_LABELS.training_only}` : ''}
+      </p>
+    )}
+    {!isListing && wanted!.listing_kind_pref !== 'device' && (
+      <p class="mt-1 text-xs text-plum-soft">
+        希望: {LISTING_KIND_LABELS[wanted!.listing_kind_pref] ?? '消耗品'}
+        {wanted!.only_unexpired ? ' / 期限内のみ' : ''}
+      </p>
     )}
   </div>
 

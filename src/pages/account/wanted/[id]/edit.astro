@@ -46,13 +46,48 @@ const metadata = { title: '買いたいを編集' };
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">メーカー</label>
-        <input name="maker" value={wanted.maker ?? ''} class="cm-input" />
+        <input id="wanted-maker" name="maker" value={wanted.maker ?? ''} class="cm-input" />
       </div>
       <div>
         <label class="cm-label">型番</label>
-        <input name="model" value={wanted.model ?? ''} class="cm-input" />
+        <input id="wanted-model" name="model" value={wanted.model ?? ''} class="cm-input" />
       </div>
     </div>
+    <div>
+      <label class="cm-label">希望する出品種別</label>
+      <select id="wanted-listing-kind" name="listing_kind_pref" class="cm-input">
+        <option value="device" selected={wanted.listing_kind_pref === 'device'}>機器本体</option>
+        <option value="consumable_valid" selected={wanted.listing_kind_pref === 'consumable_valid'}>消耗品（期限内）</option>
+        <option value="consumable_expired" selected={wanted.listing_kind_pref === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
+      </select>
+    </div>
+    <section id="wanted-consumable-fields" class:list={['rounded-card border border-line bg-cream p-4 space-y-4', wanted.listing_kind_pref === 'device' && 'hidden']}>
+      <div>
+        <label class="cm-label">希望消耗品</label>
+        <select id="wanted-consumable-master-id" name="consumable_master_id" class="cm-input" data-initial={wanted.consumable_master_id ?? ''}>
+          <option value="">メーカー・型番に紐づく品目を選択</option>
+        </select>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" name="only_unexpired" value="true" checked={wanted.only_unexpired === true} />
+          期限内のみ希望
+        </label>
+        <div>
+          <label class="cm-label">最低残ショット数（任意）</label>
+          <input name="min_remaining_shots" type="number" min="0" value={wanted.min_remaining_shots ?? ''} class="cm-input" />
+        </div>
+      </div>
+      <div>
+        <label class="cm-label">開封状態の希望</label>
+        <select name="open_state_pref" class="cm-input">
+          <option value="" selected={!wanted.open_state_pref}>指定なし</option>
+          <option value="sealed_only" selected={wanted.open_state_pref === 'sealed_only'}>未開封のみ</option>
+          <option value="opened_allowed" selected={wanted.open_state_pref === 'opened_allowed'}>開封済み可（使用済み不可）</option>
+          <option value="used_allowed" selected={wanted.open_state_pref === 'used_allowed'}>使用済み可</option>
+        </select>
+      </div>
+    </section>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">予算（円）</label>
@@ -90,12 +125,65 @@ const metadata = { title: '買いたいを編集' };
 </AccountLayout>
 
 <script define:vars={{ wantedId: wanted.id }}>
+  type ConsumableMaster = { id: string; name: string };
   const form = document.getElementById('wanted-form');
   const status = document.getElementById('wanted-status');
+  const listingKindSelect = document.getElementById('wanted-listing-kind');
+  const categorySelect = form?.querySelector('select[name="category_slug"]');
+  const makerInput = document.getElementById('wanted-maker');
+  const modelInput = document.getElementById('wanted-model');
+  const consumableSection = document.getElementById('wanted-consumable-fields');
+  const masterSelect = document.getElementById('wanted-consumable-master-id') as HTMLSelectElement | null;
+
+  let masterItems: ConsumableMaster[] = [];
+  const isConsumable = () => (listingKindSelect as HTMLSelectElement | null)?.value !== 'device';
+  const syncConsumableVisibility = () => {
+    const visible = isConsumable();
+    consumableSection?.classList.toggle('hidden', !visible);
+    if (masterSelect) masterSelect.required = visible;
+  };
+  const renderMasterOptions = () => {
+    if (!masterSelect) return;
+    const selected = masterSelect.value || masterSelect.dataset.initial || '';
+    masterSelect.innerHTML = '<option value="">メーカー・型番に紐づく品目を選択</option>';
+    for (const item of masterItems) {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.name;
+      option.selected = item.id === selected;
+      masterSelect.appendChild(option);
+    }
+    masterSelect.dataset.initial = '';
+  };
+  const loadMasterOptions = async () => {
+    if (!isConsumable()) return;
+    const params = new URLSearchParams();
+    const category = (categorySelect as HTMLSelectElement | null)?.value;
+    const maker = (makerInput as HTMLInputElement | null)?.value?.trim();
+    const model = (modelInput as HTMLInputElement | null)?.value?.trim();
+    if (category) params.set('category', category);
+    if (maker) params.set('maker', maker);
+    if (model) params.set('model', model);
+    const res = await fetch(`/api/consumables/master?${params.toString()}`);
+    const json = (await res.json().catch(() => ({ items: [] }))) as { items?: ConsumableMaster[] };
+    masterItems = json.items ?? [];
+    renderMasterOptions();
+  };
+
+  listingKindSelect?.addEventListener('change', async () => {
+    syncConsumableVisibility();
+    await loadMasterOptions();
+  });
+  categorySelect?.addEventListener('change', loadMasterOptions);
+  makerInput?.addEventListener('change', loadMasterOptions);
+  modelInput?.addEventListener('change', loadMasterOptions);
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitter = e.submitter?.value ?? 'draft';
-    const data = Object.fromEntries(new FormData(form));
+    const fd = new FormData(form as HTMLFormElement);
+    const data = Object.fromEntries(fd);
+    data.only_unexpired = fd.has('only_unexpired');
     data.submit = submitter === 'submit';
     status.classList.remove('hidden');
     status.textContent = '保存中…';
@@ -108,4 +196,7 @@ const metadata = { title: '買いたいを編集' };
     status.textContent = res.ok ? '保存しました' : (json.error ?? '失敗しました');
     if (res.ok && submitter === 'submit') window.location.href = '/account/wanted';
   });
+
+  syncConsumableVisibility();
+  loadMasterOptions();
 </script>

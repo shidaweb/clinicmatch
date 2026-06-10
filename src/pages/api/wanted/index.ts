@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { getProfile } from '~/lib/auth';
 import { notifyWantedSubmission } from '~/lib/emails/notify-submission';
+import { parseListingKind } from '~/lib/consumables';
 
 export const prerender = false;
 
@@ -13,6 +14,13 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const supabase = createSupabaseServerClient(cookies, locals as never);
 
   const org = profile.organizations as { prefecture?: string; city?: string } | null;
+  const listingKindPref = parseListingKind(body.listing_kind_pref);
+  const onlyUnexpired = body.only_unexpired === true || body.only_unexpired === 'true';
+  const minRemainingShots =
+    body.min_remaining_shots === '' || body.min_remaining_shots == null
+      ? null
+      : Number(body.min_remaining_shots);
+  const openStatePref = body.open_state_pref ? String(body.open_state_pref) : null;
 
   const payload = {
     buyer_org_id: profile.org_id,
@@ -26,10 +34,27 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     area_prefecture: body.area_prefecture ? String(body.area_prefecture) : org?.prefecture,
     area_city: body.area_city ? String(body.area_city) : org?.city,
     requirements: body.requirements ? String(body.requirements) : null,
+    listing_kind_pref: listingKindPref,
+    consumable_master_id: body.consumable_master_id ? String(body.consumable_master_id) : null,
+    only_unexpired: onlyUnexpired,
+    min_remaining_shots: minRemainingShots,
+    open_state_pref: openStatePref,
     status: body.submit === true || body.submit === 'true' ? 'pending_review' : 'draft',
   };
 
   if (!payload.category_slug) return json({ error: 'カテゴリは必須です' }, 400);
+  if (payload.listing_kind_pref !== 'device' && !payload.consumable_master_id) {
+    return json({ error: '消耗品を希望する場合は品目を選択してください' }, 400);
+  }
+  if (payload.min_remaining_shots != null && (!Number.isFinite(payload.min_remaining_shots) || payload.min_remaining_shots < 0)) {
+    return json({ error: '最低残ショット数は0以上で入力してください' }, 400);
+  }
+  if (
+    payload.open_state_pref &&
+    !['sealed_only', 'opened_allowed', 'used_allowed'].includes(String(payload.open_state_pref))
+  ) {
+    return json({ error: '開封状態の希望が不正です' }, 400);
+  }
 
   const { data, error } = await supabase.from('wanted_requests').insert(payload).select('id').single();
   if (error) return json({ error: error.message }, 400);

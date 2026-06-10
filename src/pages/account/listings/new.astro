@@ -43,6 +43,71 @@ const metadata = { title: '売りたいを出す' };
         <input name="model" required class="cm-input" />
       </div>
     </div>
+    <div>
+      <label class="cm-label">出品種別</label>
+      <select id="listing-kind" name="listing_kind" class="cm-input">
+        <option value="device">機器本体</option>
+        <option value="consumable_valid">消耗品（期限内）</option>
+        <option value="consumable_expired">消耗品（期限切れ・研修用）</option>
+      </select>
+      <p class="mt-1 text-xs text-plum-soft">消耗品を選択すると、品目マスタに応じて必須項目が自動で切り替わります。</p>
+    </div>
+    <section id="consumable-fields" class="hidden rounded-card border border-line bg-cream p-4 space-y-4">
+      <div>
+        <label class="cm-label">消耗品マスタ</label>
+        <select id="consumable-master-id" name="consumable_master_id" class="cm-input">
+          <option value="">メーカー・型番に紐づく品目を選択</option>
+        </select>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">数量</label>
+          <input name="quantity" type="number" min="1" value="1" class="cm-input" />
+        </div>
+        <div>
+          <label class="cm-label">開封状態</label>
+          <select id="open-state" name="open_state" class="cm-input">
+            <option value="sealed">未開封</option>
+            <option value="opened">開封済み</option>
+            <option value="used">使用済み</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">有効期限</label>
+          <input id="expiry-date" name="expiry_date" type="date" class="cm-input" />
+        </div>
+        <div>
+          <label class="cm-label">残ショット数</label>
+          <input id="remaining-shots" name="remaining_shots" type="number" min="0" class="cm-input" />
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">残寿命（任意）</label>
+          <input name="remaining_life" class="cm-input" placeholder="例: 残200ショット / 残40時間" />
+        </div>
+        <div>
+          <label class="cm-label">ロット番号（任意）</label>
+          <input name="lot_number" class="cm-input" />
+        </div>
+      </div>
+      <div>
+        <label class="cm-label">状態補足</label>
+        <textarea name="condition_note" rows="2" class="cm-input"></textarea>
+      </div>
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" name="negotiable" value="true" />
+        価格は応相談
+      </label>
+      <label id="reuse-attestation-wrap" class="hidden inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" id="reuse-attestation" name="reuse_attestation" value="true" />
+        再利用・改造品ではないことを確認しました
+      </label>
+      <p id="consumable-preview" class="rounded-lg bg-ivory px-3 py-2 text-xs text-plum-soft"></p>
+      <p id="consumable-warning" class="hidden text-xs text-danger"></p>
+    </section>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">希望価格（円）</label>
@@ -116,17 +181,43 @@ const metadata = { title: '売りたいを出す' };
     previewUrl: string;
     uploaded: boolean;
   };
+  type ConsumableMaster = {
+    id: string;
+    category_slug: string;
+    maker: string;
+    model: string;
+    name: string;
+    is_sterile_sud: boolean;
+    is_shot_controlled: boolean;
+    has_expiry: boolean;
+    prohibit_reuse: boolean;
+    shipping_flags: string[] | null;
+  };
 
   const form = document.getElementById('listing-form') as HTMLFormElement | null;
   const status = document.getElementById('listing-status') as HTMLParagraphElement | null;
   const imageError = document.getElementById('listing-image-error') as HTMLParagraphElement | null;
   const imageGrid = document.getElementById('listing-image-grid') as HTMLDivElement | null;
   const imageInput = document.getElementById('listing-image-input') as HTMLInputElement | null;
+  const listingKindSelect = document.getElementById('listing-kind') as HTMLSelectElement | null;
+  const consumableFields = document.getElementById('consumable-fields') as HTMLElement | null;
+  const masterSelect = document.getElementById('consumable-master-id') as HTMLSelectElement | null;
+  const openStateSelect = document.getElementById('open-state') as HTMLSelectElement | null;
+  const expiryInput = document.getElementById('expiry-date') as HTMLInputElement | null;
+  const shotsInput = document.getElementById('remaining-shots') as HTMLInputElement | null;
+  const reuseWrap = document.getElementById('reuse-attestation-wrap') as HTMLLabelElement | null;
+  const reuseInput = document.getElementById('reuse-attestation') as HTMLInputElement | null;
+  const consumablePreview = document.getElementById('consumable-preview') as HTMLParagraphElement | null;
+  const consumableWarning = document.getElementById('consumable-warning') as HTMLParagraphElement | null;
+  const categorySelect = form?.querySelector('select[name="category_slug"]') as HTMLSelectElement | null;
+  const makerInput = form?.querySelector('input[name="maker"]') as HTMLInputElement | null;
+  const modelInput = form?.querySelector('input[name="model"]') as HTMLInputElement | null;
 
   const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
   const maxSize = 8 * 1024 * 1024;
   let pickerImages: PickerImage[] = [];
   let createdListingId = '';
+  let consumableMasters: ConsumableMaster[] = [];
 
   const showImageError = (message: string) => {
     if (!imageError) return;
@@ -225,6 +316,124 @@ const metadata = { title: '売りたいを出す' };
     imageGrid.appendChild(addTile);
   };
 
+  const selectedMaster = () => {
+    const id = masterSelect?.value ?? '';
+    return consumableMasters.find((item) => item.id === id) ?? null;
+  };
+
+  const isConsumableKind = () => (listingKindSelect?.value ?? 'device') !== 'device';
+
+  const classifyPreview = () => {
+    if (!consumablePreview || !consumableWarning) return;
+    if (!isConsumableKind()) {
+      consumablePreview.textContent = '機器本体として登録されます。';
+      consumableWarning.classList.add('hidden');
+      consumableWarning.textContent = '';
+      return;
+    }
+    const master = selectedMaster();
+    if (!master) {
+      consumablePreview.textContent = '消耗品マスタを選択してください。';
+      consumableWarning.classList.add('hidden');
+      consumableWarning.textContent = '';
+      return;
+    }
+
+    const listingKind = listingKindSelect?.value ?? 'consumable_valid';
+    const expiry = expiryInput?.value ? new Date(`${expiryInput.value}T00:00:00+09:00`) : null;
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const shots = shotsInput?.value ? Number(shotsInput.value) : null;
+    const openState = openStateSelect?.value ?? 'sealed';
+    const expired = Boolean(master.has_expiry && expiry && expiry < today);
+    const shotEmpty = Boolean(master.is_shot_controlled && (shots ?? 0) <= 0);
+    const openedSensitive = Boolean(
+      (master.is_sterile_sud || master.is_shot_controlled) && (openState === 'opened' || openState === 'used')
+    );
+    const training = listingKind === 'consumable_expired' || expired || shotEmpty || openedSensitive;
+    const normalizedKind = training ? 'consumable_expired' : listingKind;
+    const kindLabel = normalizedKind === 'consumable_valid' ? '消耗品（期限内）' : '消耗品（期限切れ・研修用）';
+    const clinicalLabel = training ? '患者施術不可（研修・デモ用）' : '患者施術可';
+    consumablePreview.textContent = `公開カテゴリ: ${kindLabel} / 判定: ${clinicalLabel}`;
+
+    const reasons: string[] = [];
+    if (expired) reasons.push('有効期限切れ');
+    if (shotEmpty) reasons.push('残ショット0');
+    if (openedSensitive) reasons.push('開封済み/使用済み');
+    if (reasons.length > 0) {
+      consumableWarning.classList.remove('hidden');
+      consumableWarning.textContent = `自動補正理由: ${reasons.join('・')}`;
+    } else {
+      consumableWarning.classList.add('hidden');
+      consumableWarning.textContent = '';
+    }
+  };
+
+  const renderMasterOptions = () => {
+    if (!masterSelect) return;
+    const selected = masterSelect.value;
+    masterSelect.innerHTML = '<option value="">メーカー・型番に紐づく品目を選択</option>';
+    for (const item of consumableMasters) {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.name;
+      option.selected = item.id === selected;
+      masterSelect.appendChild(option);
+    }
+  };
+
+  const applyMasterRules = () => {
+    const master = selectedMaster();
+    if (!master) {
+      if (expiryInput) expiryInput.required = false;
+      if (shotsInput) shotsInput.required = false;
+      if (reuseWrap) reuseWrap.classList.add('hidden');
+      if (reuseInput) {
+        reuseInput.required = false;
+        reuseInput.checked = false;
+      }
+      classifyPreview();
+      return;
+    }
+
+    if (expiryInput) expiryInput.required = master.has_expiry;
+    if (shotsInput) shotsInput.required = master.is_shot_controlled;
+    if (reuseWrap) reuseWrap.classList.toggle('hidden', !master.prohibit_reuse);
+    if (reuseInput) reuseInput.required = master.prohibit_reuse;
+    classifyPreview();
+  };
+
+  const syncConsumableVisibility = () => {
+    const consumable = isConsumableKind();
+    consumableFields?.classList.toggle('hidden', !consumable);
+    if (masterSelect) masterSelect.required = consumable;
+    if (!consumable) {
+      if (masterSelect) masterSelect.value = '';
+      if (expiryInput) expiryInput.value = '';
+      if (shotsInput) shotsInput.value = '';
+      if (openStateSelect) openStateSelect.value = 'sealed';
+      if (reuseWrap) reuseWrap.classList.add('hidden');
+      if (reuseInput) {
+        reuseInput.checked = false;
+        reuseInput.required = false;
+      }
+    }
+    classifyPreview();
+  };
+
+  const loadConsumableMaster = async () => {
+    if (!isConsumableKind()) return;
+    const params = new URLSearchParams();
+    if (categorySelect?.value) params.set('category', categorySelect.value);
+    if (makerInput?.value.trim()) params.set('maker', makerInput.value.trim());
+    if (modelInput?.value.trim()) params.set('model', modelInput.value.trim());
+    const res = await fetch(`/api/consumables/master?${params.toString()}`);
+    const json = (await res.json().catch(() => ({ items: [] }))) as { items?: ConsumableMaster[] };
+    consumableMasters = json.items ?? [];
+    renderMasterOptions();
+    applyMasterRules();
+  };
+
   imageGrid?.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest('button');
     if (!button) return;
@@ -241,11 +450,26 @@ const metadata = { title: '売りたいを出す' };
     addFiles(imageInput.files);
     imageInput.value = '';
   });
+  listingKindSelect?.addEventListener('change', async () => {
+    syncConsumableVisibility();
+    await loadConsumableMaster();
+  });
+  categorySelect?.addEventListener('change', loadConsumableMaster);
+  makerInput?.addEventListener('change', loadConsumableMaster);
+  modelInput?.addEventListener('change', loadConsumableMaster);
+  masterSelect?.addEventListener('change', applyMasterRules);
+  openStateSelect?.addEventListener('change', classifyPreview);
+  expiryInput?.addEventListener('change', classifyPreview);
+  shotsInput?.addEventListener('input', classifyPreview);
+  reuseInput?.addEventListener('change', classifyPreview);
 
   const toPayload = () => {
     if (!form) return {};
-    const raw = Object.fromEntries(new FormData(form));
-    raw.has_accessories = raw.has_accessories === 'true';
+    const fd = new FormData(form);
+    const raw = Object.fromEntries(fd);
+    raw.has_accessories = fd.has('has_accessories');
+    raw.negotiable = fd.has('negotiable');
+    raw.reuse_attestation = fd.has('reuse_attestation');
     return raw;
   };
 
@@ -324,4 +548,10 @@ const metadata = { title: '売りたいを出す' };
   });
 
   renderImageGrid();
+  syncConsumableVisibility();
+  loadConsumableMaster().catch(() => {
+    if (!consumableWarning) return;
+    consumableWarning.classList.remove('hidden');
+    consumableWarning.textContent = '消耗品マスタの取得に失敗しました。時間をおいて再度お試しください。';
+  });
 </script>

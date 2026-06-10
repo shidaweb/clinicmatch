@@ -2,6 +2,13 @@ import type { APIRoute } from 'astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
 import { notifyListingSubmission } from '~/lib/emails/notify-submission';
+import {
+  classifyConsumable,
+  parseListingKind,
+  parseOpenState,
+  validateConsumableSubmission,
+  type ConsumableMasterRow,
+} from '~/lib/consumables';
 
 export const prerender = false;
 
@@ -44,6 +51,24 @@ function buildListingPatchPayload(
     payload.maintenance_notes = body.maintenance_notes ? String(body.maintenance_notes) : null;
   }
   if ('description' in body) payload.description = body.description ? String(body.description) : null;
+  if ('listing_kind' in body) payload.listing_kind = parseListingKind(body.listing_kind);
+  if ('consumable_master_id' in body) {
+    payload.consumable_master_id = body.consumable_master_id ? String(body.consumable_master_id) : null;
+  }
+  if ('quantity' in body) payload.quantity = body.quantity ? Number(body.quantity) : 1;
+  if ('open_state' in body) payload.open_state = parseOpenState(body.open_state);
+  if ('expiry_date' in body) payload.expiry_date = body.expiry_date ? String(body.expiry_date) : null;
+  if ('remaining_shots' in body) {
+    payload.remaining_shots =
+      body.remaining_shots === '' || body.remaining_shots == null ? null : Number(body.remaining_shots);
+  }
+  if ('remaining_life' in body) payload.remaining_life = body.remaining_life ? String(body.remaining_life) : null;
+  if ('lot_number' in body) payload.lot_number = body.lot_number ? String(body.lot_number) : null;
+  if ('condition_note' in body) payload.condition_note = body.condition_note ? String(body.condition_note) : null;
+  if ('negotiable' in body) payload.negotiable = body.negotiable === true || body.negotiable === 'true';
+  if ('reuse_attestation' in body) {
+    payload.reuse_attestation = body.reuse_attestation === true || body.reuse_attestation === 'true';
+  }
   if (body.submit === true || body.submit === 'true') payload.status = 'pending_review';
 
   return payload;
@@ -57,15 +82,29 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   if (!id) return json({ error: 'IDが必要です' }, 400);
 
   const body = (await request.json()) as Record<string, unknown>;
-  const org = profile.organizations as { prefecture?: string; city?: string } | null;
+  const org = profile.organizations as { prefecture?: string; city?: string; verified_at?: string | null } | null;
   const payload = buildListingPatchPayload(body, org);
   if (Object.keys(payload).length === 0) return json({ error: '更新する項目がありません' }, 400);
+  if ('remaining_shots' in payload) {
+    const shots = payload.remaining_shots as number | null;
+    if (shots != null && (Number.isNaN(shots) || shots < 0)) {
+      return json({ error: '残ショット数は0以上で入力してください' }, 400);
+    }
+  }
+  if ('quantity' in payload) {
+    const quantity = Number(payload.quantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return json({ error: '数量は1以上で入力してください' }, 400);
+    }
+  }
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
 
   const { data: existing } = await supabase
     .from('listings')
-    .select('id, status, seller_org_id, maker, model')
+    .select(
+      'id, status, seller_org_id, category_slug, maker, model, listing_kind, consumable_master_id, open_state, expiry_date, remaining_shots'
+    )
     .eq('id', id)
     .single();
 
@@ -74,6 +113,82 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   }
   if (existing.status === 'published') {
     return json({ error: '公開中の出品は編集できません。運営にお問い合わせください。' }, 400);
+  }
+
+  const submit = body.submit === true || body.submit === 'true';
+  const mergedListingKind = parseListingKind(payload.listing_kind ?? existing.listing_kind);
+  const mergedMasterId = String(payload.consumable_master_id ?? existing.consumable_master_id ?? '');
+  const mergedOpenState = (payload.open_state ?? existing.open_state) as 'sealed' | 'opened' | 'used' | null;
+  const mergedExpiry = (payload.expiry_date ?? existing.expiry_date) as string | null;
+  const mergedShots = (payload.remaining_shots ?? existing.remaining_shots) as number | null;
+  const mergedMaker = String(payload.maker ?? existing.maker ?? '');
+  const mergedModel = String(payload.model ?? existing.model ?? '');
+  const mergedCategory = String(payload.category_slug ?? existing.category_slug ?? '');
+
+  if (mergedListingKind !== 'device' && submit && !org?.verified_at) {
+    return json({ error: '消耗品を審査提出するには法人確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
+  }
+
+  if (mergedListingKind !== 'device') {
+    if (!mergedMasterId) return json({ error: '消耗品マスタの選択が必要です' }, 400);
+    const { data: master, error: masterError } = await supabase
+      .from('consumable_master')
+      .select(
+        'id, category_slug, maker, model, name, item_type, contact_level, is_sterile_sud, is_shot_controlled, has_expiry, prohibit_reuse, shipping_flags, requires_manual_review, is_active'
+      )
+      .eq('id', mergedMasterId)
+      .eq('is_active', true)
+      .single();
+    if (masterError || !master) return json({ error: '消耗品マスタが見つかりません' }, 400);
+    if (mergedCategory && master.category_slug !== mergedCategory) {
+      return json({ error: 'カテゴリと消耗品マスタの組み合わせが一致しません' }, 400);
+    }
+
+    const masterRow = master as ConsumableMasterRow;
+    const result = submit
+      ? validateConsumableSubmission({
+          master: masterRow,
+          listingKind: mergedListingKind,
+          openState: mergedOpenState,
+          expiryDate: mergedExpiry,
+          remainingShots: mergedShots,
+          reuseAttestation: Boolean(payload.reuse_attestation),
+          searchText: [mergedMaker, mergedModel, payload.description, payload.condition_note]
+            .map((v) => String(v ?? ''))
+            .join(' '),
+        })
+      : {
+          errors: [],
+          classify: classifyConsumable(masterRow, {
+            listingKind: mergedListingKind,
+            openState: mergedOpenState,
+            expiryDate: mergedExpiry,
+            remainingShots: mergedShots,
+          }),
+        };
+
+    if (result.errors.length > 0) return json({ error: result.errors[0] }, 400);
+    payload.consumable_master_id = master.id;
+    payload.listing_kind = result.classify.listingKind;
+    payload.clinical_use = result.classify.clinicalUse;
+    payload.shipping_flags = master.shipping_flags ?? [];
+    payload.compliance_note =
+      result.classify.reasons.length > 0
+        ? `自動補正: ${result.classify.reasons.join(' / ')}`
+        : master.requires_manual_review
+          ? '自動判定: 手動審査対象'
+          : null;
+  } else {
+    payload.consumable_master_id = null;
+    payload.open_state = null;
+    payload.expiry_date = null;
+    payload.remaining_shots = null;
+    payload.remaining_life = null;
+    payload.lot_number = null;
+    payload.reuse_attestation = null;
+    payload.clinical_use = 'patient_ok';
+    payload.shipping_flags = [];
+    payload.compliance_note = null;
   }
 
   const { error } = await supabase.from('listings').update(payload).eq('id', id);

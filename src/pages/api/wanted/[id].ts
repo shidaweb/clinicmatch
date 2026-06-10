@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { notifyWantedSubmission } from '~/lib/emails/notify-submission';
+import { parseListingKind } from '~/lib/consumables';
 
 export const prerender = false;
 
@@ -34,13 +35,25 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   }
   if ('area_city' in body) payload.area_city = body.area_city ? String(body.area_city) : org?.city;
   if ('requirements' in body) payload.requirements = body.requirements ? String(body.requirements) : null;
+  if ('listing_kind_pref' in body) payload.listing_kind_pref = parseListingKind(body.listing_kind_pref);
+  if ('consumable_master_id' in body) {
+    payload.consumable_master_id = body.consumable_master_id ? String(body.consumable_master_id) : null;
+  }
+  if ('only_unexpired' in body) payload.only_unexpired = body.only_unexpired === true || body.only_unexpired === 'true';
+  if ('min_remaining_shots' in body) {
+    payload.min_remaining_shots =
+      body.min_remaining_shots === '' || body.min_remaining_shots == null ? null : Number(body.min_remaining_shots);
+  }
+  if ('open_state_pref' in body) {
+    payload.open_state_pref = body.open_state_pref ? String(body.open_state_pref) : null;
+  }
   if (body.submit === true || body.submit === 'true') payload.status = 'pending_review';
   if (Object.keys(payload).length === 0) return json({ error: '更新する項目がありません' }, 400);
 
   const supabase = createSupabaseServerClient(cookies, locals as never);
   const { data: existing } = await supabase
     .from('wanted_requests')
-    .select('id, status, buyer_org_id, maker, model, category_slug')
+    .select('id, status, buyer_org_id, maker, model, category_slug, listing_kind_pref, consumable_master_id')
     .eq('id', id)
     .single();
 
@@ -49,6 +62,20 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   }
   if (existing.status === 'published') {
     return json({ error: '公開中の買いたいは編集できません。運営にお問い合わせください。' }, 400);
+  }
+  const listingKindPref = parseListingKind(payload.listing_kind_pref ?? existing.listing_kind_pref);
+  const consumableMasterId = String(payload.consumable_master_id ?? existing.consumable_master_id ?? '');
+  const minShots = payload.min_remaining_shots as number | null | undefined;
+  const openStatePref = payload.open_state_pref as string | null | undefined;
+
+  if (listingKindPref !== 'device' && !consumableMasterId) {
+    return json({ error: '消耗品を希望する場合は品目を選択してください' }, 400);
+  }
+  if (minShots != null && (!Number.isFinite(minShots) || minShots < 0)) {
+    return json({ error: '最低残ショット数は0以上で入力してください' }, 400);
+  }
+  if (openStatePref && !['sealed_only', 'opened_allowed', 'used_allowed'].includes(openStatePref)) {
+    return json({ error: '開封状態の希望が不正です' }, 400);
   }
 
   const { error } = await supabase.from('wanted_requests').update(payload).eq('id', id);

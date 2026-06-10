@@ -4,14 +4,23 @@ export const prerender = false;
 import AdminLayout from '~/layouts/AdminLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseAdminClient } from '~/lib/supabase/server';
+import { CLINICAL_USE_LABELS, LISTING_KIND_LABELS } from '~/lib/marketplace';
 
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
 
 const admin = createSupabaseAdminClient(Astro.locals as never);
 const [{ data: listings }, { data: wanted }] = await Promise.all([
-  admin.from('listings').select('id, maker, model, status, created_at').eq('status', 'pending_review').order('created_at', { ascending: false }),
-  admin.from('wanted_requests').select('id, category_slug, maker, model, status, created_at').eq('status', 'pending_review').order('created_at', { ascending: false }),
+  admin
+    .from('listings')
+    .select('id, maker, model, status, created_at, listing_kind, clinical_use, compliance_note')
+    .eq('status', 'pending_review')
+    .order('created_at', { ascending: false }),
+  admin
+    .from('wanted_requests')
+    .select('id, category_slug, maker, model, status, created_at, listing_kind_pref, only_unexpired')
+    .eq('status', 'pending_review')
+    .order('created_at', { ascending: false }),
 ]);
 
 const metadata = { title: '投稿審査' };
@@ -21,15 +30,30 @@ const metadata = { title: '投稿審査' };
   <h2 class="text-lg font-semibold text-rose mb-4">売りたい（審査待ち）</h2>
   <ul class="space-y-3 mb-10">
     {(listings ?? []).map((item) => (
-      <li class="cm-list-item flex items-center justify-between gap-4">
-        <span class="text-plum">{item.maker} {item.model}</span>
-        <button
-          class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
-          data-type="listings"
-          data-id={item.id}
-        >
-          公開する
-        </button>
+      <li class="cm-list-item flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-plum">{item.maker} {item.model}</p>
+          <p class="text-xs text-plum-soft mt-1">
+            {LISTING_KIND_LABELS[item.listing_kind] ?? '機器本体'} / {CLINICAL_USE_LABELS[item.clinical_use] ?? '患者施術可'}
+          </p>
+          {item.compliance_note && <p class="mt-1 text-xs text-rose">{item.compliance_note}</p>}
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
+            data-type="listings"
+            data-id={item.id}
+          >
+            公開する
+          </button>
+          <button
+            class="reject-btn cm-btn-secondary text-sm !px-4 !py-2"
+            data-type="listings"
+            data-id={item.id}
+          >
+            差し戻し
+          </button>
+        </div>
       </li>
     ))}
   </ul>
@@ -37,15 +61,30 @@ const metadata = { title: '投稿審査' };
   <h2 class="text-lg font-semibold text-gold mb-4">買いたい（審査待ち）</h2>
   <ul class="space-y-3">
     {(wanted ?? []).map((item) => (
-      <li class="cm-list-item flex items-center justify-between gap-4">
-        <span class="text-plum">{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
-        <button
-          class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
-          data-type="wanted"
-          data-id={item.id}
-        >
-          公開する
-        </button>
+      <li class="cm-list-item flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-plum">{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</p>
+          <p class="text-xs text-plum-soft mt-1">
+            希望: {LISTING_KIND_LABELS[item.listing_kind_pref] ?? '機器本体'}
+            {item.only_unexpired ? ' / 期限内のみ' : ''}
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="publish-btn cm-btn-primary text-sm !px-4 !py-2"
+            data-type="wanted"
+            data-id={item.id}
+          >
+            公開する
+          </button>
+          <button
+            class="reject-btn cm-btn-secondary text-sm !px-4 !py-2"
+            data-type="wanted"
+            data-id={item.id}
+          >
+            差し戻し
+          </button>
+        </div>
       </li>
     ))}
   </ul>
@@ -59,6 +98,21 @@ const metadata = { title: '投稿審査' };
       const res = await fetch(`/api/admin/posts/${type}/${id}/publish`, { method: 'POST' });
       if (res.ok) window.location.reload();
       else alert('公開に失敗しました');
+    });
+  });
+  document.querySelectorAll('.reject-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const type = btn.getAttribute('data-type');
+      const id = btn.getAttribute('data-id');
+      const reason = window.prompt('差し戻し理由を入力してください');
+      if (!reason?.trim()) return;
+      const res = await fetch(`/api/admin/posts/${type}/${id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      if (res.ok) window.location.reload();
+      else alert('差し戻しに失敗しました');
     });
   });
 </script>

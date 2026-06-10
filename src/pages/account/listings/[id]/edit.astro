@@ -47,13 +47,75 @@ const metadata = { title: '出品を編集' };
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">メーカー</label>
-        <input name="maker" required value={listing.maker} class="cm-input" />
+        <input id="listing-maker" name="maker" required value={listing.maker} class="cm-input" />
       </div>
       <div>
         <label class="cm-label">型番</label>
-        <input name="model" required value={listing.model} class="cm-input" />
+        <input id="listing-model" name="model" required value={listing.model} class="cm-input" />
       </div>
     </div>
+    <div>
+      <label class="cm-label">出品種別</label>
+      <select id="listing-kind" name="listing_kind" class="cm-input">
+        <option value="device" selected={listing.listing_kind === 'device'}>機器本体</option>
+        <option value="consumable_valid" selected={listing.listing_kind === 'consumable_valid'}>消耗品（期限内）</option>
+        <option value="consumable_expired" selected={listing.listing_kind === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
+      </select>
+    </div>
+    <section id="consumable-fields" class:list={['rounded-card border border-line bg-cream p-4 space-y-4', listing.listing_kind === 'device' && 'hidden']}>
+      <div>
+        <label class="cm-label">消耗品マスタ</label>
+        <select id="consumable-master-id" name="consumable_master_id" class="cm-input" data-initial={listing.consumable_master_id ?? ''}>
+          <option value="">メーカー・型番に紐づく品目を選択</option>
+        </select>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">数量</label>
+          <input name="quantity" type="number" min="1" value={listing.quantity ?? 1} class="cm-input" />
+        </div>
+        <div>
+          <label class="cm-label">開封状態</label>
+          <select name="open_state" class="cm-input">
+            <option value="sealed" selected={listing.open_state === 'sealed' || !listing.open_state}>未開封</option>
+            <option value="opened" selected={listing.open_state === 'opened'}>開封済み</option>
+            <option value="used" selected={listing.open_state === 'used'}>使用済み</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">有効期限</label>
+          <input name="expiry_date" type="date" value={listing.expiry_date ?? ''} class="cm-input" />
+        </div>
+        <div>
+          <label class="cm-label">残ショット数</label>
+          <input name="remaining_shots" type="number" min="0" value={listing.remaining_shots ?? ''} class="cm-input" />
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="cm-label">残寿命（任意）</label>
+          <input name="remaining_life" value={listing.remaining_life ?? ''} class="cm-input" />
+        </div>
+        <div>
+          <label class="cm-label">ロット番号（任意）</label>
+          <input name="lot_number" value={listing.lot_number ?? ''} class="cm-input" />
+        </div>
+      </div>
+      <div>
+        <label class="cm-label">状態補足</label>
+        <textarea name="condition_note" rows="2" class="cm-input">{listing.condition_note ?? ''}</textarea>
+      </div>
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" name="negotiable" value="true" checked={listing.negotiable === true} />
+        価格は応相談
+      </label>
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" name="reuse_attestation" value="true" checked={listing.reuse_attestation === true} />
+        再利用・改造品ではないことを確認済み
+      </label>
+    </section>
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">希望価格（円）</label>
@@ -122,12 +184,63 @@ const metadata = { title: '出品を編集' };
 </AccountLayout>
 
 <script define:vars={{ listingId: listing.id }}>
+  type ConsumableMaster = { id: string; name: string };
   const form = document.getElementById('listing-form');
   const status = document.getElementById('listing-status');
+  const listingKindSelect = document.getElementById('listing-kind') as HTMLSelectElement | null;
+  const categorySelect = form?.querySelector('select[name="category_slug"]') as HTMLSelectElement | null;
+  const makerInput = document.getElementById('listing-maker') as HTMLInputElement | null;
+  const modelInput = document.getElementById('listing-model') as HTMLInputElement | null;
+  const consumableFields = document.getElementById('consumable-fields');
+  const masterSelect = document.getElementById('consumable-master-id') as HTMLSelectElement | null;
+  let masterItems: ConsumableMaster[] = [];
+
+  const isConsumable = () => (listingKindSelect?.value ?? 'device') !== 'device';
+  const syncConsumableVisibility = () => {
+    const visible = isConsumable();
+    consumableFields?.classList.toggle('hidden', !visible);
+    if (masterSelect) masterSelect.required = visible;
+  };
+  const renderMasterOptions = () => {
+    if (!masterSelect) return;
+    const selected = masterSelect.value || masterSelect.dataset.initial || '';
+    masterSelect.innerHTML = '<option value="">メーカー・型番に紐づく品目を選択</option>';
+    for (const item of masterItems) {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.name;
+      option.selected = item.id === selected;
+      masterSelect.appendChild(option);
+    }
+    masterSelect.dataset.initial = '';
+  };
+  const loadMasterOptions = async () => {
+    if (!isConsumable()) return;
+    const params = new URLSearchParams();
+    if (categorySelect?.value) params.set('category', categorySelect.value);
+    if (makerInput?.value.trim()) params.set('maker', makerInput.value.trim());
+    if (modelInput?.value.trim()) params.set('model', modelInput.value.trim());
+    const res = await fetch(`/api/consumables/master?${params.toString()}`);
+    const json = (await res.json().catch(() => ({ items: [] }))) as { items?: ConsumableMaster[] };
+    masterItems = json.items ?? [];
+    renderMasterOptions();
+  };
+
+  listingKindSelect?.addEventListener('change', async () => {
+    syncConsumableVisibility();
+    await loadMasterOptions();
+  });
+  categorySelect?.addEventListener('change', loadMasterOptions);
+  makerInput?.addEventListener('change', loadMasterOptions);
+  modelInput?.addEventListener('change', loadMasterOptions);
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitter = e.submitter?.value ?? 'draft';
-    const data = Object.fromEntries(new FormData(form));
+    const fd = new FormData(form as HTMLFormElement);
+    const data = Object.fromEntries(fd);
+    data.negotiable = fd.has('negotiable');
+    data.reuse_attestation = fd.has('reuse_attestation');
     data.submit = submitter === 'submit';
     status.classList.remove('hidden');
     status.textContent = '保存中…';
@@ -140,6 +253,9 @@ const metadata = { title: '出品を編集' };
     status.textContent = res.ok ? '保存しました' : (json.error ?? '失敗しました');
     if (res.ok && submitter === 'submit') window.location.href = '/account/listings';
   });
+
+  syncConsumableVisibility();
+  loadMasterOptions();
 
   const imageForm = document.getElementById('image-form');
   const imageStatus = document.getElementById('image-status');

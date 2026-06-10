@@ -10,6 +10,8 @@ import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import Button from '~/components/ui/Button.astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import {
+  CLINICAL_USE_LABELS,
+  LISTING_KIND_LABELS,
   anonymousOrgLabel,
   formatLocation,
   formatPriceYen,
@@ -245,6 +247,18 @@ const staticSpecItems = staticData
               💬 コメント {wanted.comment_count}件
             </span>
           )}
+          {wanted.listing_kind_pref !== 'device' && (
+            <div class="mt-2 flex flex-wrap gap-2">
+              <span class="inline-flex items-center rounded-pill bg-cream px-3 py-1 text-xs text-plum-soft">
+                希望: {LISTING_KIND_LABELS[wanted.listing_kind_pref] ?? '消耗品'}
+              </span>
+              {wanted.only_unexpired && (
+                <span class="inline-flex items-center rounded-pill bg-sage/10 px-3 py-1 text-xs text-plum">
+                  期限内のみ希望
+                </span>
+              )}
+            </div>
+          )}
           <dl class="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
             <div class="rounded-2xl bg-cream p-4">
               <dt class="text-plum-soft text-xs">予算</dt>
@@ -271,6 +285,15 @@ const staticSpecItems = staticData
             <div class="mt-6 rounded-xl bg-cream p-4">
               <p class="font-medium text-plum mb-2">要件・補足</p>
               <p class="text-sm text-plum-soft whitespace-pre-wrap">{wanted.requirements}</p>
+            </div>
+          )}
+          {wanted.listing_kind_pref !== 'device' && (
+            <div class="mt-4 rounded-xl bg-cream p-4 text-sm text-plum-soft">
+              <p class="font-medium text-plum mb-2">消耗品条件</p>
+              <ul class="space-y-1">
+                <li>開封状態: {wanted.open_state_pref === 'sealed_only' ? '未開封のみ' : wanted.open_state_pref === 'opened_allowed' ? '開封済み可（使用済み不可）' : wanted.open_state_pref === 'used_allowed' ? '使用済み可' : '指定なし'}</li>
+                {wanted.min_remaining_shots != null && <li>最低残ショット数: {wanted.min_remaining_shots}</li>}
+              </ul>
             </div>
           )}
         </div>
@@ -376,6 +399,21 @@ const staticSpecItems = staticData
                 💬 コメント {listing.comment_count}件
               </span>
             )}
+            {listing.listing_kind !== 'device' && (
+              <div class="mt-2 flex flex-wrap gap-2">
+                <span class="inline-flex items-center rounded-pill bg-cream px-3 py-1 text-xs text-plum-soft">
+                  {LISTING_KIND_LABELS[listing.listing_kind] ?? '消耗品'}
+                </span>
+                <span
+                  class:list={[
+                    'inline-flex items-center rounded-pill px-3 py-1 text-xs',
+                    listing.clinical_use === 'training_only' ? 'bg-rose/10 text-rose' : 'bg-sage/10 text-plum',
+                  ]}
+                >
+                  {CLINICAL_USE_LABELS[listing.clinical_use] ?? '患者施術可否未設定'}
+                </span>
+              </div>
+            )}
             <p class="mt-3 text-sm text-plum-soft">
               所在地（匿名表示）：{formatLocation(listing.location_prefecture, listing.location_city)}
             </p>
@@ -389,7 +427,28 @@ const staticSpecItems = staticData
             <div class="mt-5 rounded-card border border-rose/20 bg-ivory p-5 shadow-soft">
               <p class="text-xs text-plum-soft">希望価格</p>
               <p class="font-heading text-3xl font-semibold text-rose tabular-nums">{formatPriceYen(listing.asking_price)}</p>
+              {listing.negotiable && <p class="mt-1 text-xs text-plum-soft">価格は応相談</p>}
             </div>
+            {listing.listing_kind !== 'device' && (
+              <div class="mt-4 rounded-card border border-line bg-ivory p-4 text-sm">
+                <p class="font-medium text-plum">消耗品情報</p>
+                <ul class="mt-2 space-y-1 text-plum-soft">
+                  <li>開封状態: {listing.open_state === 'sealed' ? '未開封' : listing.open_state === 'opened' ? '開封済み' : listing.open_state === 'used' ? '使用済み' : '—'}</li>
+                  <li>数量: {listing.quantity ?? 1}</li>
+                  {listing.expiry_date && <li>有効期限: {listing.expiry_date}</li>}
+                  {listing.remaining_shots != null && <li>残ショット数: {listing.remaining_shots}</li>}
+                  {listing.remaining_life && <li>残寿命: {listing.remaining_life}</li>}
+                  {listing.shipping_flags && listing.shipping_flags.length > 0 && (
+                    <li>配送注意: {listing.shipping_flags.join(' / ')}</li>
+                  )}
+                </ul>
+              </div>
+            )}
+            {listing.clinical_use === 'training_only' && (
+              <p class="mt-3 rounded-card border border-rose/30 bg-rose/10 px-4 py-2 text-xs text-rose">
+                患者施術不可／研修・デモ・動作確認用途としてご確認ください。
+              </p>
+            )}
             <p class="mt-4 text-xs text-plum-soft leading-relaxed">
               匿名でご利用いただけます。連絡先は双方の合意後に開示されます。
             </p>
@@ -541,8 +600,8 @@ const staticSpecItems = staticData
       });
     </script>
     <style>
-      .detail-cta-btn {
-        @apply min-h-[46px] !py-3;
+      :global(.detail-cta-btn) {
+        @apply min-h-[46px] !py-3 !leading-tight;
       }
 
       .btn-market-primary {

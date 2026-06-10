@@ -1,5 +1,12 @@
 ---
-import { formatLocation, formatPriceYen, type PublicListing, type PublicWanted } from '~/lib/marketplace';
+import {
+  CLINICAL_USE_LABELS,
+  LISTING_KIND_LABELS,
+  formatLocation,
+  formatPriceYen,
+  type PublicListing,
+  type PublicWanted,
+} from '~/lib/marketplace';
 
 interface Props {
   post: PublicListing | PublicWanted;
@@ -69,6 +76,21 @@ const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
       )}
       {isListing && listing!.maker_maintenance === 'yes' && (
         <span class="cm-tag-sage">保守あり</span>
+      )}
+      {isListing && listing!.listing_kind !== 'device' && (
+        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
+          {LISTING_KIND_LABELS[listing!.listing_kind] ?? '消耗品'}
+        </span>
+      )}
+      {isListing && listing!.clinical_use === 'training_only' && (
+        <span class="rounded-pill bg-rose/10 px-2 py-0.5 text-[11px] text-rose">
+          {CLINICAL_USE_LABELS.training_only}
+        </span>
+      )}
+      {!isListing && wanted!.listing_kind_pref !== 'device' && (
+        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
+          希望: {LISTING_KIND_LABELS[wanted!.listing_kind_pref] ?? '消耗品'}
+        </span>
       )}
     </div>
 

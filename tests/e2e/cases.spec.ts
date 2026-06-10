@@ -29,3 +29,17 @@ test('register page includes comment profile fields', async ({ page }) => {
   await expect(page.getByRole('radio', { name: '買いたい' })).toBeVisible();
   await expect(page.getByRole('radio', { name: '両方' })).toBeChecked();
 });
+
+test('cases filters include consumable controls', async ({ page, isMobile }) => {
+  await page.goto('/cases');
+  if (isMobile) {
+    await page.getByRole('button', { name: /条件を指定して探す|条件を変更する/ }).click();
+    await expect(page.locator('select[name="listingKind"]:visible')).toHaveCount(1);
+    await expect(page.locator('select[name="clinicalUse"]:visible')).toHaveCount(1);
+    await expect(page.locator('input[name="validOnly"]:visible')).toHaveCount(1);
+    return;
+  }
+  await expect(page.getByLabel('出品種別（売りたい）').first()).toBeVisible();
+  await expect(page.getByLabel('患者施術可否（売りたい）').first()).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: '期限内のみ表示（消耗品）' }).first()).toBeVisible();
+});

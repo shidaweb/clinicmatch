@@ -38,6 +38,9 @@ export type CasesFilterParams = {
   maxPrice: string;
   sort: string;
   q: string;
+  listingKind: string;
+  clinicalUse: string;
+  validOnly: string;
   page: string;
 };
 
@@ -52,6 +55,9 @@ export function parseCasesFilters(url: URL): CasesFilterParams {
     maxPrice: url.searchParams.get('maxPrice')?.trim() ?? '',
     sort: url.searchParams.get('sort')?.trim() ?? 'new',
     q: url.searchParams.get('q')?.trim() ?? '',
+    listingKind: url.searchParams.get('listingKind')?.trim() ?? '',
+    clinicalUse: url.searchParams.get('clinicalUse')?.trim() ?? '',
+    validOnly: url.searchParams.get('validOnly')?.trim() ?? '',
     page: url.searchParams.get('page')?.trim() ?? '',
   };
 }
@@ -68,6 +74,9 @@ export function buildCasesUrl(overrides: Partial<CasesFilterParams> = {}, base?:
   if (values.maxPrice) params.set('maxPrice', values.maxPrice);
   if (values.sort && values.sort !== 'new') params.set('sort', values.sort);
   if (values.q) params.set('q', values.q);
+  if (values.listingKind) params.set('listingKind', values.listingKind);
+  if (values.clinicalUse) params.set('clinicalUse', values.clinicalUse);
+  if (values.validOnly === '1') params.set('validOnly', '1');
   if (values.page && values.page !== '1') params.set('page', values.page);
   const qs = params.toString();
   return `/cases${qs ? `?${qs}` : ''}`;
@@ -80,10 +89,14 @@ export type MarketPost =
 export async function fetchMarketPosts(
   cookies: Parameters<typeof createSupabaseServerClient>[0],
   locals: Parameters<typeof createSupabaseServerClient>[1],
-  filters: Pick<CasesFilterParams, 'type' | 'category' | 'prefecture' | 'city' | 'minPrice' | 'maxPrice' | 'sort' | 'q'>
+  filters: Pick<
+    CasesFilterParams,
+    'type' | 'category' | 'prefecture' | 'city' | 'minPrice' | 'maxPrice' | 'sort' | 'q' | 'listingKind' | 'clinicalUse'
+    | 'validOnly'
+  >
 ): Promise<{ listings: PublicListing[]; wanted: PublicWanted[] }> {
   const supabase = createSupabaseServerClient(cookies, locals);
-  const { type, category, prefecture, city, minPrice, maxPrice, q } = filters;
+  const { type, category, prefecture, city, minPrice, maxPrice, q, listingKind, clinicalUse, validOnly } = filters;
 
   let listings: PublicListing[] = [];
   let wanted: PublicWanted[] = [];
@@ -98,12 +111,23 @@ export async function fetchMarketPosts(
     if (category) query = query.eq('category_slug', category);
     if (prefecture) query = query.eq('location_prefecture', prefecture);
     if (city) query = query.ilike('location_city', `%${city}%`);
+    if (listingKind) query = query.eq('listing_kind', listingKind);
+    if (clinicalUse) query = query.eq('clinical_use', clinicalUse);
     if (minPrice) query = query.gte('asking_price', Number(minPrice));
     if (maxPrice) query = query.lte('asking_price', Number(maxPrice));
     if (q) query = query.or(`maker.ilike.%${q}%,model.ilike.%${q}%`);
 
     const { data } = await query.limit(50);
     listings = (data ?? []) as unknown as PublicListing[];
+    if (validOnly === '1') {
+      const now = new Date();
+      const today = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+      listings = listings.filter((item) => {
+        if (item.listing_kind === 'device') return true;
+        if (item.listing_kind !== 'consumable_valid') return false;
+        return !item.expiry_date || item.expiry_date >= today;
+      });
+    }
   }
 
   if (type === 'all' || type === 'wanted') {
