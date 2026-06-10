@@ -16,10 +16,24 @@ test('mobile filter sheet opens and closes', async ({ page, isMobile }) => {
   await expect(openButton).toBeVisible();
   await openButton.click();
 
-  const sheet = page.getByRole('region', { name: '検索条件を設定' });
+  const sheet = page.getByRole('dialog', { name: '検索条件を設定' });
   await expect(sheet).toBeVisible();
   await page.getByRole('button', { name: '閉じる' }).click();
   await expect(sheet).toBeHidden();
+});
+
+test('mobile filter sheet opens after client navigation', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'mobile only');
+
+  await page.goto('/');
+  await page.getByRole('link', { name: 'さがす' }).first().click();
+  await expect(page).toHaveURL(/\/cases/);
+
+  const openButton = page.getByRole('button', { name: /条件を指定して探す|条件を変更する/ });
+  await expect(openButton).toBeVisible();
+  await openButton.click();
+
+  await expect(page.getByRole('dialog', { name: '検索条件を設定' })).toBeVisible();
 });
 
 test('register page includes comment profile fields', async ({ page }) => {
