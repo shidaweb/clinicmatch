@@ -298,28 +298,29 @@ const staticSpecItems = staticData
           )}
         </div>
         <MatchSuggestions title="関連の在庫" matches={matchListings} />
+
+        <div class="detail-cta-bar mt-8 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-16 max-lg:z-40 max-lg:border-t max-lg:border-line max-lg:bg-ivory/95 max-lg:backdrop-blur max-lg:p-4 lg:mt-10 lg:border-0 lg:bg-transparent lg:p-0">
+          <div class="flex flex-wrap items-stretch gap-3 max-lg:max-w-5xl max-lg:mx-auto">
+            {profile ? (
+              isOwnWanted ? (
+                <a href="/account/wanted" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
+              ) : (
+                <button id="comment-btn" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
+              )
+            ) : (
+              <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
+            )}
+            <ConsultButton
+              label="運営に相談する"
+              variant="inline"
+              relatedWantedId={wanted.id}
+              class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
+            />
+          </div>
+          <p id="comment-status" class="max-lg:max-w-5xl max-lg:mx-auto mt-2 text-sm text-plum-soft hidden"></p>
+        </div>
       </div>
     </section>
-    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:mt-8">
-      <div class="max-w-5xl mx-auto flex flex-wrap items-stretch gap-3">
-        {profile ? (
-          isOwnWanted ? (
-            <a href="/account/wanted" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">あなたの買いたい — コメントを確認</a>
-          ) : (
-            <button id="comment-btn" class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none" data-wanted-id={wanted.id}>コメントで取引相談する</button>
-          )
-        ) : (
-          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="cm-btn-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
-        )}
-        <ConsultButton
-          label="運営に相談する"
-          variant="inline"
-          relatedWantedId={wanted.id}
-          class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
-        />
-      </div>
-      <p id="comment-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
-    </div>
     <script>
       document.getElementById('comment-btn')?.addEventListener('click', async (e) => {
         const btn = e.currentTarget as HTMLButtonElement;
@@ -342,6 +343,11 @@ const staticSpecItems = staticData
         }
       });
     </script>
+    <style>
+      :global(.detail-cta-btn) {
+        @apply min-h-[46px] !py-3 !leading-tight;
+      }
+    </style>
   </Layout>
 )}
 
@@ -538,32 +544,33 @@ const staticSpecItems = staticData
         </section>
 
         <MatchSuggestions title="関連の在庫" matches={matchWanted} />
+
+        <div class="detail-cta-bar mt-8 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-16 max-lg:z-40 max-lg:border-t max-lg:border-line max-lg:bg-ivory/95 max-lg:backdrop-blur max-lg:p-4 lg:mt-10 lg:border-0 lg:bg-transparent lg:p-0">
+          <div class="flex flex-wrap items-stretch gap-3 max-lg:max-w-content max-lg:mx-auto">
+            {profile ? (
+              isOwnListing ? (
+                <a href="/account/listings" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none">あなたの出品 — コメントを確認</a>
+              ) : (
+                <>
+                  <button id="comment-btn" class="btn-market-primary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>コメントで取引相談する</button>
+                  <button id="interest-btn" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>関心あり</button>
+                </>
+              )
+            ) : (
+              <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
+            )}
+            <ConsultButton
+              label="運営に相談する"
+              variant="inline"
+              relatedListingId={listing.id}
+              class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
+            />
+          </div>
+          <p id="interest-status" class="max-lg:max-w-content max-lg:mx-auto mt-2 text-sm text-plum-soft hidden"></p>
+          <p id="comment-status" class="max-lg:max-w-content max-lg:mx-auto mt-1 text-sm text-plum-soft hidden"></p>
+        </div>
       </div>
     </section>
-    <div class="fixed bottom-16 inset-x-0 z-40 border-t border-line bg-ivory/95 backdrop-blur p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
-      <div class="max-w-5xl mx-auto flex flex-wrap items-stretch gap-3">
-        {profile ? (
-          isOwnListing ? (
-            <a href="/account/listings" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none">あなたの出品 — コメントを確認</a>
-          ) : (
-            <>
-              <button id="comment-btn" class="btn-market-primary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>コメントで取引相談する</button>
-              <button id="interest-btn" class="btn-market-secondary detail-cta-btn flex-1 sm:flex-none" data-listing-id={listing.id}>関心あり</button>
-            </>
-          )
-        ) : (
-          <a href={`/auth/login?redirect=${encodeURIComponent(detailPath)}`} class="btn-market-primary detail-cta-btn flex-1 sm:flex-none">ログインしてコメントする</a>
-        )}
-        <ConsultButton
-          label="運営に相談する"
-          variant="inline"
-          relatedListingId={listing.id}
-          class="detail-cta-btn flex-1 sm:flex-none justify-center !px-5 !text-sm !font-semibold shadow-sm"
-        />
-      </div>
-      <p id="interest-status" class="max-w-5xl mx-auto mt-2 text-sm text-plum-soft hidden"></p>
-      <p id="comment-status" class="max-w-5xl mx-auto mt-1 text-sm text-plum-soft hidden"></p>
-    </div>
     <script>
       document.getElementById('comment-btn')?.addEventListener('click', async (e) => {
         const btn = e.currentTarget as HTMLButtonElement;
