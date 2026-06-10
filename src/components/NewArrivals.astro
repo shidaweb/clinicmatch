@@ -58,7 +58,7 @@
       : '';
 
     if (!imageUrl) {
-      return '<div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">—</div>';
+      return `<div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">${escapeHtml(modelLabel || '画像なし')}</div>`;
     }
     return `<img src="${imageUrl}" alt="${escapeHtml(modelLabel)}" class="h-full w-full object-cover" loading="lazy" />`;
   }

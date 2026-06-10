@@ -56,15 +56,17 @@ const imageUrl = coverImage && supabaseUrl
 ---
 
 <a href={href} class="cm-post-row group block px-2 -mx-2 rounded-card">
-  <div class="shrink-0 w-[70px] h-[54px] rounded-input overflow-hidden bg-cream border border-line">
-    {
-      imageUrl ? (
-        <img src={imageUrl} alt="" class="h-full w-full object-cover" loading="lazy" />
-      ) : (
-        <div class="h-full w-full flex items-center justify-center text-[10px] text-muted">—</div>
-      )
-    }
-  </div>
+  {isListing && (
+    <div class="shrink-0 w-[70px] h-[54px] rounded-input overflow-hidden bg-cream border border-line">
+      {
+        imageUrl ? (
+          <img src={imageUrl} alt="" class="h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <div class="h-full w-full flex items-center justify-center text-[10px] text-muted">{categoryName}</div>
+        )
+      }
+    </div>
+  )}
 
   <div class="min-w-0 flex-1">
     <div class="flex flex-wrap items-center gap-2 mb-1">

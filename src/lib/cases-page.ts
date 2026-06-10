@@ -111,7 +111,11 @@ export async function fetchMarketPosts(
     if (category) query = query.eq('category_slug', category);
     if (prefecture) query = query.eq('location_prefecture', prefecture);
     if (city) query = query.ilike('location_city', `%${city}%`);
-    if (listingKind) query = query.eq('listing_kind', listingKind);
+    if (listingKind === 'consumable') {
+      query = query.in('listing_kind', ['consumable_valid', 'consumable_expired']);
+    } else if (listingKind) {
+      query = query.eq('listing_kind', listingKind);
+    }
     if (clinicalUse) query = query.eq('clinical_use', clinicalUse);
     if (minPrice) query = query.gte('asking_price', Number(minPrice));
     if (maxPrice) query = query.lte('asking_price', Number(maxPrice));

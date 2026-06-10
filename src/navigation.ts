@@ -21,6 +21,7 @@ export const footerData = {
       title: 'サービス',
       links: [
         { text: '在庫をさがす', href: '/cases?view=active' },
+        { text: '消耗品をさがす', href: '/cases?view=active&listingKind=consumable' },
         { text: '売りたいを出す', href: '/contact/sell' },
         { text: '買いたいを出す', href: '/contact/buy' },
         { text: '出品・購入を相談する', href: '/contact' },

@@ -7,11 +7,12 @@ interface Props {
   categoryLabel: string;
   manufacturedDate: string;
   transactionDate: string;
+  priceRange?: string;
   manufacturer?: string;
   model?: string;
 }
 
-const { slug, title, categoryLabel, manufacturedDate, transactionDate, manufacturer, model } = Astro.props;
+const { slug, title, categoryLabel, manufacturedDate, transactionDate, priceRange, manufacturer, model } = Astro.props;
 
 function formatDateYMD(ym: string): string {
   if (!ym || ym.length < 6) return ym;
@@ -44,6 +45,7 @@ const specParts = [categoryLabel, formatDateYMD(manufacturedDate), `成約 ${for
   </div>
 
   <div class="shrink-0 cm-post-row-price">
+    {priceRange && <p class="text-xs text-plum-soft tabular-nums">成約価格帯: {priceRange}</p>}
     <p class="text-xs text-rose">詳細 →</p>
   </div>
 </a>

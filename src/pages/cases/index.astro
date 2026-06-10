@@ -39,11 +39,7 @@ let {
   page: pageParam,
 } = filters;
 const currentPage = parseCasesPage(pageParam);
-
-if (view === 'all') {
-  view = 'active';
-  if (type === 'all') type = 'listing';
-}
+const initialVisit = Astro.url.searchParams.toString().length === 0;
 
 const allCases = await getCollection('cases');
 let staticCases = allCases.sort(
@@ -56,6 +52,10 @@ if (category) {
 let marketPosts: ReturnType<typeof mergeMarketPosts> = [];
 let listingCount = 0;
 let wantedCount = 0;
+let deviceCount = 0;
+let consumableValidCount = 0;
+let consumableExpiredCount = 0;
+let consumableTotalCount = 0;
 
 if (hasSupabaseConfig(Astro.locals as never)) {
   const countData = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
@@ -73,9 +73,23 @@ if (hasSupabaseConfig(Astro.locals as never)) {
   });
   listingCount = countData.listings.length;
   wantedCount = countData.wanted.length;
+  deviceCount = countData.listings.filter((item) => item.listing_kind === 'device').length;
+  consumableValidCount = countData.listings.filter((item) => item.listing_kind === 'consumable_valid').length;
+  consumableExpiredCount = countData.listings.filter((item) => item.listing_kind === 'consumable_expired').length;
+  consumableTotalCount = consumableValidCount + consumableExpiredCount;
+
+  if (initialVisit && view === 'active') {
+    if (listingCount > 0) {
+      type = 'listing';
+    } else if (listingCount + wantedCount > 0) {
+      type = 'all';
+    } else {
+      view = 'done';
+    }
+  }
 
   if (view !== 'done') {
-    const displayType = type === 'all' ? 'listing' : type;
+    const displayType = type;
     const { listings, wanted } = await fetchMarketPosts(Astro.cookies, Astro.locals as never, {
       ...filters,
       type: displayType,
@@ -83,6 +97,12 @@ if (hasSupabaseConfig(Astro.locals as never)) {
     marketPosts = mergeMarketPosts(listings, wanted, displayType, sort);
   }
 }
+
+filters.view = view;
+filters.type = type;
+filters.listingKind = listingKind;
+filters.clinicalUse = clinicalUse;
+filters.validOnly = validOnly;
 
 const doneCount = staticCases.length;
 const showMarket = view !== 'done';
@@ -102,7 +122,15 @@ const metadata = {
 };
 
 const tabClass = (active: boolean) => (active ? 'cm-segment-active' : 'cm-segment');
+const quickKindClass = (active: boolean, count: number) =>
+  `${tabClass(active)}${!active && count === 0 ? ' opacity-50' : ''}`;
 const sortLabels: Record<string, string> = { new: '新着順', price: '価格順', year: '年式順' };
+const listingKindLabels: Record<string, string> = {
+  device: '機器本体',
+  consumable: '消耗品',
+  consumable_valid: '消耗品（期限内）',
+  consumable_expired: '消耗品（期限切れ・研修用）',
+};
 
 const activeFilterCount = [category, prefecture, city, minPrice, maxPrice, q, listingKind, clinicalUse, validOnly].filter(Boolean).length;
 
@@ -197,6 +225,38 @@ const marketPaged = paginateList(marketPosts, currentPage);
         </a>
       </div>
 
+      {showMarket && (
+        <div class="mb-6 flex flex-wrap items-center gap-2" aria-label="出品種別クイックフィルタ">
+          <a href={buildCasesUrl({ view, type, listingKind: '', page: '1' })} class={quickKindClass(listingKind === '', listingCount)}>
+            すべて {listingCount}
+          </a>
+          <a
+            href={buildCasesUrl({ view, type, listingKind: 'device', page: '1' })}
+            class={quickKindClass(listingKind === 'device', deviceCount)}
+          >
+            機器本体 {deviceCount}
+          </a>
+          <a
+            href={buildCasesUrl({ view, type, listingKind: 'consumable', page: '1' })}
+            class={quickKindClass(listingKind === 'consumable', consumableTotalCount)}
+          >
+            消耗品（すべて） {consumableTotalCount}
+          </a>
+          <a
+            href={buildCasesUrl({ view, type, listingKind: 'consumable_valid', page: '1' })}
+            class={quickKindClass(listingKind === 'consumable_valid', consumableValidCount)}
+          >
+            消耗品（期限内） {consumableValidCount}
+          </a>
+          <a
+            href={buildCasesUrl({ view, type, listingKind: 'consumable_expired', page: '1' })}
+            class={quickKindClass(listingKind === 'consumable_expired', consumableExpiredCount)}
+          >
+            消耗品（期限切れ・研修用） {consumableExpiredCount}
+          </a>
+        </div>
+      )}
+
       <div class="grid lg:grid-cols-[260px_1fr] gap-8">
         <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {view !== 'done' && (
@@ -248,7 +308,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
                 {category && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">カテゴリ: {category}</span>}
                 {prefecture && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{prefecture}</span>}
                 {city && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{city}</span>}
-                {listingKind && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{listingKind}</span>}
+                {listingKind && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{listingKindLabels[listingKind] ?? listingKind}</span>}
                 {clinicalUse && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{clinicalUse}</span>}
                 {validOnly === '1' && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">期限内のみ</span>}
                 <a href={buildCasesUrl({ view, type, sort })} class="text-rose hover:underline text-xs">クリア</a>
@@ -270,8 +330,11 @@ const marketPaged = paginateList(marketPosts, currentPage);
 
           {
             showDone && staticCases.length > 0 && (
-              <div class="mb-4 text-sm text-plum-soft tabular-nums">
-                {donePaged.total}件（{donePaged.from}–{donePaged.to}件目）
+              <div class="mb-4 space-y-1">
+                <p class="text-xs text-plum-soft">価格帯は守秘のため幅で表示しています。</p>
+                <div class="text-sm text-plum-soft tabular-nums">
+                  {donePaged.total}件（{donePaged.from}–{donePaged.to}件目）
+                </div>
               </div>
             )
           }
@@ -279,12 +342,44 @@ const marketPaged = paginateList(marketPosts, currentPage);
           {
             showMarket && (
               marketPosts.length === 0 ? (
-                <EmptyState
-                  title="募集中の投稿がありません"
-                  message="条件を変えるか、運営に相談してマッチングを依頼できます。"
-                  actionHref="/contact"
-                  actionLabel="条件で相談する"
-                />
+                <div class="space-y-6">
+                  <div class="rounded-card border border-line bg-ivory p-6">
+                    <h2 class="font-heading text-lg font-semibold text-plum">募集中の出品はまだありません</h2>
+                    <p class="mt-2 text-sm text-plum-soft">
+                      買いたい登録をしておくと、入荷の瞬間に通知が届きます。
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                      <a href="/contact/buy" class="cm-btn-primary">買いたいを登録して入荷通知を受け取る</a>
+                      <a href="/contact" class="cm-btn-secondary">条件で相談する</a>
+                    </div>
+                  </div>
+                  {staticCases.length > 0 && (
+                    <section>
+                      <div class="mb-3 flex items-center justify-between">
+                        <h3 class="font-heading text-base font-semibold text-plum">直近の成約事例</h3>
+                        <a href={buildCasesUrl({ view: 'done' })} class="text-xs text-rose hover:underline">すべて見る →</a>
+                      </div>
+                      <div class="divide-y divide-line border-t border-line">
+                        {staticCases.slice(0, 3).map((entry) => {
+                          const slug = entry.id.replace(/\.mdx?$/, '');
+                          const { data } = entry;
+                          return (
+                            <CaseRow
+                              {slug}
+                              title={data.title}
+                              categoryLabel={data.categoryLabel}
+                              manufacturedDate={data.manufacturedDate}
+                              transactionDate={data.transactionDate}
+                              manufacturer={data.manufacturer}
+                              model={data.model}
+                              priceRange={data.priceRange}
+                            />
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+                </div>
               ) : (
                 <>
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -325,6 +420,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
                           categoryLabel={data.categoryLabel}
                           manufacturedDate={data.manufacturedDate}
                           transactionDate={data.transactionDate}
+                          priceRange={data.priceRange}
                           manufacturer={data.manufacturer}
                           model={data.model}
                         />

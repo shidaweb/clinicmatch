@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html:not(.js) [class*="motion-safe:md:opacity-0"] {
+  opacity: 1 !important;
+}
+
 @layer components {
   /* キッカー：金ヘアライン＋日本語小ラベル（見出しレベルではない） */
   .cm-kicker {

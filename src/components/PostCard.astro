@@ -46,20 +46,38 @@ const imageUrl = isListing
     ? `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`
     : null;
 const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
+
+let expiryBadge: { label: string; className: string } | null = null;
+if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
+  const expiry = new Date(`${listing!.expiry_date}T00:00:00+09:00`);
+  const today = new Date();
+  const monthDiff =
+    (expiry.getUTCFullYear() - today.getUTCFullYear()) * 12 +
+    (expiry.getUTCMonth() - today.getUTCMonth());
+  if (listing!.clinical_use === 'training_only' || expiry < today) {
+    expiryBadge = { label: '期限切れ・研修用', className: 'bg-dangerBg text-dangerDeep' };
+  } else if (monthDiff <= 6) {
+    expiryBadge = { label: `期限 ${listing!.expiry_date} ⚠`, className: 'bg-warningBg text-warning' };
+  } else {
+    expiryBadge = { label: `期限 ${listing!.expiry_date}`, className: 'bg-cream text-plum-soft' };
+  }
+}
 ---
 
 <a href={href} class="cm-post-card group block">
-  <div class="cm-post-card-image">
-    {
-      imageUrl ? (
-        <img src={imageUrl} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />
-      ) : (
-        <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">
-          {categoryName}
-        </div>
-      )
-    }
-  </div>
+  {isListing && (
+    <div class="cm-post-card-image">
+      {
+        imageUrl ? (
+          <img src={imageUrl} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">
+            {categoryName}
+          </div>
+        )
+      }
+    </div>
+  )}
 
   <div class="p-4">
     <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
@@ -87,12 +105,23 @@ const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
           {CLINICAL_USE_LABELS.training_only}
         </span>
       )}
+      {isListing && expiryBadge && (
+        <span class:list={['rounded-pill px-2 py-0.5 text-[11px]', expiryBadge.className]}>
+          {expiryBadge.label}
+        </span>
+      )}
       {!isListing && wanted!.listing_kind_pref !== 'device' && (
         <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
           希望: {LISTING_KIND_LABELS[wanted!.listing_kind_pref] ?? '消耗品'}
         </span>
       )}
     </div>
+    {isListing && listing!.listing_kind !== 'device' && (
+      <p class="mt-2 text-xs text-plum-soft">
+        {listing!.quantity ?? 1}個・
+        {listing!.open_state === 'sealed' ? '未開封' : listing!.open_state === 'opened' ? '開封済み' : '使用済み'}
+      </p>
+    )}
 
     <p class="mt-3 font-heading text-base font-semibold text-rose-deep tabular-nums">{priceLabel}</p>
     <div class="mt-1 flex items-center justify-between gap-2">

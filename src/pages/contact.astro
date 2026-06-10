@@ -3,7 +3,6 @@ export const prerender = true;
 
 import Layout from '~/layouts/PageLayout.astro';
 import ConsultForm from '~/components/ConsultForm.astro';
-import LineConsultButton from '~/components/LineConsultButton.astro';
 import TrustBadges from '~/components/TrustBadges.astro';
 import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getHomePermalink } from '~/utils/permalinks';
@@ -37,21 +36,21 @@ const metadata = {
 
       {!relatedListingId && !relatedWantedId && (
         <div class="mt-8 grid sm:grid-cols-3 gap-4">
-          <a href="/contact/sell" class="cm-card-interactive p-5 border-rose/20 group">
+          <button type="button" class="contact-topic-card cm-card-interactive p-5 border-rose/20 group text-left" data-topic="sell">
             <span class="cm-tag-sell">売りたい</span>
             <p class="mt-3 font-heading font-semibold text-plum group-hover:text-rose-deep">出品・売却を相談</p>
             <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
-          </a>
-          <a href="/contact/buy" class="cm-card-interactive p-5 border-sage/30 group">
+          </button>
+          <button type="button" class="contact-topic-card cm-card-interactive p-5 border-sage/30 group text-left" data-topic="buy">
             <span class="cm-tag-sage">買いたい</span>
             <p class="mt-3 font-heading font-semibold text-plum group-hover:text-sage">購入を相談</p>
             <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
-          </a>
-          <div class="cm-card p-5 border-gold/30">
+          </button>
+          <button type="button" class="contact-topic-card cm-card p-5 border-gold/30 text-left" data-topic="other">
             <span class="inline-flex rounded-pill px-2.5 py-0.5 text-[11px] font-semibold text-gold" style="background-color: rgb(194 163 107 / 0.15);">その他</span>
             <p class="mt-3 font-heading font-semibold text-plum">下のフォームから</p>
             <p class="mt-1 text-xs text-plum-soft">写真・型番だけでもOK</p>
-          </div>
+          </button>
         </div>
       )}
 
@@ -64,12 +63,29 @@ const metadata = {
         />
       </div>
 
-      <div class="mt-8 cm-card p-5 text-center">
-        <p class="text-sm font-medium text-plum">LINEでもご相談いただけます</p>
-        <div class="mt-3">
-          <LineConsultButton />
-        </div>
-      </div>
     </div>
   </section>
 </Layout>
+
+<script>
+  const cards = Array.from(document.querySelectorAll('.contact-topic-card')) as HTMLButtonElement[];
+  const form = document.getElementById('consult-form') as HTMLFormElement | null;
+  const setTopic = (topic: string) => {
+    const input = form?.querySelector(`input[name="topic"][value="${topic}"]`) as HTMLInputElement | null;
+    if (input) input.checked = true;
+    cards.forEach((card) => {
+      const active = card.dataset.topic === topic;
+      card.classList.toggle('ring-2', active);
+      card.classList.toggle('ring-rose', active);
+      card.classList.toggle('shadow-soft', active);
+    });
+  };
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      setTopic(card.dataset.topic ?? 'other');
+      form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  const current = (form?.querySelector('input[name="topic"]:checked') as HTMLInputElement | null)?.value;
+  if (current) setTopic(current);
+</script>

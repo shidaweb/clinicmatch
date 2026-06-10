@@ -3,6 +3,8 @@ import { UI } from 'astrowind:config';
 ---
 
 <script is:inline define:vars={{ defaultTheme: UI.theme }}>
+  document.documentElement.classList.add('js');
+
   if (window.basic_script) {
     return;
   }
@@ -185,6 +187,12 @@ import { UI } from 'astrowind:config';
     elements: null,
 
     start() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const reducedTargets = document.querySelectorAll('[class*="intersect"]');
+        reducedTargets.forEach((target) => target.removeAttribute('no-intersect'));
+        return;
+      }
+
       const selectors = [
         '[class*=" intersect:"]',
         '[class*=":intersect:"]',
@@ -259,6 +267,13 @@ import { UI } from 'astrowind:config';
 
       this.elements.forEach((el) => {
         this.observer.observe(el);
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.removeAttribute('no-intersect');
+          if (el.classList.contains('intersect-once')) {
+            this.observer.unobserve(el);
+          }
+        }
       });
     },
 

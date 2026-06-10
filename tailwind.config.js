@@ -31,6 +31,12 @@ export default {
         gold: 'var(--gold)',
         line: 'var(--line)',
         danger: 'var(--danger)',
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        warningBg: 'var(--color-warning-bg)',
+        dangerDeep: 'var(--color-danger)',
+        dangerBg: 'var(--color-danger-bg)',
+        lineBrand: 'var(--color-line-brand)',
         dot: 'var(--dot)',
         ink: {
           muted: 'var(--color-muted)',

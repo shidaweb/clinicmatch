@@ -46,6 +46,7 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
 
 <form method="get" action={basePath} class="cm-card p-4 space-y-4 lg:border-0 lg:shadow-none lg:p-0 lg:bg-transparent">
   <input type="hidden" name="view" value={view} />
+  <input type="hidden" name="listingKind" value={listingKind} />
 
   <div>
     <label for="category" class="cm-label">カテゴリ</label>
@@ -66,16 +67,6 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
       <option value="all" selected={type === 'all'}>売りたい＋買いたい</option>
       <option value="listing" selected={type === 'listing'}>売りたいのみ</option>
       <option value="wanted" selected={type === 'wanted'}>買いたいのみ</option>
-    </select>
-  </div>
-
-  <div>
-    <label for="listingKind" class="cm-label">出品種別（売りたい）</label>
-    <select id="listingKind" name="listingKind" class="cm-input">
-      <option value="">すべて</option>
-      <option value="device" selected={listingKind === 'device'}>機器本体</option>
-      <option value="consumable_valid" selected={listingKind === 'consumable_valid'}>消耗品（期限内）</option>
-      <option value="consumable_expired" selected={listingKind === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
     </select>
   </div>
 

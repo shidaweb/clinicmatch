@@ -26,7 +26,9 @@ const categories = [
   { slug: 'hifu', label: 'HIFU', href: '/categories/hifu' },
   { slug: 'rf', label: 'RF', href: '/categories/rf' },
   { slug: 'body', label: '痩身', href: '/categories/body' },
+  { slug: 'consumables', label: '消耗品（チップ・カートリッジ等）', href: '/cases?view=active&listingKind=consumable' },
 ];
+const searchCategories = categories.filter((item) => item.slug !== 'consumables');
 
 const flowSteps = [
   { num: '01', title: '相談・登録', desc: '匿名OK。分かる範囲で入力' },
@@ -47,7 +49,7 @@ const avgMatchDays = 14;
             美容医療機器の、次の場所を見つける
           </h1>
           <p class="mt-4 text-plum-soft leading-[1.8] text-[15px] md:text-base">
-            匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器のマッチングプラットフォーム。連絡先は合意後に開示されます。
+            匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器から、チップ・カートリッジなどの消耗品まで。連絡先は合意後に開示されます。
           </p>
           <div class="mt-8 flex flex-wrap gap-3">
             <a href="/cases?view=active&type=listing" class="cm-btn-primary">機器をさがす</a>
@@ -98,10 +100,16 @@ const avgMatchDays = 14;
       <form action="/cases" method="get" class="cm-search-float mt-8 max-w-4xl mx-auto">
         <input type="hidden" name="view" value="active" />
         <input type="hidden" name="type" value="listing" />
+        <input type="hidden" name="listingKind" id="hero-listing-kind" value="" />
+        <div class="mb-3 inline-flex rounded-pill border border-line bg-ivory p-1">
+          <button type="button" data-hero-kind="" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium bg-rose text-white">すべて</button>
+          <button type="button" data-hero-kind="device" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft">機器本体</button>
+          <button type="button" data-hero-kind="consumable" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft">消耗品</button>
+        </div>
         <div class="flex flex-col sm:flex-row gap-2">
           <select name="category" class="rounded-pill border border-line px-4 py-2.5 text-sm bg-ivory sm:w-36">
             <option value="">カテゴリ</option>
-            {categories.map(({ slug, label }) => (
+            {searchCategories.map(({ slug, label }) => (
               <option value={slug}>{label}</option>
             ))}
           </select>
@@ -181,3 +189,20 @@ const avgMatchDays = 14;
   />
 
 </Layout>
+
+<script>
+  const kindInput = document.getElementById('hero-listing-kind') as HTMLInputElement | null;
+  const buttons = Array.from(document.querySelectorAll('.hero-kind-btn')) as HTMLButtonElement[];
+  const updateKind = (kind: string) => {
+    if (kindInput) kindInput.value = kind;
+    buttons.forEach((button) => {
+      const selected = button.dataset.heroKind === kind;
+      button.classList.toggle('bg-rose', selected);
+      button.classList.toggle('text-white', selected);
+      button.classList.toggle('text-plum-soft', !selected);
+    });
+  };
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => updateKind(button.dataset.heroKind ?? ''));
+  });
+</script>
