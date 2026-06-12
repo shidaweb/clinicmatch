@@ -4,6 +4,22 @@
 
 html:not(.js) [class*="motion-safe:md:opacity-0"] {
   opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="motion-safe:md:opacity-0"] {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  html.js [class*="motion-safe:md:opacity-0"]:not([no-intersect]) {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @layer components {

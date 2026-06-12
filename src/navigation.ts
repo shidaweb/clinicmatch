@@ -2,14 +2,25 @@ import { getBlogPermalink } from './utils/permalinks';
 
 export const headerData = {
   links: [
-    { text: 'さがす', href: '/cases?view=active' },
-    { text: '売りたい', href: '/contact/sell' },
-    { text: '買いたい', href: '/contact/buy' },
-    { text: '相談', href: '/contact', highlight: true },
-    { text: 'ブログ', href: getBlogPermalink() },
-    { text: 'ログイン', href: '/auth/login' },
+    { text: '在庫をさがす', href: '/cases?view=active' },
+    { text: '消耗品', href: '/cases?view=active&listingKind=consumable' },
+    { text: '成約事例', href: '/cases?view=done' },
+    { text: '読み物', href: getBlogPermalink() },
   ],
-  actions: [] as Array<{ text: string; href: string; variant?: 'primary' | 'secondary'; class?: string }>,
+  actions: [
+    {
+      text: 'マイページ',
+      href: '/account',
+      variant: 'tertiary' as const,
+      class: 'max-[479px]:hidden border border-line rounded-pill px-4 py-2 text-sm font-medium text-plum hover:bg-cream',
+    },
+    {
+      text: '相談する',
+      href: '/contact',
+      variant: 'primary' as const,
+      class: 'text-sm',
+    },
+  ],
   showConsult: false,
   accountHref: '/account',
   loginHref: '/auth/login',

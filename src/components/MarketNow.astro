@@ -1,0 +1,227 @@
+---
+import type { DoneCasePreview } from '~/lib/home-page';
+
+interface Props {
+  recentDoneCases: DoneCasePreview[];
+}
+
+const { recentDoneCases } = Astro.props;
+---
+
+<section class="py-[52px] md:py-[72px] bg-ivory border-y border-line">
+  <div class="max-w-content mx-auto px-4 sm:px-6">
+    <p class="cm-kicker-center mb-2">マーケットの今</p>
+    <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum text-center">いま動いている案件</h2>
+    <p class="mt-3 text-center text-plum-soft max-w-2xl mx-auto">
+      募集中の「買いたい」と直近の成約。在庫の入荷を待つ買い手が登録しています。
+    </p>
+
+    <div id="market-now-grid" class="mt-8 grid gap-4 md:grid-cols-3" aria-live="polite">
+      {
+        [0, 1, 2].map(() => (
+          <div class="market-skeleton rounded-card border border-line bg-ivory p-5 min-h-[220px] animate-pulse">
+            <div class="h-4 w-24 rounded bg-cream mb-4" />
+            <div class="h-5 w-3/4 rounded bg-cream mb-2" />
+            <div class="h-4 w-1/2 rounded bg-cream mb-6" />
+            <div class="h-7 w-2/5 rounded bg-cream mb-6" />
+            <div class="h-9 w-full rounded-pill bg-cream" />
+          </div>
+        ))
+      }
+    </div>
+
+    <p id="market-now-more" class="mt-4 text-center hidden">
+      <a href="/cases?view=active&type=listing" class="text-sm text-rose font-semibold hover:underline">
+        すべて見る →
+      </a>
+    </p>
+    <p class="mt-3 text-center text-[11.5px] text-muted">価格帯は守秘のため幅で表示しています。</p>
+  </div>
+</section>
+
+<script define:vars={{ recentDoneCases }}>
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatPrice(amount) {
+    if (amount == null) return '応相談';
+    return `${Number(amount).toLocaleString('ja-JP')}円`;
+  }
+
+  function formatTransactionMonth(ym) {
+    if (!ym || ym.length < 7) return ym;
+    const [y, m] = ym.split('-');
+    return `${y}年${Number(m)}月`;
+  }
+
+  function listingCard(item) {
+    const model = escapeHtml(item.model);
+    const maker = item.maker ? `<p class="text-xs text-muted">${escapeHtml(item.maker)}</p>` : '';
+    const href = `/cases/${escapeHtml(item.id)}?type=listing`;
+    return `
+      <article class="cm-card p-5 flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="cm-tag-sell">売りたい</span>
+        </div>
+        <h3 class="font-bold text-[15px] text-plum line-clamp-2">${model}</h3>
+        ${maker}
+        <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">${escapeHtml(formatPrice(item.asking_price))}</p>
+        <a href="${href}" class="cm-btn-secondary text-sm mt-auto text-center">詳細を見る</a>
+      </article>
+    `;
+  }
+
+  function wantedCard(item) {
+    const model = escapeHtml(item.model ?? item.categories?.name ?? '買いたい');
+    const maker = item.maker ? escapeHtml(item.maker) : '';
+    const area = item.area_prefecture && item.area_city
+      ? escapeHtml(`${item.area_prefecture}${item.area_city}`)
+      : '';
+    return `
+      <article class="cm-card p-5 flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="inline-flex rounded-pill px-2.5 py-0.5 text-[11px] font-semibold text-success bg-sage/15">買いたい・募集中</span>
+          ${area ? `<span class="text-xs text-muted">${area}</span>` : ''}
+        </div>
+        <h3 class="font-bold text-[15px] text-plum line-clamp-2">${model}</h3>
+        ${maker ? `<p class="text-xs text-muted">${maker} ・ 希望価格</p>` : '<p class="text-xs text-muted">希望価格</p>'}
+        <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">${escapeHtml(formatPrice(item.budget))}</p>
+        <a href="/contact/sell" class="cm-btn-secondary text-sm mt-auto text-center">この条件に売る相談をする</a>
+      </article>
+    `;
+  }
+
+  function wantedFallbackCard() {
+    return `
+      <article class="cm-card p-5 flex flex-col gap-2">
+        <span class="inline-flex rounded-pill px-2.5 py-0.5 text-[11px] font-semibold text-success bg-sage/15 w-fit">買いたい・募集中</span>
+        <h3 class="font-bold text-[15px] text-plum">探している機器の募集を受付中</h3>
+        <p class="text-xs text-muted">脱毛・ピコ・HIFU・RF・痩身など</p>
+        <p class="font-heading text-lg font-semibold text-rose-deep">応相談</p>
+        <a href="/contact/buy" class="cm-btn-secondary text-sm mt-auto text-center">買いたい相談をする</a>
+      </article>
+    `;
+  }
+
+  function doneCard(item) {
+    const href = `/cases/${escapeHtml(item.slug)}`;
+    return `
+      <article class="cm-card p-5 flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="cm-tag-done">成約</span>
+          <span class="text-xs text-muted">${escapeHtml(formatTransactionMonth(item.transactionDate))}</span>
+        </div>
+        <h3 class="font-bold text-[15px] text-plum line-clamp-2">${escapeHtml(item.model)}</h3>
+        <p class="text-xs text-muted">${escapeHtml(item.manufacturer)} ・ ${escapeHtml(item.categoryLabel)}</p>
+        <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">${escapeHtml(item.priceRange)}</p>
+        <a href="${href}" class="cm-btn-secondary text-sm mt-auto text-center">事例の詳細を見る</a>
+      </article>
+    `;
+  }
+
+  function notifyCard() {
+    return `
+      <article class="rounded-card border-[1.5px] border-dashed border-rose bg-transparent p-5 flex flex-col items-center justify-center gap-3 text-center min-h-[220px]">
+        <p class="text-[13px] text-plum-soft leading-relaxed">
+          <strong class="text-plum">探している機種がありますか？</strong><br />
+          条件を登録すると、入荷の瞬間に通知が届きます。
+        </p>
+        <a href="/auth/register?trade_side=buy" class="cm-btn-primary text-sm">入荷通知を受け取る（無料）</a>
+      </article>
+    `;
+  }
+
+  function buildCards(listings, wanted) {
+    const cards = [];
+    const doneQueue = [...recentDoneCases];
+    const wantedQueue = [...wanted];
+
+    if (listings.length >= 3) {
+      listings.slice(0, 3).forEach((item) => cards.push(listingCard(item)));
+      return { cards, showMore: true };
+    }
+
+    if (listings.length > 0) {
+      listings.forEach((item) => cards.push(listingCard(item)));
+      if (wantedQueue.length > 0) cards.push(wantedCard(wantedQueue.shift()));
+      while (cards.length < 3) cards.push(notifyCard());
+      return { cards: cards.slice(0, 3), showMore: false };
+    }
+
+    if (wantedQueue.length > 0) {
+      cards.push(wantedCard(wantedQueue.shift()));
+    } else {
+      cards.push(wantedFallbackCard());
+    }
+
+    if (doneQueue.length > 0) {
+      cards.push(doneCard(doneQueue.shift()));
+    } else if (recentDoneCases.length > 0) {
+      cards.push(doneCard(recentDoneCases[0]));
+    }
+
+    cards.push(notifyCard());
+    return { cards: cards.slice(0, 3), showMore: false };
+  }
+
+  async function loadMarketNow() {
+    const grid = document.getElementById('market-now-grid');
+    const more = document.getElementById('market-now-more');
+    if (!grid) return;
+
+    let listings = [];
+    let wanted = [];
+
+    try {
+      const res = await fetch('/api/market/recent');
+      if (res.ok) {
+        const data = await res.json();
+        listings = data.listings ?? [];
+        wanted = data.wanted ?? [];
+      }
+    } catch {
+      /* fall through to static cards */
+    }
+
+    const { cards, showMore } = buildCards(listings, wanted);
+    grid.innerHTML = cards.join('');
+    if (more) more.classList.toggle('hidden', !showMore);
+  }
+
+  loadMarketNow();
+  document.addEventListener('astro:page-load', loadMarketNow);
+</script>
+
+<style>
+  .market-skeleton {
+    background-image: linear-gradient(
+      90deg,
+      var(--cream) 0%,
+      color-mix(in srgb, var(--cream) 70%, var(--line)) 50%,
+      var(--cream) 100%
+    );
+    background-size: 200% 100%;
+    animation: market-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes market-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .market-skeleton {
+      animation: none;
+    }
+  }
+</style>

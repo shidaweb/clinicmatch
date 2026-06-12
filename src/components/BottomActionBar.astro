@@ -4,8 +4,8 @@ import LineConsultButton from '~/components/LineConsultButton.astro';
 ---
 
 <nav
-  class="fixed bottom-0 inset-x-0 z-50 border-t border-line bg-ivory lg:hidden shadow-[0_-4px_18px_rgba(70,52,58,0.08)]"
-  aria-label="モバイルアクション"
+  class="fixed bottom-0 inset-x-0 z-50 border-t border-line bg-ivory hidden max-lg:block shadow-[0_-4px_18px_rgba(70,52,58,0.08)]"
+  aria-label="クイックメニュー"
 >
   <div class="grid grid-cols-4 text-xs">
     <a href="/cases?view=active" class="flex flex-col items-center gap-1 py-3 font-medium text-plum hover:text-rose-deep">
@@ -23,4 +23,4 @@ import LineConsultButton from '~/components/LineConsultButton.astro';
     </a>
   </div>
 </nav>
-<div class="h-16 lg:hidden" aria-hidden="true"></div>
+<div class="h-16 max-lg:block hidden" aria-hidden="true"></div>

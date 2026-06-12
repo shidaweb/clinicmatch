@@ -1,0 +1,73 @@
+---
+import Image from '~/components/common/Image.astro';
+import type { DoneCasePreview } from '~/lib/home-page';
+import { categoryIcon, formatTransactionMonth } from '~/lib/home-page';
+
+interface Props {
+  cases: DoneCasePreview[];
+  totalCount: number;
+}
+
+const { cases, totalCount } = Astro.props;
+const hasCases = cases.length > 0;
+---
+
+{
+  hasCases ? (
+    <aside class="rounded-card border border-line bg-ivory p-6 shadow-soft" aria-label="直近の成約事例">
+      <div class="mb-3 flex items-baseline justify-between gap-3">
+        <h2 class="font-heading text-base font-semibold text-plum">直近の成約</h2>
+        <span class="text-[11px] text-muted shrink-0">価格帯は守秘のため幅で表示</span>
+      </div>
+
+      <ul class="divide-y divide-dashed divide-line">
+        {cases.map((item) => (
+          <li class="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0">
+            <span
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blush text-lg"
+              aria-hidden="true"
+            >
+              {categoryIcon(item.category)}
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[13.5px] font-bold text-plum">
+                {item.manufacturer} {item.model}
+              </p>
+              <p class="text-[11.5px] text-muted">
+                {item.categoryLabel} ・ {formatTransactionMonth(item.transactionDate)}
+              </p>
+            </div>
+            <div class="shrink-0 text-right">
+              <p class="font-heading text-[15px] font-semibold text-rose-deep tabular-nums">
+                {item.priceRange}
+              </p>
+              <p class="text-[10.5px] text-muted">成約価格帯</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div class="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+        <a href="/cases?view=done" class="text-[13px] font-bold text-rose-deep hover:underline">
+          成約事例をすべて見る →
+        </a>
+        {totalCount > 0 && (
+          <span class="text-[10.5px] text-muted">直近{totalCount}件を掲載中</span>
+        )}
+      </div>
+    </aside>
+  ) : (
+    <div class="rounded-card border border-line bg-ivory p-4 shadow-soft">
+      <div class="overflow-hidden rounded-card border border-white/60">
+        <Image
+          src="~/assets/images/about-hero.png"
+          alt="美容医療機器の売買相談"
+          class="w-full h-auto object-cover"
+          width={540}
+          height={360}
+          loading="eager"
+        />
+      </div>
+    </div>
+  )
+}
