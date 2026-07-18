@@ -4,6 +4,7 @@ export const prerender = false;
 import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { PREFECTURES } from '~/lib/marketplace';
+import { MARKET_CATEGORIES } from '~/lib/categories';
 
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile) return Astro.redirect('/auth/login');
@@ -42,12 +43,9 @@ const metadata = { title: '買いたいを出す' };
     <div>
       <label class="cm-label">カテゴリ（必須）</label>
       <select name="category_slug" required class="cm-input">
-        <option value="hair-removal">脱毛</option>
-        <option value="pico-laser">ピコレーザー</option>
-        <option value="ipl">IPL・光治療</option>
-        <option value="hifu">HIFU</option>
-        <option value="rf">RF・高周波</option>
-        <option value="body">痩身・ボディ</option>
+        {MARKET_CATEGORIES.map((c) => (
+          <option value={c.slug}>{c.name}</option>
+        ))}
       </select>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">

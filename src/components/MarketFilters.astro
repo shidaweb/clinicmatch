@@ -1,6 +1,7 @@
 ---
 import { PREFECTURES } from '~/lib/marketplace';
 import { buildCasesUrl, type CasesFilterParams } from '~/lib/cases-page';
+import { MARKET_CATEGORIES } from '~/lib/categories';
 
 interface Props extends Partial<CasesFilterParams> {
   basePath?: string;
@@ -52,12 +53,9 @@ const buildUrl = (overrides: Partial<CasesFilterParams>) => {
     <label for="category" class="cm-label">カテゴリ</label>
     <select id="category" name="category" class="cm-input">
       <option value="">すべて</option>
-      <option value="hair-removal" selected={category === 'hair-removal'}>脱毛</option>
-      <option value="pico-laser" selected={category === 'pico-laser'}>ピコレーザー</option>
-      <option value="ipl" selected={category === 'ipl'}>IPL・光治療</option>
-      <option value="hifu" selected={category === 'hifu'}>HIFU</option>
-      <option value="rf" selected={category === 'rf'}>RF・高周波</option>
-      <option value="body" selected={category === 'body'}>痩身・ボディ</option>
+      {MARKET_CATEGORIES.map((c) => (
+        <option value={c.slug} selected={category === c.slug}>{c.name}</option>
+      ))}
     </select>
   </div>
 

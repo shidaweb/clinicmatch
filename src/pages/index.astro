@@ -14,6 +14,7 @@ import { homeFaqs } from '~/data/homeFaq';
 import { getPermalink } from '~/utils/permalinks';
 import { PREFECTURES } from '~/lib/marketplace';
 import { countDoneCasesWithPrice, selectRecentDoneCases } from '~/lib/home-page';
+import { MARKET_CATEGORIES } from '~/lib/categories';
 
 const metadata = {
   title: 'クリニックマッチ｜美容医療機器の中古売買マーケット',
@@ -24,13 +25,12 @@ const allCases = await getCollection('cases');
 const recentDoneCases = selectRecentDoneCases(allCases, 3);
 const doneCaseCount = countDoneCasesWithPrice(allCases);
 
-const categories = [
-  { slug: 'hair-removal', label: '脱毛', href: '/categories/hair-removal' },
-  { slug: 'pico-laser', label: 'ピコレーザー', href: '/categories/pico-laser' },
-  { slug: 'ipl', label: 'IPL', href: '/categories/ipl' },
-  { slug: 'hifu', label: 'HIFU', href: '/categories/hifu' },
-  { slug: 'rf', label: 'RF', href: '/categories/rf' },
-  { slug: 'body', label: '痩身', href: '/categories/body' },
+const categories: { slug: string; label: string; href: string; isNew?: boolean }[] = [
+  ...MARKET_CATEGORIES.map((c) => ({
+    slug: c.slug,
+    label: c.shortLabel,
+    href: `/categories/${c.slug}`,
+  })),
   {
     slug: 'consumables',
     label: '消耗品（チップ・カートリッジ等）',

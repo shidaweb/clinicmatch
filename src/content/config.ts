@@ -81,7 +81,8 @@ const casesCollection = defineCollection({
     title: z.string(),
     // slug は Astro が予約しておりスキーマに含めない（frontmatterの slug はそのまま使用可）
     category: z.enum([
-      'hair-removal', 'pico-laser', 'ipl', 'hifu', 'rf', 'body', 'others'
+      'hair-removal', 'pico-laser', 'yag', 'co2', 'ipl', 'hifu', 'rf', 'body',
+      'facial-care', 'diagnostics', 'others'
     ]),
     categoryLabel: z.string(),
     manufacturer: z.string(),

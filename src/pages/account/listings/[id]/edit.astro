@@ -5,6 +5,7 @@ import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { PREFECTURES, POST_STATUS_LABELS } from '~/lib/marketplace';
+import { MARKET_CATEGORIES } from '~/lib/categories';
 
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile) return Astro.redirect('/auth/login');
@@ -39,8 +40,8 @@ const metadata = { title: '出品を編集' };
     <div>
       <label class="cm-label">カテゴリ</label>
       <select name="category_slug" required class="cm-input">
-        {['hair-removal','pico-laser','ipl','hifu','rf','body'].map((slug) => (
-          <option value={slug} selected={listing.category_slug === slug}>{slug}</option>
+        {MARKET_CATEGORIES.map((c) => (
+          <option value={c.slug} selected={listing.category_slug === c.slug}>{c.name}</option>
         ))}
       </select>
     </div>
@@ -184,16 +185,18 @@ const metadata = { title: '出品を編集' };
 </AccountLayout>
 
 <script define:vars={{ listingId: listing.id }}>
-  type ConsumableMaster = { id: string; name: string };
+  // 注意: define:vars 付きスクリプトはインライン扱いで TypeScript が変換されない。
+  // TS構文（type / as / 型注釈）を書くとブラウザで SyntaxError になり
+  // ページ内のJSが全て動かなくなるため、必ずプレーンJSで書くこと。
   const form = document.getElementById('listing-form');
   const status = document.getElementById('listing-status');
-  const listingKindSelect = document.getElementById('listing-kind') as HTMLSelectElement | null;
-  const categorySelect = form?.querySelector('select[name="category_slug"]') as HTMLSelectElement | null;
-  const makerInput = document.getElementById('listing-maker') as HTMLInputElement | null;
-  const modelInput = document.getElementById('listing-model') as HTMLInputElement | null;
+  const listingKindSelect = document.getElementById('listing-kind');
+  const categorySelect = form?.querySelector('select[name="category_slug"]');
+  const makerInput = document.getElementById('listing-maker');
+  const modelInput = document.getElementById('listing-model');
   const consumableFields = document.getElementById('consumable-fields');
-  const masterSelect = document.getElementById('consumable-master-id') as HTMLSelectElement | null;
-  let masterItems: ConsumableMaster[] = [];
+  const masterSelect = document.getElementById('consumable-master-id');
+  let masterItems = [];
 
   const isConsumable = () => (listingKindSelect?.value ?? 'device') !== 'device';
   const syncConsumableVisibility = () => {
@@ -221,7 +224,7 @@ const metadata = { title: '出品を編集' };
     if (makerInput?.value.trim()) params.set('maker', makerInput.value.trim());
     if (modelInput?.value.trim()) params.set('model', modelInput.value.trim());
     const res = await fetch(`/api/consumables/master?${params.toString()}`);
-    const json = (await res.json().catch(() => ({ items: [] }))) as { items?: ConsumableMaster[] };
+    const json = await res.json().catch(() => ({ items: [] }));
     masterItems = json.items ?? [];
     renderMasterOptions();
   };
@@ -237,7 +240,7 @@ const metadata = { title: '出品を編集' };
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitter = e.submitter?.value ?? 'draft';
-    const fd = new FormData(form as HTMLFormElement);
+    const fd = new FormData(form);
     const data = Object.fromEntries(fd);
     data.negotiable = fd.has('negotiable');
     data.reuse_attestation = fd.has('reuse_attestation');

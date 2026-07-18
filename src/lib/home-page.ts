@@ -1,4 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
+import { categoryIconOf } from './categories';
 
 export type DoneCasePreview = {
   slug: string;
@@ -10,18 +11,8 @@ export type DoneCasePreview = {
   priceRange: string;
 };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  'hair-removal': '⚡',
-  'pico-laser': '✦',
-  ipl: '◎',
-  hifu: '▲',
-  rf: '◉',
-  body: '●',
-  others: '◆',
-};
-
 export function categoryIcon(category: string): string {
-  return CATEGORY_ICONS[category] ?? '◆';
+  return categoryIconOf(category);
 }
 
 export function formatTransactionMonth(ym: string): string {

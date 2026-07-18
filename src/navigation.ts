@@ -1,4 +1,5 @@
 import { getBlogPermalink } from './utils/permalinks';
+import { MARKET_CATEGORIES } from './lib/categories';
 
 export const headerData = {
   links: [
@@ -41,14 +42,10 @@ export const footerData = {
     },
     {
       title: '取扱機器',
-      links: [
-        { text: '脱毛機', href: '/categories/hair-removal' },
-        { text: 'ピコレーザー', href: '/categories/pico-laser' },
-        { text: 'IPL・光治療', href: '/categories/ipl' },
-        { text: 'HIFU', href: '/categories/hifu' },
-        { text: 'RF・高周波', href: '/categories/rf' },
-        { text: '痩身・ボディ', href: '/categories/body' },
-      ],
+      links: MARKET_CATEGORIES.map((c) => ({
+        text: c.slug === 'hair-removal' ? '脱毛機' : c.name,
+        href: `/categories/${c.slug}`,
+      })),
     },
     {
       title: 'お問い合わせ',

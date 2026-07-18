@@ -124,7 +124,10 @@ const avatarPlaceholder =
   </form>
 </AccountLayout>
 
-<script type="module">
+<!-- 注意: type="module" 等の属性を付けると Astro はこのスクリプトをインライン扱いにし、
+     TypeScript変換と ~/ import解決が行われずブラウザでエラーになる（ページのJSが全滅する）。
+     属性なしの <script> は Astro が処理し、モジュールとしてバンドルされる。 -->
+<script>
   import { createSupabaseBrowserClient } from '~/lib/supabase/client';
 
   const form = document.getElementById('settings-form') as HTMLFormElement;

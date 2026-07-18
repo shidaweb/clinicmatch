@@ -10,10 +10,14 @@ const CATEGORY_OPTIONS = [
   { value: '', label: '選択してください' },
   { value: 'hair-removal', label: '脱毛' },
   { value: 'pico', label: 'ピコ' },
+  { value: 'yag', label: 'YAG・Qスイッチ' },
+  { value: 'co2', label: 'CO2レーザー' },
   { value: 'ipl', label: 'IPL' },
   { value: 'hifu', label: 'HIFU' },
   { value: 'rf', label: 'RF' },
   { value: 'body', label: '痩身' },
+  { value: 'facial-care', label: 'ピーリング・導入' },
+  { value: 'diagnostics', label: '診断・測定' },
   { value: 'others', label: 'その他' },
 ];
 

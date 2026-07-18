@@ -318,8 +318,21 @@ export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
     await admin.storage.from('listing-images').remove(storagePaths);
   }
 
-  const { error: deleteError } = await supabase.from('listings').delete().eq('id', listingId);
+  // 注意: listings テーブルには delete の RLS ポリシーがなく、ユーザークライアントで
+  // delete すると「0行削除」のまま成功扱いになり、一覧に復活して見えるバグがあった。
+  // 所有権・ステータスは上で検証済みのため、削除は admin クライアントで確実に実行し、
+  // 実際に削除された行数を検証する。
+  const { data: deletedRows, error: deleteError } = await admin
+    .from('listings')
+    .delete()
+    .eq('id', listingId)
+    .eq('seller_org_id', profile.org_id)
+    .neq('status', 'published')
+    .select('id');
   if (deleteError) return json({ error: deleteError.message }, 400);
+  if (!deletedRows || deletedRows.length === 0) {
+    return json({ error: '削除できませんでした。時間をおいて再度お試しください。' }, 409);
+  }
 
   return json({ success: true, id: listingId });
 };

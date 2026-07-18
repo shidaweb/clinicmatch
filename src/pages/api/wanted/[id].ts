@@ -196,8 +196,21 @@ export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
     await admin.storage.from('wanted-images').remove([existing.reference_image_path]);
   }
 
-  const { error } = await supabase.from('wanted_requests').delete().eq('id', id);
+  // 注意: wanted_requests テーブルには delete の RLS ポリシーがなく、ユーザークライアントで
+  // delete すると「0行削除」のまま成功扱いになり、一覧に復活して見えるバグがあった。
+  // 所有権・ステータスは上で検証済みのため、削除は admin クライアントで確実に実行し、
+  // 実際に削除された行数を検証する。
+  const { data: deletedRows, error } = await admin
+    .from('wanted_requests')
+    .delete()
+    .eq('id', id)
+    .eq('buyer_org_id', profile.org_id)
+    .neq('status', 'published')
+    .select('id');
   if (error) return json({ error: error.message }, 400);
+  if (!deletedRows || deletedRows.length === 0) {
+    return json({ error: '削除できませんでした。時間をおいて再度お試しください。' }, 409);
+  }
 
   return json({ success: true, id });
 };
