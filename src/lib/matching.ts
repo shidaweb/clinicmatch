@@ -31,7 +31,7 @@ export function matchListingsForWanted(
       }
       if (wanted.model && listing.model.toLowerCase().includes(wanted.model.toLowerCase())) {
         score += 25;
-        reasons.push('型番一致');
+        reasons.push('機種名一致');
       }
       if (wanted.budget && listing.asking_price && listing.asking_price <= wanted.budget) {
         score += 20;
@@ -72,7 +72,7 @@ export function matchWantedForListing(
       }
       if (wanted.model && listing.model.toLowerCase().includes(wanted.model.toLowerCase())) {
         score += 25;
-        reasons.push('型番一致');
+        reasons.push('機種名一致');
       }
       if (wanted.budget && listing.asking_price && listing.asking_price <= wanted.budget) {
         score += 20;

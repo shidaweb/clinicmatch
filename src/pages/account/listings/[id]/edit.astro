@@ -51,7 +51,7 @@ const metadata = { title: '出品を編集' };
         <input id="listing-maker" name="maker" required value={listing.maker} class="cm-input" />
       </div>
       <div>
-        <label class="cm-label">型番</label>
+        <label class="cm-label">機種名</label>
         <input id="listing-model" name="model" required value={listing.model} class="cm-input" />
       </div>
     </div>
@@ -67,7 +67,7 @@ const metadata = { title: '出品を編集' };
       <div>
         <label class="cm-label">消耗品マスタ</label>
         <select id="consumable-master-id" name="consumable_master_id" class="cm-input" data-initial={listing.consumable_master_id ?? ''}>
-          <option value="">メーカー・型番に紐づく品目を選択</option>
+          <option value="">メーカー・機種名に紐づく品目を選択</option>
         </select>
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
@@ -207,7 +207,7 @@ const metadata = { title: '出品を編集' };
   const renderMasterOptions = () => {
     if (!masterSelect) return;
     const selected = masterSelect.value || masterSelect.dataset.initial || '';
-    masterSelect.innerHTML = '<option value="">メーカー・型番に紐づく品目を選択</option>';
+    masterSelect.innerHTML = '<option value="">メーカー・機種名に紐づく品目を選択</option>';
     for (const item of masterItems) {
       const option = document.createElement('option');
       option.value = item.id;

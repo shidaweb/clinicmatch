@@ -86,7 +86,7 @@ export default function SellForm() {
   const validateStep1 = () => {
     const e: Record<string, string> = {};
     if (!data.category) e.category = 'カテゴリを選択してください';
-    if (!data.machineName.trim()) e.machineName = '機器名・メーカー・型番を入力してください';
+    if (!data.machineName.trim()) e.machineName = '機種名・メーカーを入力してください';
     if (!data.manufacturedYear) e.manufacturedYear = '製造年を選択してください';
     if (!data.manufacturedMonth) e.manufacturedMonth = '製造月を選択してください';
     setErrors(e);
@@ -173,7 +173,7 @@ export default function SellForm() {
           </div>
           <div>
             <label htmlFor="sell-machineName" className={labelClass}>
-              機器名・メーカー・型番 <span style={{ color: REQUIRED }}>*</span>
+              機種名・メーカー <span style={{ color: REQUIRED }}>*</span>
             </label>
             <input
               id="sell-machineName"

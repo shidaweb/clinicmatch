@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   };
 
   if (!payload.category_slug || !payload.maker || !payload.model) {
-    return json({ error: 'カテゴリ・メーカー・型番は必須です' }, 400);
+    return json({ error: 'カテゴリ・メーカー・機種名は必須です' }, 400);
   }
   if (
     payload.remaining_shots != null &&

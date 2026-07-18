@@ -198,7 +198,7 @@ if (mode === 'static' && staticData) {
 const staticSpecItems = staticData
   ? [
       { label: 'メーカー', value: staticData.manufacturer },
-      { label: '型番', value: staticData.model },
+      { label: '機種名', value: staticData.model },
       { label: '製造年月', value: formatDateYMD(staticData.manufacturedDate) },
       { label: '保守状態', value: staticData.maintenanceContract },
       { label: '使用状況', value: staticData.usage },
@@ -469,7 +469,7 @@ const staticSpecItems = staticData
               <dd class="mt-0.5 font-medium text-plum">{listing.maker}</dd>
             </div>
             <div>
-              <dt class="text-plum-soft text-xs">型番</dt>
+              <dt class="text-plum-soft text-xs">機種名</dt>
               <dd class="mt-0.5 font-medium text-plum">{listing.model}</dd>
             </div>
             <div>
@@ -703,7 +703,7 @@ const staticSpecItems = staticData
     <section class="py-12 bg-ivory border-t border-line">
       <div class="max-w-3xl mx-auto px-4">
         <h2 class="font-heading text-xl font-bold text-plum mb-3">この機器の購入・売却をご検討の方</h2>
-        <p class="text-plum-soft mb-6 text-sm">写真・型番だけでも相談OK。匿名でもご利用いただけます。</p>
+        <p class="text-plum-soft mb-6 text-sm">写真・機種名だけでも相談OK。匿名でもご利用いただけます。</p>
         <div class="flex flex-wrap gap-3">
           <Button href={getPermalink('contact/sell')} variant="primary">売却を相談する</Button>
           <Button href={getPermalink('contact/buy')} variant="secondary">購入を相談する</Button>
