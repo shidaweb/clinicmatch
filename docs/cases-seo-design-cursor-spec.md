@@ -33,7 +33,7 @@
 `mode === 'static'` のメタ生成で以下を必ず満たす：
 
 - **title**：`staticData.title`（frontmatterのリッチな見出し）。
-- **description**：カテゴリ・メーカー・型番・製造年・状態・保守・価格帯から自動生成し、約155字に丸める。例の実装：
+- **description**：カテゴリ・メーカー・機種名・製造年・状態・保守・価格帯から自動生成し、約155字に丸める。例の実装：
   ```ts
   const rawDesc =
     `${sd.categoryLabel}の中古取引事例。${sd.manufacturer} ${sd.model}（${formatDateYMD(sd.manufacturedDate)}製・${sd.status}）。` +
@@ -50,8 +50,8 @@
 - **見出し階層**：`h1` は1つ（事例タイトル）。本文は h2 以降。レベルを飛ばさない。
 
 ### 2.2 デザイン（実装済み・維持すること）
-- **ヒーロー帯**（`bg-blush`）：成約事例タグ＋**カテゴリチップ（`/categories/<category>` へリンク）**、明朝H1、`メーカー / 型番`、製造・取引時期・価格帯を明朝・`tabular-nums` で並べる。
-- **機器の概要**：`cm-card` のスペックグリッド（メーカー/型番/製造年月/保守/使用状況/取引時期/価格帯）。
+- **ヒーロー帯**（`bg-blush`）：成約事例タグ＋**カテゴリチップ（`/categories/<category>` へリンク）**、明朝H1、`メーカー / 機種名`、製造・取引時期・価格帯を明朝・`tabular-nums` で並べる。
+- **機器の概要**：`cm-card` のスペックグリッド（メーカー/機種名/製造年月/保守/使用状況/取引時期/価格帯）。
 - **本文**：`.cases-prose`（`@tailwindcss/typography`＋見出しに左ローズ罫、strongはローズ）。
 - **関連の取引事例**：同カテゴリ優先で最大3件をカードでリンク（内部リンク強化）。
 - 末尾に売却/購入/相談のCTA。
@@ -63,7 +63,7 @@
 - 現在 frontmatter の `images`（`/images/cases/...`）は**実ファイルが無い**。`<img>` を出すと404になるため**描画しない**のが現状の正解。
 - 画像を追加する場合：
   1. `public/images/cases/<slug>/` に webp を配置。
-  2. ヒーローに `<img>` を**実在時のみ**描画（`alt` は「メーカー 型番」）。
+  2. ヒーローに `<img>` を**実在時のみ**描画（`alt` は「メーカー 機種名」）。
   3. `metadata.openGraph.images` に**絶対URL**で cover 画像を設定（SNS/検索のサムネ向上）。
 
 ---
