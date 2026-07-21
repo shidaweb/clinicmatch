@@ -12,6 +12,8 @@ import { createSupabaseServerClient } from '~/lib/supabase/server';
 import {
   CLINICAL_USE_LABELS,
   LISTING_KIND_LABELS,
+  MAINTENANCE_LABELS,
+  TRANSFER_LABELS,
   anonymousOrgLabel,
   formatLocation,
   formatPriceYen,
@@ -500,11 +502,11 @@ const staticSpecItems = staticData
             <dl class="cm-card p-5 text-sm space-y-4">
               <div>
                 <dt class="text-plum-soft text-xs">メーカー保守</dt>
-                <dd class="mt-0.5 font-medium">{listing.maker_maintenance ? '加入中' : '未加入・不明'}</dd>
+                <dd class="mt-0.5 font-medium">{MAINTENANCE_LABELS[listing.maker_maintenance ?? 'unknown'] ?? '不明'}</dd>
               </div>
               <div>
                 <dt class="text-plum-soft text-xs">保守譲渡</dt>
-                <dd class="mt-0.5 font-medium">{listing.maintenance_transferable ? '可' : '要確認'}</dd>
+                <dd class="mt-0.5 font-medium">{TRANSFER_LABELS[listing.maintenance_transferable ?? 'unknown'] ?? '要確認'}</dd>
               </div>
             </dl>
             <dl class="cm-card p-5 text-sm space-y-4">
