@@ -3,7 +3,7 @@ export const prerender = false;
 
 import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
-import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
 import { PREFECTURES, POST_STATUS_LABELS } from '~/lib/marketplace';
 import { MARKET_CATEGORIES } from '~/lib/categories';
 
@@ -17,11 +17,20 @@ const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never
 const { data: listing } = await supabase
   .from('listings')
   .select('*, listing_images(id, storage_path, is_cover, sort_order)')
+  .is('listing_images.archived_at', null)
   .eq('id', id)
   .eq('seller_org_id', profile.org_id)
   .single();
 
-if (!listing) return Astro.redirect('/account/listings');
+if (!listing || listing.archived_at || !['draft', 'rejected'].includes(listing.status))
+  return Astro.redirect('/account/listings');
+const admin = createSupabaseAdminClient(Astro.locals as never);
+const { data: archivedImages, error: archivedError } = await admin
+  .from('listing_images')
+  .select('id,storage_path')
+  .eq('listing_id', id)
+  .not('archived_at', 'is', null)
+  .order('archived_at', { ascending: false });
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const metadata = { title: '出品を編集' };
@@ -40,9 +49,13 @@ const metadata = { title: '出品を編集' };
     <div>
       <label class="cm-label">カテゴリ</label>
       <select name="category_slug" required class="cm-input">
-        {MARKET_CATEGORIES.map((c) => (
-          <option value={c.slug} selected={listing.category_slug === c.slug}>{c.name}</option>
-        ))}
+        {
+          MARKET_CATEGORIES.map((c) => (
+            <option value={c.slug} selected={listing.category_slug === c.slug}>
+              {c.name}
+            </option>
+          ))
+        }
       </select>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -59,14 +72,28 @@ const metadata = { title: '出品を編集' };
       <label class="cm-label">出品種別</label>
       <select id="listing-kind" name="listing_kind" class="cm-input">
         <option value="device" selected={listing.listing_kind === 'device'}>機器本体</option>
-        <option value="consumable_valid" selected={listing.listing_kind === 'consumable_valid'}>消耗品（期限内）</option>
-        <option value="consumable_expired" selected={listing.listing_kind === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
+        <option value="consumable_valid" selected={listing.listing_kind === 'consumable_valid'}>消耗品（期限内）</option
+        >
+        <option value="consumable_expired" selected={listing.listing_kind === 'consumable_expired'}
+          >消耗品（期限切れ・研修用）</option
+        >
       </select>
     </div>
-    <section id="consumable-fields" class:list={['rounded-card border border-line bg-cream p-4 space-y-4', listing.listing_kind === 'device' && 'hidden']}>
+    <section
+      id="consumable-fields"
+      class:list={[
+        'rounded-card border border-line bg-cream p-4 space-y-4',
+        listing.listing_kind === 'device' && 'hidden',
+      ]}
+    >
       <div>
         <label class="cm-label">消耗品マスタ</label>
-        <select id="consumable-master-id" name="consumable_master_id" class="cm-input" data-initial={listing.consumable_master_id ?? ''}>
+        <select
+          id="consumable-master-id"
+          name="consumable_master_id"
+          class="cm-input"
+          data-initial={listing.consumable_master_id ?? ''}
+        >
           <option value="">メーカー・機種名に紐づく品目を選択</option>
         </select>
       </div>
@@ -131,9 +158,13 @@ const metadata = { title: '出品を編集' };
       <div>
         <label class="cm-label">都道府県</label>
         <select name="location_prefecture" required class="cm-input">
-          {PREFECTURES.map((pref) => (
-            <option value={pref} selected={pref === listing.location_prefecture}>{pref}</option>
-          ))}
+          {
+            PREFECTURES.map((pref) => (
+              <option value={pref} selected={pref === listing.location_prefecture}>
+                {pref}
+              </option>
+            ))
+          }
         </select>
       </div>
       <div>
@@ -146,7 +177,12 @@ const metadata = { title: '出品を編集' };
       <textarea name="description" rows="4" class="cm-input">{listing.description ?? ''}</textarea>
     </div>
     <div class="flex gap-3">
-      <button type="submit" name="action" value="draft" class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button>
+      <button
+        type="submit"
+        name="action"
+        value="draft"
+        class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button
+      >
       <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
     </div>
     <p id="listing-status" class="text-sm text-plum-soft hidden"></p>
@@ -155,26 +191,67 @@ const metadata = { title: '出品を編集' };
   <div class="mt-8 cm-card p-6">
     <h2 class="font-heading font-semibold text-plum mb-4">画像</h2>
     <div id="existing-images" class="grid grid-cols-3 gap-3 mb-4">
-      {(listing.listing_images ?? []).map((img: { id: string; storage_path: string; is_cover: boolean }) => (
-        supabaseUrl && (
-          <div class="relative rounded-2xl overflow-hidden border border-line bg-cream">
-            <img
-              src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
-              alt=""
-              class="h-24 w-full object-cover"
-            />
-            {img.is_cover && (
-              <span class="absolute left-1 top-1 rounded-pill bg-rose px-2 py-0.5 text-[10px] text-white">表紙</span>
-            )}
-            <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-plum/75 p-1 text-[10px] text-white">
-              <button type="button" data-role="cover" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">表紙</button>
-              <button type="button" data-role="left" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">←</button>
-              <button type="button" data-role="right" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">→</button>
-              <button type="button" data-role="delete" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">削除</button>
-            </div>
-          </div>
+      {
+        (listing.listing_images ?? []).map(
+          (img: { id: string; storage_path: string; is_cover: boolean }) =>
+            supabaseUrl && (
+              <div class="relative rounded-2xl overflow-hidden border border-line bg-cream">
+                <img
+                  src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
+                  alt=""
+                  class="h-24 w-full object-cover"
+                />
+                {img.is_cover && (
+                  <span class="absolute left-1 top-1 rounded-pill bg-rose px-2 py-0.5 text-[10px] text-white">
+                    表紙
+                  </span>
+                )}
+                <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-plum/75 p-1 text-[10px] text-white">
+                  <button type="button" data-role="cover" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">
+                    表紙
+                  </button>
+                  <button type="button" data-role="left" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">
+                    ←
+                  </button>
+                  <button type="button" data-role="right" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">
+                    →
+                  </button>
+                  <button type="button" data-role="delete" data-id={img.id} class="rounded bg-white/20 px-1.5 py-0.5">
+                    一覧から外す
+                  </button>
+                </div>
+              </div>
+            )
         )
-      ))}
+      }
+      {
+        archivedError && (
+          <p role="alert" class="col-span-3 text-danger">
+            保管画像を取得できませんでした。
+          </p>
+        )
+      }
+      {
+        !!archivedImages?.length && (
+          <details class="col-span-3 mt-3">
+            <summary class="cursor-pointer cm-link">一覧から外した画像（{archivedImages.length}枚）</summary>
+            <div class="grid grid-cols-3 gap-3 mt-3">
+              {archivedImages.map((img) => (
+                <div class="border border-line rounded-xl p-2">
+                  <img
+                    src={`${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}`}
+                    alt="保管中の出品画像"
+                    class="h-24 w-full object-cover"
+                  />
+                  <button type="button" data-role="restore" data-id={img.id} class="cm-link text-sm mt-2">
+                    一覧へ戻す
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
+        )
+      }
     </div>
     <form id="image-form" class="flex gap-3 items-end">
       <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required class="text-sm text-plum" />
@@ -263,20 +340,26 @@ const metadata = { title: '出品を編集' };
   const imageForm = document.getElementById('image-form');
   const imageStatus = document.getElementById('image-status');
   const imageGrid = document.getElementById('existing-images');
-  const imageOrder = Array.from(imageGrid?.querySelectorAll('button[data-id]') ?? [])
+  const imageOrder = Array.from(imageGrid?.querySelectorAll('button[data-role="cover"][data-id]') ?? [])
     .map((button) => button.getAttribute('data-id'))
     .filter((id) => !!id);
 
-  const updateOrder = async () => {
-    await fetch(`/api/listings/${listingId}/images`, {
+  const updateOrder = async (order) => {
+    await requestImageAction(`/api/listings/${listingId}/images`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order: imageOrder }),
+      body: JSON.stringify({ order }),
     });
   };
 
+  const actionKeys = new Map();
   const requestImageAction = async (path, options = {}) => {
-    const res = await fetch(path, options);
+    const signature = path + (options.method ?? '') + (options.body ?? '');
+    if (!actionKeys.has(signature)) actionKeys.set(signature, crypto.randomUUID());
+    const res = await fetch(path, {
+      ...options,
+      headers: { ...options.headers, 'Idempotency-Key': actionKeys.get(signature) },
+    });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json.error ?? '画像操作に失敗しました');
     return json;
@@ -293,6 +376,11 @@ const metadata = { title: '出品を編集' };
       imageStatus.classList.remove('hidden');
       imageStatus.textContent = '更新中…';
 
+      if (role === 'restore') {
+        await requestImageAction(`/api/listings/${listingId}/images/${imageId}`, { method: 'PATCH' });
+        window.location.reload();
+        return;
+      }
       if (role === 'delete') {
         await requestImageAction(`/api/listings/${listingId}/images/${imageId}`, { method: 'DELETE' });
         window.location.reload();
@@ -312,22 +400,40 @@ const metadata = { title: '出品を編集' };
       if (index < 0) return;
       const target = role === 'left' ? index - 1 : index + 1;
       if (target < 0 || target >= imageOrder.length) return;
-      [imageOrder[index], imageOrder[target]] = [imageOrder[target], imageOrder[index]];
-      await updateOrder();
+      const nextOrder = [...imageOrder];
+      [nextOrder[index], nextOrder[target]] = [nextOrder[target], nextOrder[index]];
+      await updateOrder(nextOrder);
       window.location.reload();
     } catch (error) {
       imageStatus.textContent = error instanceof Error ? error.message : '失敗しました';
     }
   });
 
+  let imageKey = crypto.randomUUID();
+  let imageSaving = false;
+  imageForm?.addEventListener('change', () => {
+    imageKey = crypto.randomUUID();
+  });
   imageForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (imageSaving) return;
+    imageSaving = true;
     imageStatus.classList.remove('hidden');
     imageStatus.textContent = 'アップロード中…';
-    const fd = new FormData(imageForm);
-    const res = await fetch(`/api/listings/${listingId}`, { method: 'POST', body: fd });
-    const json = await res.json();
-    if (res.ok) window.location.reload();
-    else imageStatus.textContent = json.error ?? '失敗しました';
+    try {
+      const fd = new FormData(imageForm);
+      const res = await fetch(`/api/listings/${listingId}`, {
+        method: 'POST',
+        headers: { 'Idempotency-Key': imageKey },
+        body: fd,
+      });
+      const json = await res.json();
+      if (res.ok) window.location.reload();
+      else imageStatus.textContent = json.error ?? '失敗しました';
+    } catch {
+      imageStatus.textContent = '通信に失敗しました。同じ画像で再試行できます。';
+    } finally {
+      imageSaving = false;
+    }
   });
 </script>

@@ -21,25 +21,25 @@ const metadata = { title: 'アプローチ管理' };
 
 <AdminLayout metadata={metadata} title="アプローチ管理" maxWidth="5xl">
   <ul class="space-y-4">
-    {(approaches ?? []).map((a) => (
-      <li class="cm-list-item">
-        <div class="flex flex-wrap justify-between gap-3 mb-2">
-          <span class="text-sm font-medium text-plum">{kindLabels[a.kind] ?? a.kind}</span>
-          <span class="text-xs text-plum-soft">{a.status}</span>
-        </div>
-        {a.message && <p class="text-sm text-plum-soft mb-3">{a.message}</p>}
-        {
-          a.status === 'new' && (
-            <button
-              class="start-mediation-btn cm-btn-primary text-sm !px-4 !py-2"
-              data-approach-id={a.id}
-            >
+    {
+      (approaches ?? []).map((a) => (
+        <li class="cm-list-item">
+          <a class="cm-link" href={`/admin/crm/approaches/${a.id}`}>
+            相手・条件・対応予定を確認
+          </a>
+          <div class="flex flex-wrap justify-between gap-3 mb-2">
+            <span class="text-sm font-medium text-plum">{kindLabels[a.kind] ?? a.kind}</span>
+            <span class="text-xs text-plum-soft">{a.status}</span>
+          </div>
+          {a.message && <p class="text-sm text-plum-soft mb-3">{a.message}</p>}
+          {a.status === 'new' && (
+            <button class="start-mediation-btn cm-btn-primary text-sm !px-4 !py-2" data-approach-id={a.id}>
               仲介スレッドを開始
             </button>
-          )
-        }
-      </li>
-    ))}
+          )}
+        </li>
+      ))
+    }
   </ul>
 </AdminLayout>
 

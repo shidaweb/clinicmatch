@@ -1,4 +1,6 @@
 import type { APIRoute } from 'astro';
+import { readObject } from '~/lib/http';
+import { uploadPostImage } from '~/lib/post-media';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
 import { notifyListingSubmission } from '~/lib/emails/notify-submission';
@@ -19,10 +21,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-function buildListingPatchPayload(
-  body: Record<string, unknown>,
-  org: { prefecture?: string; city?: string } | null
-) {
+function buildListingPatchPayload(body: Record<string, unknown>, org: { prefecture?: string; city?: string } | null) {
   const payload: Record<string, unknown> = {};
 
   if ('category_slug' in body) payload.category_slug = String(body.category_slug ?? '');
@@ -81,9 +80,30 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   const id = params.id;
   if (!id) return json({ error: 'IDが必要です' }, 400);
 
-  const body = (await request.json()) as Record<string, unknown>;
+  const body = await readObject(request);
+  if (!body) return json({ error: '入力内容の形式が不正です' }, 400);
+  if (body.restore === true) {
+    const admin = createSupabaseAdminClient(locals as never);
+    const { data, error } = await admin
+      .from('listings')
+      .update({ archived_at: null })
+      .eq('id', params.id!)
+      .eq('seller_org_id', profile.org_id)
+      .in('status', ['draft', 'rejected'])
+      .not('archived_at', 'is', null)
+      .select('id');
+    return error || !data?.length ? json({ error: '復元できませんでした' }, 409) : json({ success: true });
+  }
   const org = profile.organizations as { prefecture?: string; city?: string; verified_at?: string | null } | null;
   const payload = buildListingPatchPayload(body, org);
+  for (const key of ['asking_price', 'budget', 'manufacture_year', 'quantity']) {
+    if (
+      key in payload &&
+      payload[key] != null &&
+      (!Number.isFinite(Number(payload[key])) || Number(payload[key]) < 0 || !Number.isInteger(Number(payload[key])))
+    )
+      return json({ error: '価格・数量は0以上の整数で入力してください' }, 400);
+  }
   if (Object.keys(payload).length === 0) return json({ error: '更新する項目がありません' }, 400);
   if ('remaining_shots' in payload) {
     const shots = payload.remaining_shots as number | null;
@@ -106,24 +126,39 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
       'id, status, seller_org_id, category_slug, maker, model, listing_kind, consumable_master_id, open_state, expiry_date, remaining_shots'
     )
     .eq('id', id)
+    .is('archived_at', null)
     .single();
 
   if (!existing || existing.seller_org_id !== profile.org_id) {
     return json({ error: '出品が見つかりません' }, 404);
   }
-  if (existing.status === 'published') {
-    return json({ error: '公開中の出品は編集できません。運営にお問い合わせください。' }, 400);
+  if (!['draft', 'rejected'].includes(existing.status)) {
+    return json({ error: '審査中・公開中・取引中の出品は編集できません。運営にお問い合わせください。' }, 400);
   }
 
   const submit = body.submit === true || body.submit === 'true';
   const mergedListingKind = parseListingKind(payload.listing_kind ?? existing.listing_kind);
-  const mergedMasterId = String(payload.consumable_master_id ?? existing.consumable_master_id ?? '');
-  const mergedOpenState = (payload.open_state ?? existing.open_state) as 'sealed' | 'opened' | 'used' | null;
-  const mergedExpiry = (payload.expiry_date ?? existing.expiry_date) as string | null;
-  const mergedShots = (payload.remaining_shots ?? existing.remaining_shots) as number | null;
+  const mergedMasterId = String(
+    (Object.hasOwn(payload, 'consumable_master_id') ? payload.consumable_master_id : existing.consumable_master_id) ??
+      ''
+  );
+  const mergedOpenState = (Object.hasOwn(payload, 'open_state') ? payload.open_state : existing.open_state) as
+    | 'sealed'
+    | 'opened'
+    | 'used'
+    | null;
+  const mergedExpiry = (Object.hasOwn(payload, 'expiry_date') ? payload.expiry_date : existing.expiry_date) as
+    | string
+    | null;
+  const mergedShots = (
+    Object.hasOwn(payload, 'remaining_shots') ? payload.remaining_shots : existing.remaining_shots
+  ) as number | null;
   const mergedMaker = String(payload.maker ?? existing.maker ?? '');
   const mergedModel = String(payload.model ?? existing.model ?? '');
   const mergedCategory = String(payload.category_slug ?? existing.category_slug ?? '');
+
+  if (!mergedMaker.trim() || !mergedModel.trim() || !mergedCategory)
+    return json({ error: 'カテゴリ・メーカー・機種名は必須です' }, 400);
 
   if (mergedListingKind !== 'device' && submit && !org?.verified_at) {
     return json({ error: '消耗品を審査提出するには法人確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
@@ -191,8 +226,16 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
     payload.compliance_note = null;
   }
 
-  const { error } = await supabase.from('listings').update(payload).eq('id', id);
+  const { data: updated, error } = await supabase
+    .from('listings')
+    .update(payload)
+    .eq('id', id)
+    .eq('status', existing.status)
+    .is('archived_at', null)
+    .select('id');
   if (error) return json({ error: error.message }, 400);
+
+  if (!updated?.length) return json({ error: '状態が変更されました。再読み込みしてください' }, 409);
 
   if (payload.status === 'pending_review' && existing.status !== 'pending_review') {
     const admin = createSupabaseAdminClient(locals as never);
@@ -208,131 +251,21 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   return json({ success: true, id });
 };
 
-export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
-  const profile = await getProfile(cookies, locals as never);
-  if (!profile) return json({ error: 'ログインが必要です' }, 401);
-
-  const listingId = params.id;
-  if (!listingId) return json({ error: 'IDが必要です' }, 400);
-
-  const supabase = createSupabaseServerClient(cookies, locals as never);
-  const { data: listing } = await supabase
-    .from('listings')
-    .select('id, seller_org_id, status')
-    .eq('id', listingId)
-    .single();
-
-  if (!listing || listing.seller_org_id !== profile.org_id) {
-    return json({ error: '出品が見つかりません' }, 404);
-  }
-  if (listing.status === 'published') {
-    return json({ error: '公開中の出品には画像を追加できません。運営にお問い合わせください。' }, 400);
-  }
-
-  const formData = await request.formData();
-  const file = formData.get('file');
-  if (!(file instanceof File) || !file.size) {
-    return json({ error: '画像ファイルが必要です' }, 400);
-  }
-  if (file.size > 8 * 1024 * 1024) {
-    return json({ error: '画像サイズは8MB以下にしてください' }, 400);
-  }
-
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const allowed = ['jpg', 'jpeg', 'png', 'webp'];
-  if (!allowed.includes(ext)) return json({ error: 'JPEG/PNG/WebP のみ対応しています' }, 400);
-
-  const storagePath = `${listingId}/${Date.now()}.${ext}`;
-  const buffer = new Uint8Array(await file.arrayBuffer());
-
-  const admin = createSupabaseAdminClient(locals as never);
-  const { error: uploadError } = await admin.storage
-    .from('listing-images')
-    .upload(storagePath, buffer, { contentType: file.type, upsert: false });
-
-  if (uploadError) return json({ error: uploadError.message }, 400);
-
-  const { count } = await supabase
-    .from('listing_images')
-    .select('*', { count: 'exact', head: true })
-    .eq('listing_id', listingId);
-
-  if ((count ?? 0) >= 10) {
-    return json({ error: '画像は最大10枚までです' }, 400);
-  }
-
-  const isCover = (count ?? 0) === 0;
-
-  const { data: imageRow, error: dbError } = await supabase
-    .from('listing_images')
-    .insert({
-      listing_id: listingId,
-      storage_path: storagePath,
-      sort_order: count ?? 0,
-      is_cover: isCover,
-    })
-    .select('id, storage_path, is_cover')
-    .single();
-
-  if (dbError) {
-    await admin.storage.from('listing-images').remove([storagePath]);
-    return json({ error: dbError.message }, 400);
-  }
-
-  return json({ success: true, image: imageRow });
-};
+export const POST: APIRoute = uploadPostImage('listings');
 
 export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
   const profile = await getProfile(cookies, locals as never);
   if (!profile) return json({ error: 'ログインが必要です' }, 401);
-
-  const listingId = params.id;
-  if (!listingId) return json({ error: 'IDが必要です' }, 400);
-
-  const supabase = createSupabaseServerClient(cookies, locals as never);
   const admin = createSupabaseAdminClient(locals as never);
-
-  const { data: listing } = await supabase
+  const { data, error } = await admin
     .from('listings')
-    .select('id, seller_org_id, status')
-    .eq('id', listingId)
-    .single();
-
-  if (!listing || listing.seller_org_id !== profile.org_id) {
-    return json({ error: '出品が見つかりません' }, 404);
-  }
-  if (listing.status === 'published') {
-    return json({ error: '公開中の出品は削除できません。運営にお問い合わせください。' }, 400);
-  }
-
-  const { data: images, error: imageError } = await supabase
-    .from('listing_images')
-    .select('storage_path')
-    .eq('listing_id', listingId);
-  if (imageError) return json({ error: imageError.message }, 400);
-
-  const storagePaths = (images ?? [])
-    .map((img) => img.storage_path)
-    .filter((path): path is string => Boolean(path));
-  if (storagePaths.length > 0) {
-    await admin.storage.from('listing-images').remove(storagePaths);
-  }
-
-  // 注意: listings テーブルには delete の RLS ポリシーがなく、ユーザークライアントで
-  // delete すると「0行削除」のまま成功扱いになり、一覧に復活して見えるバグがあった。
-  // 所有権・ステータスは上で検証済みのため、削除は admin クライアントで確実に実行し、
-  // 実際に削除された行数を検証する。
-  const { data: deletedRows, error: deleteError } = await admin
-    .from('listings')
-    .delete()
-    .eq('id', listingId)
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', params.id!)
     .eq('seller_org_id', profile.org_id)
-    .neq('status', 'published')
+    .in('status', ['draft', 'rejected'])
+    .is('archived_at', null)
     .select('id');
-  if (deleteError) return json({ error: deleteError.message }, 400);
-  if (!deletedRows || deletedRows.length === 0) {
-    return json({ error: '削除できませんでした。時間をおいて再度お試しください。' }, 409);
-  }
-
-  return json({ success: true, id: listingId });
+  if (error) return json({ error: '保管できませんでした。投稿は削除していません。' }, 503);
+  if (!data?.length) return json({ error: '下書き・差し戻しの投稿のみ保管できます。' }, 409);
+  return json({ success: true, id: params.id });
 };

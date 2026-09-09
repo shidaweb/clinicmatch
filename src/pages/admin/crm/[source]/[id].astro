@@ -1,0 +1,330 @@
+---
+export const prerender = false;
+import AdminLayout from '~/layouts/AdminLayout.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+import {
+  loadCrm,
+  resolveMemberContacts,
+  SOURCE_LABELS,
+  CRM_STATUSES,
+  ACTIVITY_LABELS,
+  formatDate,
+  str,
+} from '~/lib/crm';
+import type { Row } from '~/lib/crm';
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/auth/login');
+const admin = createSupabaseAdminClient(Astro.locals as never);
+const data = await loadCrm(admin);
+const item = data.items.find((i) => i.source === Astro.params.source && i.id === Astro.params.id);
+if (!item) {
+  Astro.response.status = data.issues.length ? 503 : 404;
+}
+const contacts = item ? await resolveMemberContacts(admin, item.memberIds) : [];
+const activityResult = item?.crm
+  ? await admin
+      .from('crm_activities')
+      .select('*')
+      .eq('case_id', item.crm.id)
+      .order('created_at', { ascending: false })
+      .limit(100)
+  : { data: [], error: null };
+const activities = (activityResult.data ?? []) as Row[];
+const dueValue = item?.crm?.due_at
+  ? new Date(Date.parse(str(item.crm.due_at)) + 9 * 3600000).toISOString().slice(0, 16)
+  : '';
+const initialOccurrence = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 16);
+const related = item?.orgId ? data.items.filter((i) => i.orgId === item.orgId && i.id !== item.id) : [];
+const fields: Record<string, string> = {
+  body: '相談内容',
+  description: '説明',
+  requirements: '希望条件',
+  category_slug: 'カテゴリ',
+  maker: 'メーカー',
+  model: '機種',
+  asking_price: '希望売却額（円）',
+  budget: '予算（円）',
+  price: '提案額（円）',
+  desired_timing: '希望時期',
+  manufacture_year: '製造年',
+  condition: '状態',
+  maintenance_notes: '保守情報',
+  accessories_detail: '付属品',
+  message: 'メッセージ',
+  compliance_note: '確認事項',
+};
+---
+
+<AdminLayout title={item?.title || '案件を取得できません'} metadata={{ title: 'CRM案件詳細' }} maxWidth="6xl">
+  <a class="cm-link" href="/admin/crm">← 全案件へ</a>
+  {
+    data.issues.map((issue) => (
+      <p class="text-danger mt-3" role="alert">
+        {issue}
+      </p>
+    ))
+  }
+  {
+    item && (
+      <div class="grid lg:grid-cols-2 gap-6 mt-6">
+        <section class="cm-card p-6">
+          <>
+            <p class="text-sm text-plum-soft">
+              {SOURCE_LABELS[item.source]} / {item.id} / 受付 {formatDate(item.createdAt)} JST
+            </p>
+            <h2 class="text-xl font-semibold mt-4">連絡する相手</h2>
+          </>
+          <>
+            <p class="mt-2">
+              {item.organization || '組織未登録'} / {item.person || '担当者未確認'}
+            </p>
+            <p class="text-xs text-plum-soft">{item.contactSource}</p>
+          </>
+          {item.email && (
+            <p class="mt-2">
+              <a class="cm-link" href={`mailto:${item.email}`}>
+                {item.email}
+              </a>
+            </p>
+          )}
+          {item.phone && (
+            <p class="mt-2">
+              <a class="cm-link" href={`tel:${item.phone}`}>
+                {item.phone}
+              </a>
+            </p>
+          )}
+          {contacts.map((c) => (
+            <p class="mt-2">
+              会員：{str(data.members.find((m) => m.id === c.id)?.full_name) || c.id.slice(0, 8)} /{' '}
+              {c.error ? (
+                '連絡先の取得に失敗'
+              ) : c.email ? (
+                <a class="cm-link" href={`mailto:${c.email}`}>
+                  {c.email}
+                </a>
+              ) : (
+                'メール未登録'
+              )}
+            </p>
+          ))}
+          {!item.email && !item.phone && !contacts.length && (
+            <p class="text-danger mt-4">返信先が登録されていません。受付元の記録を確認してください。</p>
+          )}
+          {item.source === 'threads' && (
+            <a class="cm-link block mt-4" href={`/admin/threads/${item.id}`}>
+              メッセージ・合意確認を開く
+            </a>
+          )}
+          <dl class="mt-6 space-y-4">
+            {Object.entries(fields)
+              .filter(([key]) => item.raw[key] != null && item.raw[key] !== '')
+              .map(([key, label]) => (
+                <div>
+                  <dt class="text-sm text-plum-soft">{label}</dt>
+                  <dd class="whitespace-pre-wrap break-words">{String(item.raw[key])}</dd>
+                </div>
+              ))}
+          </dl>
+          {['listings', 'wanted_requests'].includes(item.source) && (
+            <p class="mt-5">
+              <a class="cm-link" href="/admin/posts">
+                投稿審査へ（公開状態：{item.publication}）
+              </a>
+            </p>
+          )}
+          {item.source === 'consultations' && (
+            <div class="mt-6">
+              <p>運営への通知：{str(item.raw.notification_status) || '記録なし（旧受付）'}</p>
+              {['pending', 'failed', 'sending'].includes(str(item.raw.notification_status)) && (
+                <button type="button" id="retry-notification" data-id={item.id} class="cm-btn-secondary mt-2">
+                  運営通知を再試行
+                </button>
+              )}
+              <p id="notification-result" role="status" class="text-sm mt-2" />
+            </div>
+          )}
+          <>
+            <h2 class="text-lg font-semibold mt-8">同じ組織の案件</h2>
+            <p class="text-sm text-plum-soft">関連候補です。同じ商談とは限りません。</p>
+            <ul>
+              {related.map((r) => (
+                <li class="mt-2">
+                  <a class="cm-link" href={`/admin/crm/${r.source}/${r.id}`}>
+                    {SOURCE_LABELS[r.source]}：{r.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        </section>
+        <section class="cm-card p-6">
+          <>
+            <h2 class="text-xl font-semibold">対応を記録・次回予定を設定</h2>
+            <p class="text-sm text-plum-soft mt-2">
+              この記録は運営専用です。メールや電話が自動送信されることはありません。
+            </p>
+          </>
+          <form
+            id="crm-form"
+            data-source={item.source}
+            data-id={item.id}
+            data-version={item.crm?.version || 0}
+            class="space-y-4 mt-5"
+          >
+            <>
+              <fieldset disabled={!data.writable} class="space-y-4">
+                <label class="block cm-label">
+                  対応状態
+                  <select name="status" class="cm-input">
+                    {Object.entries(CRM_STATUSES).map(([key, label]) => (
+                      <option value={key} selected={(item.crm?.status || 'untriaged') === key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label class="block cm-label">
+                  運営担当
+                  <select name="owner_id" class="cm-input">
+                    <option value="">未割当</option>
+                    {data.members
+                      .filter((m) => m.role === 'admin')
+                      .map((m) => (
+                        <option value={m.id} selected={item.crm?.owner_id === m.id}>
+                          {str(m.full_name) || m.id.slice(0, 8)}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label class="block cm-label">
+                  次の対応
+                  <input
+                    name="next_action"
+                    class="cm-input"
+                    maxlength="500"
+                    value={str(item.crm?.next_action)}
+                    placeholder="例：買い手に予算・導入時期を確認"
+                  />
+                </label>
+                <label class="block cm-label">
+                  次回期限（日本時間）
+                  <input type="datetime-local" name="due_at" class="cm-input" value={dueValue} />
+                </label>
+                <label class="block cm-label">
+                  今回の記録
+                  <select name="kind" class="cm-input">
+                    {Object.entries(ACTIVITY_LABELS)
+                      .filter(([key]) => key !== 'review')
+                      .map(([key, label]) => (
+                        <option value={key}>{label}</option>
+                      ))}
+                  </select>
+                </label>
+                <label class="block cm-label">
+                  連絡した相手
+                  <input
+                    name="contact_target"
+                    class="cm-input"
+                    maxlength="200"
+                    placeholder="例：買い手・山田様（電話・メールの記録時は必須）"
+                  />
+                </label>
+                <label class="block cm-label">
+                  実施日時（日本時間）
+                  <input type="datetime-local" name="occurred_at" required value={initialOccurrence} class="cm-input" />
+                </label>
+                <label class="block cm-label">
+                  記録・結果
+                  <textarea
+                    name="body"
+                    class="cm-input"
+                    rows="4"
+                    required
+                    maxlength="10000"
+                    placeholder="例：予算を確認。候補2件の在庫を確認して明日連絡する。"
+                  />
+                </label>
+                <button type="submit" class="cm-btn-primary w-full">
+                  記録と次回予定を保存
+                </button>
+              </fieldset>
+              <p id="crm-result" role="status" class="text-sm" />
+            </>
+          </form>
+          <h2 class="text-lg font-semibold mt-8">対応履歴</h2>
+          {activityResult.error && (
+            <p class="text-danger" role="alert">
+              対応履歴を取得できませんでした
+            </p>
+          )}
+          {!activities.length && !activityResult.error && (
+            <p class="text-plum-soft">履歴未登録。既存のメール・電話の対応有無を確認してください。</p>
+          )}
+          <ul>
+            {activities.map((a) => (
+              <li class="border-t border-line py-4">
+                <p class="text-sm text-plum-soft">
+                  {formatDate(a.occurred_at)} JST · {ACTIVITY_LABELS[str(a.kind)]} ·{' '}
+                  {str(data.members.find((m) => m.id === a.actor_id)?.full_name)}
+                </p>
+                <p>{str(a.contact_target)}</p>
+                <p class="whitespace-pre-wrap">{str(a.body)}</p>
+              </li>
+            ))}
+          </ul>
+          {activities.length === 100 && <p>最新100件を表示しています。</p>}
+        </section>
+      </div>
+    )
+  }
+</AdminLayout>
+<script>
+  const form = document.querySelector<HTMLFormElement>('#crm-form');
+  let saving = false;
+  const requestId = crypto.randomUUID();
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (saving) return;
+    const status = document.getElementById('crm-result')!;
+    const raw = Object.fromEntries(new FormData(form));
+    const body = {
+      ...raw,
+      version: Number(form.dataset.version),
+      request_id: requestId,
+      due_at: raw.due_at ? new Date(`${raw.due_at}:00+09:00`).toISOString() : null,
+      occurred_at: new Date(`${raw.occurred_at}:00+09:00`).toISOString(),
+    };
+    saving = true;
+    status.textContent = '保存中…';
+    try {
+      const res = await fetch(`/api/admin/crm/${form.dataset.source}/${form.dataset.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.reload();
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : '保存できませんでした';
+    } finally {
+      saving = false;
+    }
+  });
+  document.querySelector<HTMLButtonElement>('#retry-notification')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    button.disabled = true;
+    const status = document.getElementById('notification-result')!;
+    try {
+      const res = await fetch(`/api/admin/crm/consultations/${button.dataset.id}/notify`, { method: 'POST' });
+      const data = await res.json();
+      status.textContent = data.error || '運営への通知を送信しました';
+    } catch {
+      status.textContent = '通知できませんでした';
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>

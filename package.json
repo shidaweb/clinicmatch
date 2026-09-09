@@ -27,7 +27,8 @@
     "sanity:redistribute-dates": "node scripts/redistribute-blog-dates.cjs",
     "sanity:redistribute-dates:apply": "node scripts/redistribute-blog-dates.cjs --apply --update-drafts",
     "sanity:import-drafts": "node scripts/import-drafts.cjs",
-    "sanity:import-drafts:apply": "node scripts/import-drafts.cjs --apply"
+    "sanity:import-drafts:apply": "node scripts/import-drafts.cjs --apply",
+    "test:workflow": "node tests/unit/workflow.cjs && node tests/unit/workflow-db.mjs && node tests/unit/post-media-db.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.13",
@@ -56,6 +57,7 @@
     "@astrojs/mdx": "^4.3.3",
     "@astrojs/partytown": "^2.1.4",
     "@astrojs/tailwind": "^5.1.5",
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^9.33.0",
     "@iconify-json/tabler": "^1.2.20",
     "@playwright/test": "^1.60.0",

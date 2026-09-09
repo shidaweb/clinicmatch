@@ -21,7 +21,8 @@ const { data: wanted } = await supabase
   .eq('buyer_org_id', profile.org_id)
   .single();
 
-if (!wanted) return Astro.redirect('/account/wanted');
+if (!wanted || wanted.archived_at || !['draft', 'rejected'].includes(wanted.status))
+  return Astro.redirect('/account/wanted');
 
 const org = profile.organizations as { prefecture?: string; city?: string } | null;
 const metadata = { title: '買いたいを編集' };
@@ -39,9 +40,13 @@ const metadata = { title: '買いたいを編集' };
     <div>
       <label class="cm-label">カテゴリ</label>
       <select name="category_slug" required class="cm-input">
-        {MARKET_CATEGORIES.map((c) => (
-          <option value={c.slug} selected={wanted.category_slug === c.slug}>{c.name}</option>
-        ))}
+        {
+          MARKET_CATEGORIES.map((c) => (
+            <option value={c.slug} selected={wanted.category_slug === c.slug}>
+              {c.name}
+            </option>
+          ))
+        }
       </select>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -58,14 +63,29 @@ const metadata = { title: '買いたいを編集' };
       <label class="cm-label">希望する出品種別</label>
       <select id="wanted-listing-kind" name="listing_kind_pref" class="cm-input">
         <option value="device" selected={wanted.listing_kind_pref === 'device'}>機器本体</option>
-        <option value="consumable_valid" selected={wanted.listing_kind_pref === 'consumable_valid'}>消耗品（期限内）</option>
-        <option value="consumable_expired" selected={wanted.listing_kind_pref === 'consumable_expired'}>消耗品（期限切れ・研修用）</option>
+        <option value="consumable_valid" selected={wanted.listing_kind_pref === 'consumable_valid'}
+          >消耗品（期限内）</option
+        >
+        <option value="consumable_expired" selected={wanted.listing_kind_pref === 'consumable_expired'}
+          >消耗品（期限切れ・研修用）</option
+        >
       </select>
     </div>
-    <section id="wanted-consumable-fields" class:list={['rounded-card border border-line bg-cream p-4 space-y-4', wanted.listing_kind_pref === 'device' && 'hidden']}>
+    <section
+      id="wanted-consumable-fields"
+      class:list={[
+        'rounded-card border border-line bg-cream p-4 space-y-4',
+        wanted.listing_kind_pref === 'device' && 'hidden',
+      ]}
+    >
       <div>
         <label class="cm-label">希望消耗品</label>
-        <select id="wanted-consumable-master-id" name="consumable_master_id" class="cm-input" data-initial={wanted.consumable_master_id ?? ''}>
+        <select
+          id="wanted-consumable-master-id"
+          name="consumable_master_id"
+          class="cm-input"
+          data-initial={wanted.consumable_master_id ?? ''}
+        >
           <option value="">メーカー・機種名に紐づく品目を選択</option>
         </select>
       </div>
@@ -76,7 +96,13 @@ const metadata = { title: '買いたいを編集' };
         </label>
         <div>
           <label class="cm-label">最低残ショット数（任意）</label>
-          <input name="min_remaining_shots" type="number" min="0" value={wanted.min_remaining_shots ?? ''} class="cm-input" />
+          <input
+            name="min_remaining_shots"
+            type="number"
+            min="0"
+            value={wanted.min_remaining_shots ?? ''}
+            class="cm-input"
+          />
         </div>
       </div>
       <div>
@@ -84,7 +110,9 @@ const metadata = { title: '買いたいを編集' };
         <select name="open_state_pref" class="cm-input">
           <option value="" selected={!wanted.open_state_pref}>指定なし</option>
           <option value="sealed_only" selected={wanted.open_state_pref === 'sealed_only'}>未開封のみ</option>
-          <option value="opened_allowed" selected={wanted.open_state_pref === 'opened_allowed'}>開封済み可（使用済み不可）</option>
+          <option value="opened_allowed" selected={wanted.open_state_pref === 'opened_allowed'}
+            >開封済み可（使用済み不可）</option
+          >
           <option value="used_allowed" selected={wanted.open_state_pref === 'used_allowed'}>使用済み可</option>
         </select>
       </div>
@@ -103,9 +131,13 @@ const metadata = { title: '買いたいを編集' };
       <div>
         <label class="cm-label">希望エリア（都道府県）</label>
         <select name="area_prefecture" class="cm-input">
-          {PREFECTURES.map((pref) => (
-            <option value={pref} selected={pref === (wanted.area_prefecture ?? org?.prefecture)}>{pref}</option>
-          ))}
+          {
+            PREFECTURES.map((pref) => (
+              <option value={pref} selected={pref === (wanted.area_prefecture ?? org?.prefecture)}>
+                {pref}
+              </option>
+            ))
+          }
         </select>
       </div>
       <div>
@@ -118,7 +150,12 @@ const metadata = { title: '買いたいを編集' };
       <textarea name="requirements" rows="4" class="cm-input">{wanted.requirements ?? ''}</textarea>
     </div>
     <div class="flex gap-3">
-      <button type="submit" name="action" value="draft" class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button>
+      <button
+        type="submit"
+        name="action"
+        value="draft"
+        class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button
+      >
       <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
     </div>
     <p id="wanted-status" class="text-sm text-plum-soft hidden"></p>

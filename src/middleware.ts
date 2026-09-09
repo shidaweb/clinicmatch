@@ -20,5 +20,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect(destination.toString(), 308);
   }
 
-  return next();
+  if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(context.request.method)) {
+    const origin = context.request.headers.get('Origin');
+    if (origin && origin !== url.origin) return new Response('Forbidden origin', { status: 403 });
+  }
+  const response = await next();
+  if (/^\/(admin|account|api)(\/|$)/.test(url.pathname)) response.headers.set('Cache-Control', 'private, no-store');
+  return response;
 });

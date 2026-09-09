@@ -1,35 +1,15 @@
 ---
 export const prerender = false;
-
 import AdminLayout from '~/layouts/AdminLayout.astro';
+import CrmDashboard from '~/components/admin/CrmDashboard.astro';
 import { getProfile } from '~/lib/auth';
-
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+import { loadCrm } from '~/lib/crm';
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
-if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
-
-const metadata = { title: '運営管理' };
-
-const tiles = [
-  { href: '/admin/consultations', label: '相談一覧', desc: 'フォームからの問い合わせ' },
-  { href: '/admin/posts', label: '投稿審査', desc: '売りたい・買いたいの公開審査' },
-  { href: '/admin/approaches', label: 'アプローチ管理', desc: '関心・提案の管理' },
-  { href: '/admin/threads', label: '仲介ワークスペース', desc: 'Q&A・仲介スレッド' },
-  { href: '/admin/agreements', label: '仲介契約', desc: '双方合意の記録' },
-  { href: '/admin/deals', label: '売買契約・請求', desc: '成約・手数料請求' },
-  { href: '/admin/members', label: '会員管理', desc: '登録組織の一覧' },
-  { href: '/admin/analytics', label: '分析ダッシュボード', desc: 'KPI・コンバージョン' },
-];
+if (!profile || profile.role !== 'admin') return Astro.redirect('/auth/login');
+const data = await loadCrm(createSupabaseAdminClient(Astro.locals as never));
 ---
 
-<AdminLayout metadata={metadata} title="運営管理">
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {
-      tiles.map(({ href, label, desc }) => (
-        <a href={href} class="cm-card p-5 hover:shadow-lg transition group">
-          <p class="font-heading font-semibold text-plum group-hover:text-rose">{label}</p>
-          <p class="mt-1 text-xs text-plum-soft">{desc}</p>
-        </a>
-      ))
-    }
-  </div>
+<AdminLayout title="今日の対応" metadata={{ title: '運営管理' }} maxWidth="6xl">
+  <CrmDashboard data={data} todayOnly={true} />
 </AdminLayout>

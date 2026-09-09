@@ -9,9 +9,9 @@ const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
 
 const admin = createSupabaseAdminClient(Astro.locals as never);
-const { data: consultations } = await admin
+const { data: consultations, error: queryError } = await admin
   .from('consultations')
-  .select('id, topic, body, contact_email, status, created_at')
+  .select('id, topic, body, contact_name, contact_phone, contact_email, status, created_at')
   .order('created_at', { ascending: false })
   .limit(100);
 
@@ -20,16 +20,31 @@ const metadata = { title: '相談管理' };
 ---
 
 <AdminLayout metadata={metadata} title="相談一覧">
+  <p class="mb-4"><a class="cm-link" href="/admin/crm?source=consultations">連絡先・担当・期限をCRMで確認 →</a></p>
+  {
+    queryError && (
+      <p role="alert" class="text-danger">
+        相談の取得に失敗しました
+      </p>
+    )
+  }
   <ul class="space-y-4">
-    {(consultations ?? []).map((item) => (
-      <li class="cm-list-item">
-        <div class="flex justify-between text-sm mb-2">
-          <span class="font-medium text-plum">{topicLabels[item.topic] ?? item.topic}</span>
-          <span class="text-plum-soft">{item.status}</span>
-        </div>
-        <p class="text-sm text-plum whitespace-pre-wrap">{item.body}</p>
-        {item.contact_email && <p class="mt-2 text-xs text-plum-soft">{item.contact_email}</p>}
-      </li>
-    ))}
+    {
+      (consultations ?? []).map((item) => (
+        <li class="cm-list-item">
+          <a class="cm-link" href={`/admin/crm/consultations/${item.id}`}>
+            {item.contact_name || '会員連絡先を確認'} ·{' '}
+            {new Date(item.created_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })} JST
+          </a>
+          {item.contact_phone && <p>{item.contact_phone}</p>}
+          <div class="flex justify-between text-sm mb-2">
+            <span class="font-medium text-plum">{topicLabels[item.topic] ?? item.topic}</span>
+            <span class="text-plum-soft">{item.status}</span>
+          </div>
+          <p class="text-sm text-plum whitespace-pre-wrap">{item.body}</p>
+          {item.contact_email && <p class="mt-2 text-xs text-plum-soft">{item.contact_email}</p>}
+        </li>
+      ))
+    }
   </ul>
 </AdminLayout>

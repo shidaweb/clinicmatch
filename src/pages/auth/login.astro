@@ -18,28 +18,26 @@ const metadata = { title: 'ログイン' };
     <div class="max-w-md mx-auto px-4 sm:px-6">
       <h1 class="cm-heading text-3xl font-bold mb-2">ログイン</h1>
 
-      {confirmed && (
-        <p class="text-sage mb-4 text-sm">
-          メールアドレスの確認が完了しました。ログインしてください。
-        </p>
-      )}
-      {registered && !confirmed && (
-        <p class="text-sage mb-4 text-sm">登録が完了しました。ログインしてください。</p>
-      )}
-      {resent && (
-        <p class="text-sage mb-4 text-sm">
-          確認メールを再送しました。メール内のリンクをクリックしてからログインしてください。
-        </p>
-      )}
-      {confirmExpired && (
-        <div class="mb-4 p-4 rounded-xl border border-rose/30 bg-rose/5 text-sm">
-          <p class="font-medium text-plum mb-1">メール確認が完了していません</p>
-          <p class="text-plum-soft leading-relaxed">
-            確認リンクの有効期限（24時間程度）が切れたか、すでに使用されています。
-            登録時のメールアドレスを入力し、「確認メールを再送する」から新しいリンクを受け取ってください。
+      {confirmed && <p class="text-sage mb-4 text-sm">メールアドレスの確認が完了しました。ログインしてください。</p>}
+      {registered && !confirmed && <p class="text-sage mb-4 text-sm">登録が完了しました。ログインしてください。</p>}
+      {
+        resent && (
+          <p class="text-sage mb-4 text-sm">
+            確認メールを再送しました。メール内のリンクをクリックしてからログインしてください。
           </p>
-        </div>
-      )}
+        )
+      }
+      {
+        confirmExpired && (
+          <div class="mb-4 p-4 rounded-xl border border-rose/30 bg-rose/5 text-sm">
+            <p class="font-medium text-plum mb-1">メール確認が完了していません</p>
+            <p class="text-plum-soft leading-relaxed">
+              確認リンクの有効期限（24時間程度）が切れたか、すでに使用されています。
+              登録時のメールアドレスを入力し、「確認メールを再送する」から新しいリンクを受け取ってください。
+            </p>
+          </div>
+        )
+      }
 
       <form id="login-form" class="cm-card p-6 space-y-4">
         <input type="hidden" name="redirect" value={redirect} />
@@ -49,22 +47,21 @@ const metadata = { title: 'ログイン' };
         </div>
         <div>
           <label class="cm-label" for="password">パスワード</label>
-          <input id="password" name="password" type="password" required autocomplete="current-password" class="cm-input" />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            class="cm-input"
+          />
         </div>
         <button type="submit" class="cm-btn-primary w-full">ログイン</button>
         <p id="login-status" class="text-sm text-danger hidden" role="alert" aria-live="polite"></p>
 
-        <div
-          id="resend-panel"
-          class:list={[
-            'space-y-2 pt-4 border-t border-border',
-            !confirmExpired && 'hidden',
-          ]}
-        >
+        <div id="resend-panel" class:list={['space-y-2 pt-4 border-t border-border', !confirmExpired && 'hidden']}>
           <p class="text-xs text-plum-soft">メール確認が届かない・期限切れの場合</p>
-          <button type="button" id="resend-btn" class="cm-btn-secondary w-full">
-            確認メールを再送する
-          </button>
+          <button type="button" id="resend-btn" class="cm-btn-secondary w-full"> 確認メールを再送する </button>
         </div>
       </form>
 
@@ -107,7 +104,12 @@ const metadata = { title: 'ログイン' };
     });
     const json = await res.json();
     if (res.ok) {
-      window.location.href = String(data.redirect || '/account');
+      const target = String(data.redirect || '/account');
+      window.location.href = json.onboardingRequired
+        ? '/auth/register?complete=1'
+        : target.startsWith('/') && !target.startsWith('//') && !target.includes('\\')
+          ? target
+          : '/account';
       return;
     }
     showStatus(json.error ?? 'ログインに失敗しました。しばらくしてから再度お試しください。', true);

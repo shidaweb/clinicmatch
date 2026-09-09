@@ -24,6 +24,11 @@ const { data: messages } = await admin
   .order('created_at', { ascending: true });
 
 const threadTitle = `${thread.kind === 'qa' ? 'Q&A' : '仲介'}スレッド`;
+const { data: consent } = await admin
+  .from('disclosure_events')
+  .select('buyer_evidence,seller_evidence,created_at')
+  .eq('thread_id', id)
+  .maybeSingle();
 const metadata = { title: '仲介スレッド' };
 ---
 
@@ -39,6 +44,18 @@ const metadata = { title: '仲介スレッド' };
     }
   </div>
 
+  <p class="mb-4"><a class="cm-link" href={`/admin/crm/threads/${id}`}>相手・対応履歴・次回予定をCRMで確認</a></p>
+  {
+    consent && (
+      <div class="cm-card p-4 mb-4">
+        <>
+          <h2>連絡先開示の確認記録</h2>
+          <p>買い手：{consent.buyer_evidence}</p>
+          <p>売り手：{consent.seller_evidence}</p>
+        </>
+      </div>
+    )
+  }
   <MessageThread
     client:load
     threadId={id}
@@ -53,8 +70,16 @@ const metadata = { title: '仲介スレッド' };
 
 <script define:vars={{ threadId: id }}>
   document.getElementById('disclose-btn')?.addEventListener('click', async () => {
-    if (!confirm('双方の合意を確認し、連絡先を開示しますか？')) return;
-    const res = await fetch(`/api/admin/threads/${threadId}/disclose`, { method: 'POST' });
+    const buyer = prompt('買い手の合意：確認日時・方法・記録先を入力してください');
+    if (!buyer) return;
+    const seller = prompt('売り手の合意：確認日時・方法・記録先を入力してください');
+    if (!seller) return;
+    if (!confirm('双方の合意記録を保存し、連絡先を開示しますか？')) return;
+    const res = await fetch(`/api/admin/threads/${threadId}/disclose`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ buyer_evidence: buyer, seller_evidence: seller }),
+    });
     if (res.ok) window.location.reload();
     else alert('処理に失敗しました');
   });

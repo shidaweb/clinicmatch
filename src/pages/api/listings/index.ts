@@ -1,4 +1,6 @@
 import type { APIRoute } from 'astro';
+import { readObject } from '~/lib/http';
+import { createPostOnce } from '~/lib/post-creation';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { getProfile } from '~/lib/auth';
 import { notifyListingSubmission } from '~/lib/emails/notify-submission';
@@ -15,7 +17,19 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const profile = await getProfile(cookies, locals as never);
   if (!profile) return json({ error: 'ログインが必要です' }, 401);
 
-  const body = (await request.json()) as Record<string, unknown>;
+  const body = await readObject(request);
+  if (!body) return json({ error: '入力内容の形式が不正です' }, 400);
+  for (const key of ['asking_price', 'budget', 'quantity', 'manufacture_year', 'min_remaining_shots']) {
+    const value = body[key];
+    if (
+      value != null &&
+      value !== '' &&
+      (!Number.isFinite(Number(value)) || Number(value) < 0 || !Number.isInteger(Number(value)))
+    ) {
+      return json({ error: '価格・予算・数量は0以上の整数で入力してください' }, 400);
+    }
+  }
+
   const supabase = createSupabaseServerClient(cookies, locals as never);
 
   const org = profile.organizations as { prefecture?: string; city?: string; verified_at?: string | null } | null;
@@ -24,6 +38,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const payload: Record<string, unknown> = {
     seller_org_id: profile.org_id,
+    submitted_by: profile.id,
     category_slug: String(body.category_slug ?? ''),
     maker: String(body.maker ?? '').trim(),
     model: String(body.model ?? '').trim(),
@@ -117,15 +132,17 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     payload.compliance_note = null;
   }
 
-  const { data, error } = await supabase.from('listings').insert(payload).select('id').single();
-  if (error) return json({ error: error.message }, 400);
+  const admin = createSupabaseAdminClient(locals as never);
+  const created = await createPostOnce(admin, request, 'listings', profile.id, payload);
+  if (created.response) return created.response;
+  const data = { id: created.id! };
 
-  if (payload.status === 'pending_review') {
+  if (payload.status === 'pending_review' && !created.duplicate) {
     const admin = createSupabaseAdminClient(locals as never);
     await notifyListingSubmission(admin, locals as never, {
       id: data.id,
-      maker: payload.maker,
-      model: payload.model,
+      maker: String(payload.maker),
+      model: String(payload.model),
       orgId: profile.org_id,
       userId: profile.id,
     });

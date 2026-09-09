@@ -15,16 +15,11 @@ const { id } = Astro.params;
 if (!id) return Astro.redirect('/account/threads');
 
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
-const { data: thread } = await supabase
-  .from('threads')
-  .select('*')
-  .eq('id', id)
-  .single();
+const { data: thread } = await supabase.from('threads').select('*').eq('id', id).single();
 
 if (!thread) return Astro.redirect('/account/threads');
 
-const isParticipant =
-  thread.buyer_org_id === profile.org_id || thread.seller_org_id === profile.org_id;
+const isParticipant = thread.buyer_org_id === profile.org_id || thread.seller_org_id === profile.org_id;
 const isAdmin = profile.role === 'admin';
 if (!isParticipant && !isAdmin) return Astro.redirect('/account/threads');
 
@@ -51,40 +46,29 @@ const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const admin = createSupabaseAdminClient(Astro.locals as never);
 
 const [{ data: buyerProfile }, { data: sellerProfile }] = await Promise.all([
-  admin
-    .from('profiles')
-    .select('display_name, avatar_path')
-    .eq('org_id', thread.buyer_org_id)
-    .limit(1)
-    .maybeSingle(),
-  admin
-    .from('profiles')
-    .select('display_name, avatar_path')
-    .eq('org_id', thread.seller_org_id)
-    .limit(1)
-    .maybeSingle(),
+  admin.from('profiles').select('display_name, avatar_path').eq('org_id', thread.buyer_org_id).limit(1).maybeSingle(),
+  admin.from('profiles').select('display_name, avatar_path').eq('org_id', thread.seller_org_id).limit(1).maybeSingle(),
 ]);
 
 participants = {
   buyer: {
-    displayName: buyerProfile?.display_name ?? '買い手',
+    displayName: thread.contact_disclosed ? (buyerProfile?.display_name ?? '買い手') : '買い手',
     avatarUrl:
-      buyerProfile?.avatar_path && supabaseUrl
+      thread.contact_disclosed && buyerProfile?.avatar_path && supabaseUrl
         ? `${supabaseUrl}/storage/v1/object/public/avatars/${buyerProfile.avatar_path}`
         : null,
   },
   seller: {
-    displayName: sellerProfile?.display_name ?? '売り手',
+    displayName: thread.contact_disclosed ? (sellerProfile?.display_name ?? '売り手') : '売り手',
     avatarUrl:
-      sellerProfile?.avatar_path && supabaseUrl
+      thread.contact_disclosed && sellerProfile?.avatar_path && supabaseUrl
         ? `${supabaseUrl}/storage/v1/object/public/avatars/${sellerProfile.avatar_path}`
         : null,
   },
 };
 
 if (thread.contact_disclosed && isParticipant) {
-  const counterpartOrgId =
-    profile.org_id === thread.buyer_org_id ? thread.seller_org_id : thread.buyer_org_id;
+  const counterpartOrgId = profile.org_id === thread.buyer_org_id ? thread.seller_org_id : thread.buyer_org_id;
 
   const { data: org } = await admin
     .from('organizations')

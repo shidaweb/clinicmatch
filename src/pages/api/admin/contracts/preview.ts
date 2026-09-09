@@ -31,7 +31,14 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     .eq('id', deal.mediation_agreement_id)
     .single();
 
-  let listing = null;
+  let listing: {
+    maker?: string;
+    model?: string;
+    maker_maintenance?: string;
+    maintenance_transferable?: string;
+    has_accessories?: boolean;
+    accessories_detail?: string;
+  } | null = null;
   if (mediation?.listing_id) {
     const { data } = await admin.from('listings').select('*').eq('id', mediation.listing_id).single();
     listing = data;

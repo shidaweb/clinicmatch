@@ -1,0 +1,206 @@
+---
+import { SOURCE_LABELS, CRM_STATUSES, crmPriority, filterCrm, formatDate, str } from '~/lib/crm';
+import type { CrmData } from '~/lib/crm';
+import { POST_STATUS_LABELS } from '~/lib/marketplace';
+interface Props {
+  data: CrmData;
+  todayOnly?: boolean;
+}
+const { data, todayOnly = false } = Astro.props;
+const params = Astro.url.searchParams;
+const filtered = filterCrm(data.items, params, todayOnly);
+const page = Math.max(1, Math.min(Math.ceil(filtered.length / 50) || 1, Number(params.get('page')) || 1));
+const rows = filtered.slice((page - 1) * 50, page * 50);
+const pageUrl = (n: number) => {
+  const p = new URLSearchParams(params);
+  p.set('page', String(n));
+  return `?${p}`;
+};
+const active = data.items.filter(
+  (i) => !i.raw.archived_at && i.publication !== 'draft' && i.crm?.status !== 'completed'
+);
+const stats = [
+  { label: '期限超過', count: active.filter((i) => crmPriority(i) === 0).length },
+  { label: '今日が期限', count: active.filter((i) => crmPriority(i) === 1).length },
+  { label: '対応履歴未登録', count: active.filter((i) => !i.crm).length },
+  { label: '次回予定なし', count: active.filter((i) => !i.crm?.due_at).length },
+];
+---
+
+<section>
+  {
+    data.issues.length > 0 && (
+      <div role="alert" class="mb-6 rounded-xl border border-danger p-4 text-danger">
+        <>
+          <strong>一部の情報を取得できませんでした</strong>
+          <ul>
+            {data.issues.map((issue) => (
+              <li>{issue}</li>
+            ))}
+          </ul>
+          <p>表示中の件数は完全ではありません。CRMを未適用の場合、0011マイグレーションの確認が必要です。</p>
+        </>
+      </div>
+    )
+  }
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    {
+      stats.map((s) => (
+        <div class="cm-card p-4">
+          <>
+            <p class="text-sm text-plum-soft">{s.label}</p>
+            <p class="text-3xl font-semibold text-plum mt-2">{data.issues.length ? '—' : s.count}</p>
+          </>
+        </div>
+      ))
+    }
+  </div>
+  <p class="text-sm text-plum-soft mb-4">
+    時刻は日本時間です。過去のメール・電話履歴が未移行の案件は「対応履歴未登録」と表示します。公開済みでも運営の対応は継続します。
+  </p>
+  <div class="flex gap-4 mb-4">
+    <a class="cm-link" href="/admin">今日の対応</a><a class="cm-link" href="/admin/crm">全案件（下書きも含む）</a>
+  </div>
+  <form method="get" class="cm-card p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+    <div>
+      <label class="cm-label" for="crm-search">検索</label>
+      <input
+        id="crm-search"
+        class="cm-input"
+        name="q"
+        value={params.get('q')}
+        placeholder="氏名・組織・機器・メール・ID"
+      />
+    </div>
+    <div>
+      <label class="cm-label" for="crm-source">受付経路</label>
+      <select id="crm-source" class="cm-input" name="source">
+        <option value="">すべて</option>
+        {
+          Object.entries(SOURCE_LABELS).map(([key, label]) => (
+            <option value={key} selected={params.get('source') === key}>
+              {label}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+    <div>
+      <label class="cm-label" for="crm-status">対応状態</label>
+      <select id="crm-status" class="cm-input" name="status">
+        <option value="">すべて</option>
+        {
+          Object.entries(CRM_STATUSES).map(([key, label]) => (
+            <option value={key} selected={params.get('status') === key}>
+              {label}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+    <div>
+      <label class="cm-label" for="crm-owner">担当</label>
+      <select id="crm-owner" class="cm-input" name="owner">
+        <option value="">すべて</option>
+        <option value="unassigned" selected={params.get('owner') === 'unassigned'}>未割当</option>
+        {
+          data.members
+            .filter((m) => m.role === 'admin')
+            .map((m) => (
+              <option value={m.id} selected={params.get('owner') === m.id}>
+                {str(m.full_name) || m.id.slice(0, 8)}
+              </option>
+            ))
+        }
+      </select>
+    </div>
+    <button class="cm-btn-primary self-end" type="submit">絞り込む</button>
+  </form>
+  <div class="cm-card overflow-x-auto">
+    <table class="w-full text-sm min-w-[850px]">
+      <thead class="text-left text-plum-soft border-b border-line"
+        ><tr
+          ><th class="p-4">期限・担当</th><th class="p-4">相手・案件</th><th class="p-4">次の対応</th><th class="p-4"
+            >連絡先</th
+          ><th class="p-4">状態</th></tr
+        ></thead
+      ><tbody
+        >{
+          rows.map((item) => (
+            <tr class="border-b border-line align-top">
+              <td class="p-4">
+                <>
+                  <p class:list={[crmPriority(item) === 0 ? 'text-danger font-semibold' : 'text-plum']}>
+                    {crmPriority(item) === 0 ? '期限超過 · ' : ''}
+                    {formatDate(item.crm?.due_at)}
+                  </p>
+                  <p class="text-plum-soft mt-1">
+                    {str(data.members.find((m) => m.id === item.crm?.owner_id)?.full_name) || '未割当'}
+                  </p>
+                  <small>受付 {formatDate(item.createdAt)}</small>
+                </>
+              </td>
+              <td class="p-4 max-w-xs">
+                <>
+                  <span class="cm-tag-sell">{SOURCE_LABELS[item.source]}</span>
+                  <a class="block cm-link font-semibold mt-2" href={`/admin/crm/${item.source}/${item.id}`}>
+                    {item.title}
+                  </a>
+                  <p>
+                    {item.organization || '組織未登録'} / {item.person || '担当者未確認'}
+                  </p>
+                  <small class="text-plum-soft">{item.id.slice(0, 8)}</small>
+                </>
+              </td>
+              <td class="p-4 max-w-xs">
+                <>
+                  <p>{str(item.crm?.next_action) || '内容と既存の対応状況を確認'}</p>
+                  <small class="text-plum-soft">
+                    最終連絡：{item.crm?.last_contact_at ? formatDate(item.crm.last_contact_at) : '履歴未登録'}
+                  </small>
+                </>
+              </td>
+              <td class="p-4 max-w-xs break-all">
+                <p>{item.email || item.phone || item.contactSource}</p>
+                {item.raw.notification_status === 'failed' && <p class="text-danger">運営通知に失敗</p>}
+              </td>
+              <td class="p-4">
+                <>
+                  <p>{CRM_STATUSES[str(item.crm?.status)] || '未整理'}</p>
+                  <small class="text-plum-soft">
+                    {item.raw.archived_at ? '保管済み / ' : ''}
+                    {POST_STATUS_LABELS[item.publication] || item.publication}
+                  </small>
+                </>
+              </td>
+            </tr>
+          ))
+        }</tbody
+      >
+    </table>
+    {
+      !rows.length && (
+        <p class="p-8 text-plum-soft">
+          {data.issues.length
+            ? '取得エラーを解消してから再確認してください。'
+            : '条件に一致する案件はありません。全案件や絞り込み条件も確認できます。'}
+        </p>
+      )
+    }
+  </div>
+  <div class="flex gap-6 mt-4 text-sm">
+    <span>{filtered.length}件 / {page}ページ</span>{
+      page > 1 && (
+        <a class="cm-link" href={pageUrl(page - 1)}>
+          前へ
+        </a>
+      )
+    }{
+      page * 50 < filtered.length && (
+        <a class="cm-link" href={pageUrl(page + 1)}>
+          次へ
+        </a>
+      )
+    }
+  </div>
+</section>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FormStepProgress from '~/components/interactive/FormStepProgress';
 import { trackGaEvent } from '~/utils/analytics';
 
@@ -66,8 +66,7 @@ const inputFocus = 'focus:border-[#C98B97] focus:ring-[#C98B97]/30';
 const labelClass = 'block text-sm font-medium text-[#7A5C63] mb-1';
 const errorClass = 'text-sm mt-1';
 const errorStyle = { color: REQUIRED };
-const pillBase =
-  'rounded-full px-4 py-2 text-sm font-medium border transition-colors';
+const pillBase = 'rounded-full px-4 py-2 text-sm font-medium border transition-colors';
 const pillActive = 'bg-[#A86A77] text-white border-[#A86A77]';
 const pillIdle = 'bg-white text-[#46343A] border-[#EADCD4] hover:border-[#C98B97]';
 
@@ -76,6 +75,8 @@ export default function BuyForm() {
   const [data, setData] = useState<BuyFormData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const submissionKey = useRef<string | null>(null);
+  const submitting = useRef(false);
 
   const update = (key: keyof BuyFormData, value: string | string[]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -116,7 +117,9 @@ export default function BuyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep3()) return;
+    if (submitting.current || !validateStep3()) return;
+    submitting.current = true;
+    submissionKey.current ??= crypto.randomUUID();
     setSending(true);
     setErrors({});
 
@@ -128,7 +131,7 @@ export default function BuyForm() {
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': submissionKey.current! },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -143,11 +146,11 @@ export default function BuyForm() {
     } catch (err) {
       console.error(err);
       setErrors({
-        submit:
-          err instanceof Error ? err.message : '送信に失敗しました。しばらくしてから再度お試しください。',
+        submit: err instanceof Error ? err.message : '送信に失敗しました。しばらくしてから再度お試しください。',
       });
     } finally {
       setSending(false);
+      submitting.current = false;
     }
   };
 
@@ -202,7 +205,11 @@ export default function BuyForm() {
                 </button>
               ))}
             </div>
-            {errors.budgetRange && <p className={errorClass} style={errorStyle}>{errors.budgetRange}</p>}
+            {errors.budgetRange && (
+              <p className={errorClass} style={errorStyle}>
+                {errors.budgetRange}
+              </p>
+            )}
           </div>
         </div>
       )}

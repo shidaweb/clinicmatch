@@ -26,9 +26,7 @@ const metadata = { title: '売りたいを出す' };
     <div>
       <label class="cm-label">カテゴリ</label>
       <select name="category_slug" required class="cm-input">
-        {MARKET_CATEGORIES.map((c) => (
-          <option value={c.slug}>{c.name}</option>
-        ))}
+        {MARKET_CATEGORIES.map((c) => <option value={c.slug}>{c.name}</option>)}
       </select>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -120,9 +118,13 @@ const metadata = { title: '売りたいを出す' };
       <div>
         <label class="cm-label">都道府県</label>
         <select name="location_prefecture" required class="cm-input">
-          {PREFECTURES.map((pref) => (
-            <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
-          ))}
+          {
+            PREFECTURES.map((pref) => (
+              <option value={pref} selected={pref === org?.prefecture}>
+                {pref}
+              </option>
+            ))
+          }
         </select>
       </div>
       <div>
@@ -168,6 +170,7 @@ const metadata = { title: '売りたいを出す' };
         <button type="submit" name="action" value="submit" class="cm-btn-primary text-sm">審査に提出</button>
       </div>
       <p id="listing-status" class="mt-2 text-sm text-plum-soft hidden"></p>
+      <a id="saved-draft" class="cm-link text-sm hidden">保存済みの下書きで画像・提出状態を確認する</a>
     </div>
   </form>
 </AccountLayout>
@@ -253,6 +256,10 @@ const metadata = { title: '売りたいを出す' };
   };
 
   const addFiles = (files: FileList | null) => {
+    if (saving || createdListingId) {
+      showImageError('保存開始後の画像編集は、保存済みの下書きから行ってください。');
+      return;
+    }
     if (!files) return;
     clearImageError();
     const remaining = 10 - pickerImages.length;
@@ -433,6 +440,10 @@ const metadata = { title: '売りたいを出す' };
   };
 
   imageGrid?.addEventListener('click', (event) => {
+    if (saving || createdListingId) {
+      showImageError('保存開始後の画像編集は、保存済みの下書きから行ってください。');
+      return;
+    }
     const button = (event.target as HTMLElement).closest('button');
     if (!button) return;
     const id = button.getAttribute('data-id');
@@ -464,7 +475,7 @@ const metadata = { title: '売りたいを出す' };
   const toPayload = () => {
     if (!form) return {};
     const fd = new FormData(form);
-    const raw = Object.fromEntries(fd);
+    const raw: Record<string, unknown> = Object.fromEntries(fd);
     raw.has_accessories = fd.has('has_accessories');
     raw.negotiable = fd.has('negotiable');
     raw.reuse_attestation = fd.has('reuse_attestation');
@@ -475,26 +486,34 @@ const metadata = { title: '売りたいを出す' };
     return (await res.json().catch(() => ({}))) as { error?: string; id?: string };
   };
 
+  let creationKey = crypto.randomUUID();
+  let creationBody: string | null = null;
   const ensureDraft = async (payload: Record<string, unknown>) => {
-    if (createdListingId) {
-      const patchRes = await fetch(`/api/listings/${createdListingId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, submit: false }),
+    if (!createdListingId) {
+      creationBody ??= JSON.stringify({ ...payload, submit: false });
+      const createRes = await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': creationKey },
+        body: creationBody,
       });
-      const patchJson = await requestJson(patchRes);
-      if (!patchRes.ok) throw new Error(patchJson.error ?? '下書き保存に失敗しました');
-      return createdListingId;
+      const createJson = await requestJson(createRes);
+      if (!createRes.ok || !createJson.id) {
+        if (createRes.status === 400) {
+          creationBody = null;
+          creationKey = crypto.randomUUID();
+        }
+        throw new Error(createJson.error ?? '出品の作成に失敗しました');
+      }
+      createdListingId = createJson.id;
     }
-
-    const createRes = await fetch('/api/listings', {
-      method: 'POST',
+    // Resolve the original receipt before applying any edits made during a failed retry.
+    const patchRes = await fetch(`/api/listings/${createdListingId}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, submit: false }),
     });
-    const createJson = await requestJson(createRes);
-    if (!createRes.ok || !createJson.id) throw new Error(createJson.error ?? '出品の作成に失敗しました');
-    createdListingId = createJson.id;
+    const patchJson = await requestJson(patchRes);
+    if (!patchRes.ok) throw new Error(patchJson.error ?? '下書き保存に失敗しました');
     return createdListingId;
   };
 
@@ -505,7 +524,11 @@ const metadata = { title: '売りたいを出す' };
       if (status) status.textContent = `画像をアップロード中… ${index + 1}/${pending.length}枚`;
       const fd = new FormData();
       fd.append('file', item.file);
-      const uploadRes = await fetch(`/api/listings/${listingId}`, { method: 'POST', body: fd });
+      const uploadRes = await fetch(`/api/listings/${listingId}`, {
+        method: 'POST',
+        headers: { 'Idempotency-Key': item.id },
+        body: fd,
+      });
       const uploadJson = await requestJson(uploadRes);
       if (!uploadRes.ok) {
         throw new Error(uploadJson.error ?? '画像アップロードに失敗しました');
@@ -514,9 +537,11 @@ const metadata = { title: '売りたいを出す' };
     }
   };
 
+  let saving = false;
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!status) return;
+    if (!status || saving) return;
+    saving = true;
     const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
     const submit = submitter === 'submit';
 
@@ -542,6 +567,13 @@ const metadata = { title: '売りたいを出す' };
     } catch (error) {
       status.classList.add('text-danger');
       status.textContent = error instanceof Error ? error.message : '保存に失敗しました';
+      if (createdListingId) {
+        const link = document.getElementById('saved-draft') as HTMLAnchorElement;
+        link.href = `/account/listings/${createdListingId}/edit`;
+        link.classList.remove('hidden');
+      }
+    } finally {
+      saving = false;
     }
   });
 

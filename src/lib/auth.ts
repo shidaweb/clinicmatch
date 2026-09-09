@@ -1,5 +1,6 @@
 import type { AstroCookies } from 'astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { isEmail } from '~/lib/http';
 
 type RuntimeLocals = {
   runtime?: {
@@ -16,18 +17,24 @@ export async function getSession(cookies: AstroCookies, locals?: RuntimeLocals) 
 }
 
 export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) {
-  const session = await getSession(cookies, locals);
-  if (!session) return null;
-
   const supabase = createSupabaseServerClient(cookies, locals);
-  const { data: profile } = await supabase
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) return null;
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select(
       'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email, address_detail, verified_at)'
     )
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single();
 
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw new Error('会員情報を取得できませんでした');
+  }
   return profile;
 }
 
@@ -40,7 +47,7 @@ export function normalizeCorporateNumber(value: string): string {
 export function isValidCorporateNumberCheckDigit(value: string): boolean {
   let total = 0;
   for (let i = 0; i < 13; i++) {
-    let n = Number(value[i]) * (i % 2 === 1 ? 2 : 1);
+    const n = Number(value[i]) * (i % 2 === 1 ? 2 : 1);
     total += Math.floor(n / 10) + (n % 10);
   }
   return total % 9 === 0;
@@ -66,14 +73,9 @@ export function mapAuthLoginError(error: AuthErrorLike): { message: string; code
   const msg = (error.message ?? '').toLowerCase();
   const code = error.code ?? '';
 
-  if (
-    code === 'email_not_confirmed' ||
-    msg.includes('email not confirmed') ||
-    msg.includes('not confirmed')
-  ) {
+  if (code === 'email_not_confirmed' || msg.includes('email not confirmed') || msg.includes('not confirmed')) {
     return {
-      message:
-        'メールアドレスの確認が完了していません。登録時の確認メールのリンクをクリックしてください。',
+      message: 'メールアドレスの確認が完了していません。登録時の確認メールのリンクをクリックしてください。',
       code: 'email_not_confirmed',
     };
   }
@@ -100,8 +102,7 @@ export function mapAuthLoginError(error: AuthErrorLike): { message: string; code
     msg.includes('rate limit')
   ) {
     return {
-      message:
-        'ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
+      message: 'ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
       code: 'rate_limit',
     };
   }
@@ -110,8 +111,7 @@ export function mapAuthLoginError(error: AuthErrorLike): { message: string; code
   }
 
   return {
-    message:
-      'ログインに失敗しました。メールアドレスとパスワードをご確認のうえ、再度お試しください。',
+    message: 'ログインに失敗しました。メールアドレスとパスワードをご確認のうえ、再度お試しください。',
     code: code || undefined,
   };
 }
@@ -120,11 +120,7 @@ export function mapAuthRegisterError(error: AuthErrorLike): string {
   const msg = (error.message ?? '').toLowerCase();
   const code = error.code ?? '';
 
-  if (
-    code === 'user_already_exists' ||
-    msg.includes('already registered') ||
-    msg.includes('already exists')
-  ) {
+  if (code === 'user_already_exists' || msg.includes('already registered') || msg.includes('already exists')) {
     return 'このメールアドレスは既に登録されています。ログインするか、別のメールアドレスをお試しください。';
   }
   if (msg.includes('password') && (msg.includes('weak') || msg.includes('short'))) {
@@ -152,10 +148,7 @@ export function mapAuthResendError(error: AuthErrorLike): string {
   ) {
     return '確認メールの再送回数が上限に達しました。しばらく時間をおいてから再度お試しください。';
   }
-  if (
-    msg.includes('already confirmed') ||
-    msg.includes('email address is already confirmed')
-  ) {
+  if (msg.includes('already confirmed') || msg.includes('email address is already confirmed')) {
     return 'このメールアドレスは既に確認済みです。ログインしてください。';
   }
   if (msg.includes('email') && (msg.includes('invalid') || msg.includes('format'))) {
@@ -177,6 +170,7 @@ export function validateRegisterPayload(body: Record<string, unknown>): string |
   const tradeSide = String(body.trade_side ?? '').trim();
 
   if (!email) return 'メールアドレスを入力してください';
+  if (!isEmail(email)) return 'メールアドレスの形式を確認してください';
   if (!password) return 'パスワードを入力してください';
   if (!isValidPassword(password)) return PASSWORD_RULES_MESSAGE;
   if (!corporateNumber) return '法人番号を入力してください';
@@ -189,6 +183,8 @@ export function validateRegisterPayload(body: Record<string, unknown>): string |
   if (!city) return '市区町村を入力してください';
   if (!displayName) return '表示名を入力してください';
   if (!['sell', 'buy', 'both'].includes(tradeSide)) return '取引区分を選択してください';
+  if ([name, fullName, city, displayName].some((v) => v.length > 100))
+    return '氏名・組織名・所在地は100文字以内で入力してください';
 
   return null;
 }

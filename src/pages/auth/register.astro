@@ -2,8 +2,14 @@
 export const prerender = false;
 
 import Layout from '~/layouts/PageLayout.astro';
+import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { hasSupabaseConfig } from '~/lib/env';
 import { PREFECTURES } from '~/lib/marketplace';
 
+const sessionUser = hasSupabaseConfig(Astro.locals as never)
+  ? (await createSupabaseServerClient(Astro.cookies, Astro.locals as never).auth.getUser()).data.user
+  : null;
+const resuming = Boolean(sessionUser && Astro.url.searchParams.has('complete'));
 const metadata = { title: '会員登録' };
 const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams.get('trade_side') ?? '')
   ? (Astro.url.searchParams.get('trade_side') as 'sell' | 'buy' | 'both')
@@ -13,37 +19,54 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
 <Layout metadata={metadata}>
   <section class="py-12 md:py-16 bg-cream">
     <div class="max-w-lg mx-auto px-4 sm:px-6">
-      <h1 class="cm-heading text-3xl font-bold mb-2">会員登録</h1>
+      <h1 class="cm-heading text-3xl font-bold mb-2">{resuming ? '会員情報の登録を再開' : '会員登録'}</h1>
       <p class="text-plum-soft mb-2">
         登録すると、機器の出品・購入希望の投稿と、相手との<strong>コメント（取引相談）</strong>ができます。
       </p>
-      <p class="text-plum-soft mb-8 text-sm">法人番号で登録するから、信頼できるクリニック同士でやり取りできます。</p>
+      <p class="text-plum-soft mb-8 text-sm">
+        登録後、運営が投稿内容と取引条件を確認し、売り手・買い手の間を仲介します。法人番号の入力だけでは法人確認は完了しません。
+      </p>
 
-      <form id="register-form" class="cm-card p-6 space-y-4" novalidate>
+      <form data-resuming={resuming} id="register-form" class="cm-card p-6 space-y-4" novalidate>
         <div>
           <label class="cm-label" for="email">メールアドレス</label>
-          <input id="email" name="email" type="email" required autocomplete="email" class="cm-input" />
-        </div>
-        <div>
-          <label class="cm-label" for="password">パスワード</label>
           <input
-            id="password"
-            name="password"
-            type="password"
+            id="email"
+            name="email"
+            type="email"
+            value={resuming ? sessionUser?.email : undefined}
+            readonly={resuming}
             required
-            minlength="8"
-            maxlength="64"
-            autocomplete="new-password"
+            autocomplete="email"
             class="cm-input"
-            aria-describedby="password-rules"
           />
-          <ul id="password-rules" class="mt-2 text-xs text-plum-soft space-y-0.5 list-none">
-            <li>・8文字以上64文字以内</li>
-            <li>・英大文字（A–Z）を1文字以上</li>
-            <li>・英小文字（a–z）を1文字以上</li>
-            <li>・数字（0–9）を1文字以上</li>
-          </ul>
         </div>
+        {
+          !resuming && (
+            <div>
+              <label class="cm-label" for="password">
+                パスワード
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minlength="8"
+                maxlength="64"
+                autocomplete="new-password"
+                class="cm-input"
+                aria-describedby="password-rules"
+              />
+              <ul id="password-rules" class="mt-2 text-xs text-plum-soft space-y-0.5 list-none">
+                <li>・8文字以上64文字以内</li>
+                <li>・英大文字（A–Z）を1文字以上</li>
+                <li>・英小文字（a–z）を1文字以上</li>
+                <li>・数字（0–9）を1文字以上</li>
+              </ul>
+            </div>
+          )
+        }
         <div>
           <label class="cm-label" for="corporate_number">法人番号（13桁）</label>
           <input
@@ -83,15 +106,9 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
         </div>
         <div>
           <label class="cm-label" for="display_name">表示名</label>
-          <input
-            id="display_name"
-            name="display_name"
-            required
-            class="cm-input"
-            placeholder="例：渋谷美容クリニック"
-          />
+          <input id="display_name" name="display_name" required class="cm-input" placeholder="例：東京の機器担当" />
           <p class="mt-1 text-xs text-plum-soft">
-            投稿・コメントで相手に表示される名前です。屋号や任意の名称でOK（組織名とは別に設定できます）。
+            投稿・コメントで相手に表示される名前です。組織名・実名・電話番号を含まない名前にしてください。
           </p>
         </div>
         <fieldset>
@@ -146,9 +163,10 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
     status.classList.remove('text-plum-soft');
   }
 
+  let submitting = false;
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!status) return;
+    if (!status || submitting) return;
     status.classList.add('hidden');
     status.classList.remove('text-danger');
 
@@ -167,11 +185,11 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
       showError('メールアドレスを入力してください');
       return;
     }
-    if (!password) {
+    if (form.dataset.resuming !== 'true' && !password) {
       showError('パスワードを入力してください');
       return;
     }
-    if (!isValidPassword(password)) {
+    if (form.dataset.resuming !== 'true' && !isValidPassword(password)) {
       showError('パスワードは8文字以上64文字以内で、英大文字・英小文字・数字をそれぞれ1文字以上含めてください');
       return;
     }
@@ -214,20 +232,27 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
 
     const payload = Object.fromEntries(raw);
     payload.corporate_number = corporateNumber;
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      if (json.confirmationRequired) {
-        window.location.href = '/auth/register/thanks';
-      } else {
-        window.location.href = '/auth/login?registered=1';
+    submitting = true;
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        if (json.confirmationRequired) {
+          window.location.href = '/auth/register/thanks';
+        } else {
+          window.location.href = '/auth/login?registered=1';
+        }
+        return;
       }
-      return;
+      showError(json.error ?? '登録に失敗しました');
+    } catch {
+      showError('通信に失敗しました。入力を残したまま、もう一度お試しください。');
+    } finally {
+      submitting = false;
     }
-    showError(json.error ?? '登録に失敗しました');
   });
 </script>

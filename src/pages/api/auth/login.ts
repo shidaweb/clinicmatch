@@ -32,7 +32,16 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     return json({ error: mapped.message, code: mapped.code }, 401);
   }
 
-  return json({ success: true });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: member, error: memberError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user!.id)
+    .maybeSingle();
+  if (memberError) return json({ error: '会員情報を確認できませんでした' }, 503);
+  return json({ success: true, onboardingRequired: !member });
 };
 
 function json(data: unknown, status = 200) {

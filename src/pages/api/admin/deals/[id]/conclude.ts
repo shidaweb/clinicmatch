@@ -35,6 +35,7 @@ export const POST: APIRoute = async ({ params, cookies, locals }) => {
       concluded_at: now,
     })
     .eq('id', dealId)
+    .eq('status', 'negotiating')
     .select('id, agreed_price, commission_amount, seller_org_id, buyer_org_id')
     .single();
 

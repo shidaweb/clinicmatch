@@ -43,9 +43,7 @@ const metadata = { title: '買いたいを出す' };
     <div>
       <label class="cm-label">カテゴリ（必須）</label>
       <select name="category_slug" required class="cm-input">
-        {MARKET_CATEGORIES.map((c) => (
-          <option value={c.slug}>{c.name}</option>
-        ))}
+        {MARKET_CATEGORIES.map((c) => <option value={c.slug}>{c.name}</option>)}
       </select>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -107,9 +105,13 @@ const metadata = { title: '買いたいを出す' };
       <div>
         <label class="cm-label">希望エリア（都道府県）</label>
         <select name="area_prefecture" class="cm-input">
-          {PREFECTURES.map((pref) => (
-            <option value={pref} selected={pref === org?.prefecture}>{pref}</option>
-          ))}
+          {
+            PREFECTURES.map((pref) => (
+              <option value={pref} selected={pref === org?.prefecture}>
+                {pref}
+              </option>
+            ))
+          }
         </select>
       </div>
       <div>
@@ -122,7 +124,12 @@ const metadata = { title: '買いたいを出す' };
       <textarea name="requirements" rows="4" class="cm-input"></textarea>
     </div>
     <div class="flex gap-3">
-      <button type="submit" name="action" value="draft" class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">下書き保存</button>
+      <button
+        type="submit"
+        name="action"
+        value="draft"
+        class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">下書き保存</button
+      >
       <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
     </div>
     <p id="wanted-status" class="text-sm text-plum-soft hidden"></p>
@@ -147,7 +154,10 @@ const metadata = { title: '買いたいを出す' };
   const masterSelect = document.getElementById('wanted-consumable-master-id') as HTMLSelectElement | null;
 
   let wantedId = '';
+  let creationKey = crypto.randomUUID();
+  let creationBody: string | null = null;
   let referenceImage: File | null = null;
+  let imageKey = crypto.randomUUID();
   let imagePreviewUrl = '';
   let masterItems: ConsumableMaster[] = [];
 
@@ -174,6 +184,7 @@ const metadata = { title: '買いたいを出す' };
       return;
     }
     referenceImage = file;
+    imageKey = crypto.randomUUID();
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     imagePreviewUrl = URL.createObjectURL(file);
     imagePreviewImg.src = imagePreviewUrl;
@@ -224,13 +235,15 @@ const metadata = { title: '買いたいを出す' };
   makerInput?.addEventListener('change', loadMasterOptions);
   modelInput?.addEventListener('change', loadMasterOptions);
 
+  let saving = false;
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!status) return;
+    if (!status || saving) return;
+    saving = true;
     const submitter = (event.submitter as HTMLButtonElement | null)?.value ?? 'draft';
     const submit = submitter === 'submit';
     const fd = new FormData(form);
-    const data = Object.fromEntries(fd);
+    const data: Record<string, unknown> = Object.fromEntries(fd);
     data.only_unexpired = fd.has('only_unexpired');
     data.submit = false;
 
@@ -240,15 +253,23 @@ const metadata = { title: '買いたいを出す' };
 
     try {
       if (!wantedId) {
+        creationBody ??= JSON.stringify(data);
         const createRes = await fetch('/api/wanted', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json', 'Idempotency-Key': creationKey },
+          body: creationBody,
         });
         const createJson = await createRes.json();
-        if (!createRes.ok) throw new Error(createJson.error ?? '保存に失敗しました');
+        if (!createRes.ok || !createJson.id) {
+          if (createRes.status === 400) {
+            creationBody = null;
+            creationKey = crypto.randomUUID();
+          }
+          throw new Error(createJson.error ?? '保存に失敗しました');
+        }
         wantedId = createJson.id;
-      } else {
+      }
+      {
         const patchRes = await fetch(`/api/wanted/${wantedId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -262,7 +283,11 @@ const metadata = { title: '買いたいを出す' };
         status.textContent = '参考画像をアップロード中…';
         const fd = new FormData();
         fd.append('file', referenceImage);
-        const imageRes = await fetch(`/api/wanted/${wantedId}`, { method: 'POST', body: fd });
+        const imageRes = await fetch(`/api/wanted/${wantedId}`, {
+          method: 'POST',
+          headers: { 'Idempotency-Key': imageKey },
+          body: fd,
+        });
         const imageJson = await imageRes.json();
         if (!imageRes.ok) throw new Error(imageJson.error ?? '画像アップロードに失敗しました');
         referenceImage = null;
@@ -282,6 +307,8 @@ const metadata = { title: '買いたいを出す' };
     } catch (error) {
       status.textContent = error instanceof Error ? error.message : '保存に失敗しました';
       status.classList.add('text-danger');
+    } finally {
+      saving = false;
     }
   });
 

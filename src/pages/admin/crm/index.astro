@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import AdminLayout from '~/layouts/AdminLayout.astro';
+import CrmDashboard from '~/components/admin/CrmDashboard.astro';
+import { getProfile } from '~/lib/auth';
+import { createSupabaseAdminClient } from '~/lib/supabase/server';
+import { loadCrm } from '~/lib/crm';
+const profile = await getProfile(Astro.cookies, Astro.locals as never);
+if (!profile || profile.role !== 'admin') return Astro.redirect('/auth/login');
+const data = await loadCrm(createSupabaseAdminClient(Astro.locals as never));
+---
+
+<AdminLayout title="全案件CRM" metadata={{ title: '運営管理' }} maxWidth="6xl">
+  <CrmDashboard data={data} todayOnly={false} />
+</AdminLayout>

@@ -23,7 +23,14 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const sellerOrgId = String(body.seller_org_id ?? '');
   const agreedPrice = Number(body.agreed_price);
 
-  if (!mediationId || !buyerOrgId || !sellerOrgId || !agreedPrice) {
+  if (
+    !mediationId ||
+    !buyerOrgId ||
+    !sellerOrgId ||
+    !Number.isSafeInteger(agreedPrice) ||
+    agreedPrice <= 0 ||
+    buyerOrgId === sellerOrgId
+  ) {
     return json({ error: '仲介契約ID・買い手・売り手・成約額は必須です' }, 400);
   }
 
@@ -31,11 +38,11 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const { data: mediation } = await admin
     .from('mediation_agreements')
-    .select('id, status, commission_rate')
+    .select('id, status, commission_rate, seller_org_id')
     .eq('id', mediationId)
     .single();
 
-  if (!mediation || mediation.status !== 'signed') {
+  if (!mediation || mediation.status !== 'signed' || mediation.seller_org_id !== sellerOrgId) {
     return json({ error: '仲介契約が成立していません（signed 必須）' }, 400);
   }
 

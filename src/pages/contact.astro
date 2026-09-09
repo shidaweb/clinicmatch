@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Layout from '~/layouts/PageLayout.astro';
 import ConsultForm from '~/components/ConsultForm.astro';
@@ -9,7 +9,7 @@ import { getHomePermalink } from '~/utils/permalinks';
 
 const relatedListingId = Astro.url.searchParams.get('listing') ?? undefined;
 const relatedWantedId = Astro.url.searchParams.get('wanted') ?? undefined;
-const defaultTopic = relatedListingId ? 'sell' : relatedWantedId ? 'buy' : undefined;
+const defaultTopic = relatedListingId ? 'buy' : relatedWantedId ? 'sell' : undefined;
 
 const metadata = {
   title: '出品・購入を相談する',
@@ -22,37 +22,50 @@ const metadata = {
     <div class="max-w-content mx-auto px-4 sm:px-6">
       <Breadcrumb
         class="mb-6 text-sm text-plum-soft"
-        items={[
-          { name: 'トップ', url: getHomePermalink() },
-          { name: '出品・購入を相談する' },
-        ]}
+        items={[{ name: 'トップ', url: getHomePermalink() }, { name: '出品・購入を相談する' }]}
       />
 
       <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold mb-3">出品・購入を相談する</h1>
       <p class="text-plum-soft mb-4 leading-relaxed">
-        売り手・買い手どちらからでもご相談いただけます。<strong class="text-plum">匿名OK・約2分</strong>。運営があいだに入ります。
+        売り手・買い手どちらからでもご相談いただけます。<strong class="text-plum">匿名OK・約2分</strong
+        >。運営があいだに入ります。
       </p>
       <TrustBadges />
 
-      {!relatedListingId && !relatedWantedId && (
-        <div class="mt-8 grid sm:grid-cols-3 gap-4">
-          <button type="button" class="contact-topic-card cm-card-interactive p-5 border-rose/20 group text-left" data-topic="sell">
-            <span class="cm-tag-sell">売りたい</span>
-            <p class="mt-3 font-heading font-semibold text-plum group-hover:text-rose-deep">出品・売却を相談</p>
-            <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
-          </button>
-          <button type="button" class="contact-topic-card cm-card-interactive p-5 border-sage/30 group text-left" data-topic="buy">
-            <span class="cm-tag-sage">買いたい</span>
-            <p class="mt-3 font-heading font-semibold text-plum group-hover:text-sage">購入を相談</p>
-            <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
-          </button>
-          <button type="button" class="contact-topic-card cm-card p-5 border-gold/30 text-left" data-topic="other">
-            <span class="inline-flex rounded-pill px-2.5 py-0.5 text-[11px] font-semibold text-gold" style="background-color: rgb(194 163 107 / 0.15);">その他</span>
-            <p class="mt-3 font-heading font-semibold text-plum">下のフォームから</p>
-            <p class="mt-1 text-xs text-plum-soft">写真・機種名だけでもOK</p>
-          </button>
-        </div>
-      )}
+      {
+        !relatedListingId && !relatedWantedId && (
+          <div class="mt-8 grid sm:grid-cols-3 gap-4">
+            <button
+              type="button"
+              class="contact-topic-card cm-card-interactive p-5 border-rose/20 group text-left"
+              data-topic="sell"
+            >
+              <span class="cm-tag-sell">売りたい</span>
+              <p class="mt-3 font-heading font-semibold text-plum group-hover:text-rose-deep">出品・売却を相談</p>
+              <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
+            </button>
+            <button
+              type="button"
+              class="contact-topic-card cm-card-interactive p-5 border-sage/30 group text-left"
+              data-topic="buy"
+            >
+              <span class="cm-tag-sage">買いたい</span>
+              <p class="mt-3 font-heading font-semibold text-plum group-hover:text-sage">購入を相談</p>
+              <p class="mt-1 text-xs text-plum-soft">3ステップ・約2分</p>
+            </button>
+            <button type="button" class="contact-topic-card cm-card p-5 border-gold/30 text-left" data-topic="other">
+              <span
+                class="inline-flex rounded-pill px-2.5 py-0.5 text-[11px] font-semibold text-gold"
+                style="background-color: rgb(194 163 107 / 0.15);"
+              >
+                その他
+              </span>
+              <p class="mt-3 font-heading font-semibold text-plum">下のフォームから</p>
+              <p class="mt-1 text-xs text-plum-soft">写真・機種名だけでもOK</p>
+            </button>
+          </div>
+        )
+      }
 
       <div class="mt-8 cm-card p-6">
         <h2 class="font-heading text-lg font-semibold text-plum mb-4">相談フォーム</h2>
@@ -62,7 +75,6 @@ const metadata = {
           defaultTopic={(defaultTopic ?? 'sell') as 'sell' | 'buy' | 'other'}
         />
       </div>
-
     </div>
   </section>
 </Layout>
