@@ -1,4 +1,6 @@
 ---
+import { MARKET_CATEGORIES } from '~/lib/categories';
+import { getEnv } from '~/lib/env';
 import {
   CLINICAL_USE_LABELS,
   LISTING_KIND_LABELS,
@@ -19,8 +21,9 @@ const listing = isListing ? (post as PublicListing) : null;
 const wanted = !isListing ? (post as PublicWanted) : null;
 
 const href = `/cases/${post.id}?type=${kind}`;
-const categoryName = post.categories?.name ?? post.category_slug;
-const modelName = isListing ? listing!.model : wanted!.model ?? categoryName;
+const categoryName =
+  post.categories?.name ?? MARKET_CATEGORIES.find((category) => category.slug === post.category_slug)?.name ?? 'その他';
+const modelName = isListing ? listing!.model : (wanted!.model ?? categoryName);
 const makerName = isListing ? listing!.maker : wanted!.maker;
 
 const priceLabel = isListing ? formatPriceYen(listing!.asking_price) : formatPriceYen(wanted!.budget);
@@ -34,10 +37,10 @@ const yearLabel = isListing && listing!.manufacture_year ? `${listing!.manufactu
 
 const coverImage =
   isListing && listing!.listing_images?.length
-    ? listing!.listing_images.find((img) => img.is_cover) ?? listing!.listing_images[0]
+    ? (listing!.listing_images.find((img) => img.is_cover) ?? listing!.listing_images[0])
     : null;
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const supabaseUrl = getEnv('PUBLIC_SUPABASE_URL', Astro.locals);
 const imageUrl = isListing
   ? coverImage && supabaseUrl
     ? `${supabaseUrl}/storage/v1/object/public/listing-images/${coverImage.storage_path}`
@@ -52,8 +55,7 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
   const expiry = new Date(`${listing!.expiry_date}T00:00:00+09:00`);
   const today = new Date();
   const monthDiff =
-    (expiry.getUTCFullYear() - today.getUTCFullYear()) * 12 +
-    (expiry.getUTCMonth() - today.getUTCMonth());
+    (expiry.getUTCFullYear() - today.getUTCFullYear()) * 12 + (expiry.getUTCMonth() - today.getUTCMonth());
   if (listing!.clinical_use === 'training_only' || expiry < today) {
     expiryBadge = { label: '期限切れ・研修用', className: 'bg-dangerBg text-dangerDeep' };
   } else if (monthDiff <= 6) {
@@ -64,71 +66,178 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
 }
 ---
 
-<a href={href} class="cm-post-card group block">
-  {isListing && (
-    <div class="cm-post-card-image">
+<a href={href} class="cm-post-card cm-market-card group">
+  <div class="cm-market-card-header">
+    <div class="min-w-0">
+      <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
+        {isListing ? '売りたい' : '買いたい'}
+      </span>
+      <p class="mt-2 text-xs leading-relaxed text-plum-soft break-words">{categoryName}</p>
+    </div>
+    {
+      isListing && (
+        <div class="cm-market-thumbnail" data-card-image>
+          <span class="cm-market-photo-empty">写真なし</span>
+          {imageUrl && <img src={imageUrl} alt={imageAlt} width="80" height="80" loading="lazy" decoding="async" />}
+        </div>
+      )
+    }
+  </div>
+
+  <div class="cm-market-card-body">
+    <h3 class="cm-market-card-title group-hover:text-rose-deep transition-colors">{modelName}</h3>
+    {makerName && <p class="mt-1 text-xs leading-relaxed text-plum-soft break-words">{makerName}</p>}
+
+    <div class="mt-3 flex flex-wrap gap-1">
       {
-        imageUrl ? (
-          <img src={imageUrl} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" />
-        ) : (
-          <div class="h-full w-full flex items-center justify-center text-xs text-muted bg-cream">
-            {categoryName}
-          </div>
+        yearLabel && (
+          <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft font-heading tabular-nums">
+            {yearLabel}
+          </span>
+        )
+      }
+      {isListing && listing!.maker_maintenance === 'yes' && <span class="cm-tag-sage">保守あり</span>}
+      {
+        isListing && listing!.listing_kind !== 'device' && (
+          <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
+            {LISTING_KIND_LABELS[listing!.listing_kind] ?? '消耗品'}
+          </span>
+        )
+      }
+      {
+        isListing && listing!.clinical_use === 'training_only' && (
+          <span class="rounded-pill bg-rose/10 px-2 py-0.5 text-[11px] text-rose">
+            {CLINICAL_USE_LABELS.training_only}
+          </span>
+        )
+      }
+      {
+        isListing && expiryBadge && (
+          <span class:list={['rounded-pill px-2 py-0.5 text-[11px]', expiryBadge.className]}>{expiryBadge.label}</span>
+        )
+      }
+      {
+        !isListing && wanted!.listing_kind_pref !== 'device' && (
+          <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
+            希望: {LISTING_KIND_LABELS[wanted!.listing_kind_pref] ?? '消耗品'}
+          </span>
         )
       }
     </div>
-  )}
+    {
+      isListing && listing!.listing_kind !== 'device' && (
+        <p class="mt-2 text-xs text-plum-soft">
+          {listing!.quantity ?? 1}個・
+          {listing!.open_state === 'sealed' ? '未開封' : listing!.open_state === 'opened' ? '開封済み' : '使用済み'}
+        </p>
+      )
+    }
 
-  <div class="p-4">
-    <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
-      {isListing ? '売りたい' : '買いたい'}
-    </span>
-    <h4 class="mt-2 font-bold text-[15px] text-plum line-clamp-2 group-hover:text-rose-deep transition-colors">
-      {modelName}
-    </h4>
-    {makerName && <p class="mt-0.5 text-xs text-plum-soft truncate">{makerName}</p>}
-
-    <div class="mt-3 flex flex-wrap gap-1">
-      {yearLabel && (
-        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft font-heading tabular-nums">{yearLabel}</span>
-      )}
-      {isListing && listing!.maker_maintenance === 'yes' && (
-        <span class="cm-tag-sage">保守あり</span>
-      )}
-      {isListing && listing!.listing_kind !== 'device' && (
-        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
-          {LISTING_KIND_LABELS[listing!.listing_kind] ?? '消耗品'}
-        </span>
-      )}
-      {isListing && listing!.clinical_use === 'training_only' && (
-        <span class="rounded-pill bg-rose/10 px-2 py-0.5 text-[11px] text-rose">
-          {CLINICAL_USE_LABELS.training_only}
-        </span>
-      )}
-      {isListing && expiryBadge && (
-        <span class:list={['rounded-pill px-2 py-0.5 text-[11px]', expiryBadge.className]}>
-          {expiryBadge.label}
-        </span>
-      )}
-      {!isListing && wanted!.listing_kind_pref !== 'device' && (
-        <span class="rounded-pill bg-cream px-2 py-0.5 text-[11px] text-plum-soft">
-          希望: {LISTING_KIND_LABELS[wanted!.listing_kind_pref] ?? '消耗品'}
-        </span>
-      )}
-    </div>
-    {isListing && listing!.listing_kind !== 'device' && (
-      <p class="mt-2 text-xs text-plum-soft">
-        {listing!.quantity ?? 1}個・
-        {listing!.open_state === 'sealed' ? '未開封' : listing!.open_state === 'opened' ? '開封済み' : '使用済み'}
-      </p>
-    )}
-
-    <p class="mt-3 font-heading text-base font-semibold text-rose-deep tabular-nums">{priceLabel}</p>
-    <div class="mt-1 flex items-center justify-between gap-2">
-      <p class="text-xs text-plum-soft truncate">{location}</p>
-      {post.comment_count > 0 && (
-        <span class="inline-flex shrink-0 items-center gap-1 text-xs text-plum-soft">💬 {post.comment_count}</span>
-      )}
+    <div class="cm-market-card-footer">
+      <p class="text-lg font-semibold text-rose-deep tabular-nums break-words">{priceLabel}</p>
+      <div class="mt-1 flex items-center justify-between gap-2">
+        <p class="min-w-0 text-xs text-plum-soft break-words">{location}</p>
+        {
+          post.comment_count > 0 && (
+            <span class="inline-flex shrink-0 items-center gap-1 text-xs text-plum-soft">💬 {post.comment_count}</span>
+          )
+        }
+      </div>
     </div>
   </div>
 </a>
+
+<script>
+  // Keep the fallback underneath until a photo has actually loaded. Handle cached
+  // failures as well as lazy images and Astro client-side page transitions.
+  function initializeCardImages() {
+    document.querySelectorAll<HTMLImageElement>('[data-card-image] img').forEach((image) => {
+      if (image.dataset.bound) return;
+      image.dataset.bound = 'true';
+      const showPhoto = () => {
+        if (image.naturalWidth > 0) image.parentElement?.setAttribute('data-loaded', 'true');
+      };
+      const showFallback = () => {
+        image.parentElement?.removeAttribute('data-loaded');
+        image.remove();
+      };
+      image.addEventListener('load', showPhoto, { once: true });
+      image.addEventListener('error', showFallback, { once: true });
+      if (image.complete) {
+        if (image.naturalWidth > 0) showPhoto();
+        else showFallback();
+      }
+    });
+  }
+  initializeCardImages();
+  document.addEventListener('astro:page-load', initializeCardImages);
+</script>
+
+<style>
+  .cm-market-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    padding: 1rem;
+  }
+  .cm-market-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 80px;
+    margin-bottom: 1rem;
+  }
+  .cm-market-thumbnail {
+    position: relative;
+    flex: 0 0 80px;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #f8f5f2;
+  }
+  .cm-market-photo-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #756967;
+    font-size: 12px;
+  }
+  .cm-market-thumbnail img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+  }
+  .cm-market-thumbnail[data-loaded] img {
+    opacity: 1;
+  }
+  .cm-market-thumbnail[data-loaded] .cm-market-photo-empty {
+    visibility: hidden;
+  }
+  .cm-market-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+  .cm-market-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+  .cm-market-card-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+  .cm-market-card:focus-visible {
+    outline: 2px solid #956571;
+    outline-offset: 3px;
+  }
+</style>

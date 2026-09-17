@@ -8,7 +8,6 @@ import CaseRow from '~/components/CaseRow.astro';
 import MarketFilters from '~/components/MarketFilters.astro';
 import MarketFilterSheet from '~/components/MarketFilterSheet.astro';
 import EmptyState from '~/components/EmptyState.astro';
-import TrustBadges from '~/components/TrustBadges.astro';
 import Breadcrumb from '~/components/seo/Breadcrumb.astro';
 import { getCanonical, getHomePermalink, getPermalink } from '~/utils/permalinks';
 import { hasSupabaseConfig } from '~/lib/env';
@@ -139,27 +138,24 @@ const marketPaged = paginateList(marketPosts, currentPage);
 ---
 
 <Layout metadata={metadata}>
-  <section class="py-10 md:py-16 bg-cream">
+  <section class="py-6 md:py-8 bg-cream">
     <div class="max-w-content mx-auto px-4 sm:px-6">
       <Breadcrumb
-        class="mb-6 text-sm text-plum-soft"
+        class="mb-4 text-sm text-plum-soft"
         items={[
           { name: 'トップ', url: getHomePermalink() },
           { name: '在庫・取引事例' },
         ]}
       />
 
-      <header class="mb-8">
+      <header class="mb-6">
         <h1 class="cm-heading text-[26px] md:text-[32px] font-semibold">在庫・取引事例をさがす</h1>
         <p class="mt-3 text-plum-soft max-w-2xl leading-relaxed text-[15px] md:text-base">
           いま募集中の売りたい・買いたいと、過去の成約事例を同じ画面で探せます。匿名表示・運営仲介です。
         </p>
-        <div class="mt-4">
-          <TrustBadges />
-        </div>
       </header>
 
-      <div class="flex flex-wrap items-center gap-2 mb-6" role="tablist" aria-label="在庫の種別">
+      <div class="cm-market-tabs flex flex-wrap items-center gap-2 mb-6" role="tablist" aria-label="在庫の種別">
         <a
           href={buildCasesUrl({
             view: 'active',
@@ -226,7 +222,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
       </div>
 
       {showMarket && (
-        <div class="mb-6 flex flex-wrap items-center gap-2" aria-label="出品種別クイックフィルタ">
+        <div class="cm-market-kinds mb-6 flex items-center gap-2" aria-label="出品種別クイックフィルタ">
           <a href={buildCasesUrl({ view, type, listingKind: '', page: '1' })} class={quickKindClass(listingKind === '', listingCount)}>
             すべて {listingCount}
           </a>
@@ -257,7 +253,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
         </div>
       )}
 
-      <div class="grid lg:grid-cols-[260px_1fr] gap-8">
+      <div class="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-8">
         <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {view !== 'done' && (
             <MarketFilters
@@ -382,7 +378,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
                 </div>
               ) : (
                 <>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div class="cm-market-grid">
                     {marketPaged.slice.map(({ kind, post }) => (
                       <PostCard {post} {kind} />
                     ))}
@@ -449,3 +445,29 @@ const marketPaged = paginateList(marketPosts, currentPage);
   </section>
 
 </Layout>
+
+<style>
+  .cm-market-kinds {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+  .cm-market-kinds > a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  @media (min-width: 640px) {
+    .cm-market-kinds { flex-wrap: wrap; }
+  }
+  @media (max-width: 639px) {
+    .cm-market-tabs { gap: 0.375rem; }
+    .cm-market-tabs > a {
+      padding: 0.5rem 0.625rem;
+      font-size: 0.75rem;
+    }
+  }
+  .cm-market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 1rem;
+  }
+</style>
