@@ -2,13 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-html:not(.js) [class*="motion-safe:md:opacity-0"] {
+/* Shared native dropdown treatment for public, account, and admin forms.
+   The arrow is a background, so the entire control stays one click target. */
+select:not([multiple]):is(:not([size]), [size='1']) {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 48px;
+  max-width: 100%;
+  border: 1px solid #a18b85;
+  border-radius: 10px;
+  background-color: #fff;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2378555e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"),
+    linear-gradient(#d6c8c3, #d6c8c3), linear-gradient(#f5eeee, #f5eeee);
+  background-repeat: no-repeat;
+  background-position:
+    right 12px center,
+    right 44px center,
+    right center;
+  background-size:
+    20px 20px,
+    1px 24px,
+    44px 100%;
+  padding: 10px 56px 10px 14px;
+  color: var(--plum, #403435);
+  font-size: 16px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+select:not([multiple]):is(:not([size]), [size='1']):enabled:hover {
+  border-color: #78555e;
+  box-shadow: 0 0 0 1px #78555e;
+}
+
+select:not([multiple]):is(:not([size]), [size='1']):focus {
+  border-color: #78555e;
+  outline: 2px solid #956571;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+select:not([multiple]):is(:not([size]), [size='1']):disabled {
+  border-color: #d6cbc7;
+  background-color: #f2efed;
+  color: #847a77;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+select:not([multiple]):is(:not([size]), [size='1'])[aria-invalid='true'] {
+  border-color: #b5524e;
+}
+
+@media (forced-colors: active) {
+  select:not([multiple]):is(:not([size]), [size='1']) {
+    appearance: auto;
+    -webkit-appearance: auto;
+    background-image: none;
+    padding-right: 14px;
+    border-color: ButtonText;
+  }
+  select:not([multiple]):is(:not([size]), [size='1']):focus {
+    outline-color: Highlight;
+  }
+}
+
+html:not(.js) [class*='motion-safe:md:opacity-0'] {
   opacity: 1 !important;
   transform: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [class*="motion-safe:md:opacity-0"] {
+  [class*='motion-safe:md:opacity-0'] {
     opacity: 1 !important;
     animation: none !important;
     transform: none !important;
@@ -16,7 +86,7 @@ html:not(.js) [class*="motion-safe:md:opacity-0"] {
 }
 
 @media (min-width: 768px) {
-  html.js [class*="motion-safe:md:opacity-0"]:not([no-intersect]) {
+  html.js [class*='motion-safe:md:opacity-0']:not([no-intersect]) {
     opacity: 1 !important;
     transform: none !important;
   }

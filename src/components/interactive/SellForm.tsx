@@ -196,7 +196,7 @@ export default function SellForm() {
               </p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4">
             <div>
               <label htmlFor="sell-year" className={labelClass}>
                 製造年 <span style={{ color: REQUIRED }}>*</span>
