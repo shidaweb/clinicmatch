@@ -1,30 +1,84 @@
 ---
-const links = [
-  { href: '/admin', label: '今日の対応', exact: true },
-  { href: '/admin/crm', label: '全案件CRM' },
-  { href: '/admin/consultations', label: '相談' },
-  { href: '/admin/posts', label: '投稿審査' },
-  { href: '/admin/approaches', label: 'アプローチ' },
-  { href: '/admin/threads', label: 'ワークスペース' },
-  { href: '/admin/agreements', label: '仲介契約' },
-  { href: '/admin/deals', label: '売買・請求' },
-  { href: '/admin/members', label: '会員' },
-  { href: '/admin/analytics', label: '分析' },
+const groups = [
+  {
+    label: '対応を進める',
+    links: [
+      { href: '/admin', label: '今日の対応', exact: true },
+      { href: '/admin/crm', label: '全案件' },
+      { href: '/admin/consultations', label: '相談受付' },
+      { href: '/admin/posts', label: '投稿審査' },
+    ],
+  },
+  {
+    label: '取引を進める',
+    links: [
+      { href: '/admin/approaches', label: '関心・提案' },
+      { href: '/admin/threads', label: '仲介・メッセージ' },
+      { href: '/admin/agreements', label: '仲介契約' },
+      { href: '/admin/deals', label: '売買・請求' },
+    ],
+  },
+  {
+    label: '管理',
+    links: [
+      { href: '/admin/members', label: '会員' },
+      { href: '/admin/analytics', label: '分析' },
+    ],
+  },
 ];
-
 const path = Astro.url.pathname.replace(/\/$/, '') || '/admin';
 ---
 
-<nav class="mb-8 flex flex-wrap gap-2" aria-label="運営管理">
+<nav aria-label="運営管理" class="admin-nav">
   {
-    links.map(({ href, label, exact }) => {
-      const normalized = href.replace(/\/$/, '') || href;
-      const active = exact ? path === normalized : path.startsWith(normalized);
-      return (
-        <a href={href} class:list={[active ? 'cm-segment-active' : 'cm-segment', 'text-sm']}>
-          {label}
-        </a>
-      );
-    })
+    groups.map((group) => (
+      <div class="admin-nav-group">
+        <p>{group.label}</p>
+        {group.links.map((link) => {
+          const active = 'exact' in link ? path === link.href : path === link.href || path.startsWith(`${link.href}/`);
+          return (
+            <a href={link.href} aria-current={active ? 'page' : undefined}>
+              {link.label}
+            </a>
+          );
+        })}
+      </div>
+    ))
   }
 </nav>
+<style>
+  .admin-nav {
+    display: grid;
+    gap: 24px;
+  }
+  .admin-nav-group p {
+    color: var(--plum-soft);
+    font-size: 12px;
+    padding: 0 12px;
+    margin-bottom: 8px;
+  }
+  .admin-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    color: var(--plum);
+  }
+  .admin-nav a:hover {
+    background: var(--blush);
+  }
+  .admin-nav a[aria-current='page'] {
+    background: var(--blush);
+    font-weight: 700;
+    box-shadow: inset 3px 0 var(--rose-deep);
+  }
+  @media (max-width: 1023px) {
+    .admin-nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-top: 16px;
+      gap: 16px;
+    }
+  }
+</style>

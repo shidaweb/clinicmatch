@@ -67,8 +67,35 @@ const fields: Record<string, string> = {
   }
   {
     item && (
-      <div class="grid lg:grid-cols-2 gap-6 mt-6">
-        <section class="cm-card p-6">
+      <section class="crm-next-summary" aria-label="現在の対応予定">
+        <div>
+          <>
+            <span>運営担当</span>
+            <strong>{str(data.members.find((m) => m.id === item.crm?.owner_id)?.full_name) || '未割当'}</strong>
+          </>
+        </div>
+        <div>
+          <>
+            <span>次の対応</span>
+            <strong>{str(item.crm?.next_action) || '対応状況を確認し、予定を設定'}</strong>
+          </>
+        </div>
+        <div>
+          <>
+            <span>次回期限</span>
+            <strong>{formatDate(item.crm?.due_at)}</strong>
+          </>
+        </div>
+        <a href="#crm-form" class="cm-link">
+          対応を記録する ↓
+        </a>
+      </section>
+    )
+  }
+  {
+    item && (
+      <div class="crm-detail-grid">
+        <section class="crm-detail-panel">
           <>
             <p class="text-sm text-plum-soft">
               {SOURCE_LABELS[item.source]} / {item.id} / 受付 {formatDate(item.createdAt)} JST
@@ -159,11 +186,11 @@ const fields: Record<string, string> = {
             </ul>
           </>
         </section>
-        <section class="cm-card p-6">
+        <section class="crm-detail-panel">
           <>
-            <h2 class="text-xl font-semibold">対応を記録・次回予定を設定</h2>
+            <h2 class="text-xl font-semibold">対応の記録と次回予定</h2>
             <p class="text-sm text-plum-soft mt-2">
-              この記録は運営専用です。メールや電話が自動送信されることはありません。
+              運営内の記録です。メール・電話で連絡した後に、結果と次の予定を残してください。保存してもメールは送信されません。
             </p>
           </>
           <form
@@ -175,6 +202,7 @@ const fields: Record<string, string> = {
           >
             <>
               <fieldset disabled={!data.writable} class="space-y-4">
+                <h3 class="crm-form-heading">次の対応を決める</h3>
                 <label class="block cm-label">
                   対応状態
                   <select name="status" class="cm-input">
@@ -212,8 +240,9 @@ const fields: Record<string, string> = {
                   次回期限（日本時間）
                   <input type="datetime-local" name="due_at" class="cm-input" value={dueValue} />
                 </label>
+                <h3 class="crm-form-heading crm-form-divider">今回の対応を残す</h3>
                 <label class="block cm-label">
-                  今回の記録
+                  記録の種類
                   <select name="kind" class="cm-input">
                     {Object.entries(ACTIVITY_LABELS)
                       .filter(([key]) => key !== 'review')
@@ -280,6 +309,72 @@ const fields: Record<string, string> = {
     )
   }
 </AdminLayout>
+<style>
+  .crm-next-summary {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr auto;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 0;
+    margin-top: 20px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .crm-next-summary span {
+    display: block;
+    font-size: 12px;
+    color: var(--plum-soft);
+    margin-bottom: 6px;
+  }
+  .crm-next-summary strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .crm-next-summary a {
+    font-size: 13px;
+  }
+  .crm-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    margin-top: 28px;
+  }
+  .crm-detail-panel {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .crm-detail-panel + .crm-detail-panel {
+    border-left: 1px solid var(--line);
+    padding-left: 32px;
+  }
+  .crm-form-heading {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .crm-form-divider {
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  #crm-form {
+    scroll-margin-top: 24px;
+  }
+  @media (max-width: 1100px) {
+    .crm-next-summary {
+      grid-template-columns: 1fr 1fr;
+    }
+    .crm-detail-grid {
+      grid-template-columns: 1fr;
+    }
+    .crm-detail-panel + .crm-detail-panel {
+      border-left: 0;
+      padding-left: 0;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>
 <script>
   const form = document.querySelector<HTMLFormElement>('#crm-form');
   let saving = false;

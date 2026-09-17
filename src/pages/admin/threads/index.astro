@@ -9,7 +9,7 @@ const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
 
 const admin = createSupabaseAdminClient(Astro.locals as never);
-const { data: threads } = await admin
+const { data: threads, error: loadError } = await admin
   .from('threads')
   .select('id, kind, status, contact_disclosed, created_at, buyer_org_id, seller_org_id')
   .order('created_at', { ascending: false })
@@ -18,17 +18,43 @@ const { data: threads } = await admin
 const metadata = { title: '仲介ワークスペース' };
 ---
 
-<AdminLayout metadata={metadata} title="仲介ワークスペース" maxWidth="5xl">
+<AdminLayout metadata={metadata} title="仲介・メッセージ" maxWidth="5xl">
+  {
+    loadError && (
+      <p role="alert" class="text-danger">
+        メッセージ一覧を取得できませんでした。時間をおいて再読み込みしてください。
+      </p>
+    )
+  }
+  {
+    !loadError && !threads?.length && (
+      <div class="border-t border-line py-8">
+        <>
+          <h2 class="font-semibold">やり取りはまだありません</h2>
+          <p class="text-sm text-plum-soft mt-2">
+            投稿へのコメントや、運営が開始した仲介のやり取りをここで確認できます。
+          </p>
+          <a href="/admin/approaches" class="cm-link inline-block mt-4">
+            関心・提案を確認する →
+          </a>
+        </>
+      </div>
+    )
+  }
   <ul class="space-y-3">
-    {(threads ?? []).map((t) => (
-      <li>
-        <a href={`/admin/threads/${t.id}`} class="block cm-list-item hover:shadow-sm transition">
-          <div class="flex justify-between text-sm">
-            <span class="text-plum">{t.kind === 'qa' ? 'Q&A' : '仲介'} — {t.status}</span>
-            {t.contact_disclosed && <span class="text-rose">連絡先開示済</span>}
-          </div>
-        </a>
-      </li>
-    ))}
+    {
+      (threads ?? []).map((t) => (
+        <li>
+          <a href={`/admin/threads/${t.id}`} class="block cm-list-item hover:shadow-sm transition">
+            <div class="flex justify-between text-sm">
+              <span class="text-plum">
+                {t.kind === 'qa' ? 'Q&A' : '仲介'} — {t.status === 'open' ? '進行中' : '終了'}
+              </span>
+              {t.contact_disclosed && <span class="text-rose">連絡先開示済</span>}
+            </div>
+          </a>
+        </li>
+      ))
+    }
   </ul>
 </AdminLayout>

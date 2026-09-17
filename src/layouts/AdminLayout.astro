@@ -1,38 +1,198 @@
 ---
-import Layout from '~/layouts/PageLayout.astro';
+import Layout from '~/layouts/Layout.astro';
 import AdminNav from '~/components/admin/AdminNav.astro';
 import type { MetaData } from '~/types';
-
 interface Props {
   metadata?: MetaData;
   title?: string;
   subtitle?: string;
   maxWidth?: '3xl' | '4xl' | '5xl' | '6xl';
 }
-
 const { metadata, title, subtitle, maxWidth = '5xl' } = Astro.props;
-
-const widthClass = {
-  '3xl': 'max-w-3xl',
-  '4xl': 'max-w-4xl',
-  '5xl': 'max-w-content',
-  '6xl': 'max-w-content',
-}[maxWidth];
 ---
 
-<Layout metadata={{ ...metadata, showConsultBlock: false }}>
-  <section class="py-10 md:py-14 bg-cream min-h-[60vh]">
-    <div class={`${widthClass} mx-auto px-4 sm:px-6`}>
-      <AdminNav />
-      {
-        title && (
-          <header class="mb-8">
-            <h1 class="cm-heading text-2xl md:text-3xl font-bold text-plum">{title}</h1>
-            {subtitle && <p class="mt-2 text-sm text-plum-soft">{subtitle}</p>}
-          </header>
-        )
-      }
-      <slot />
+<Layout metadata={{ ...metadata, robots: { index: false, follow: false } }}>
+  <div class="admin-shell">
+    <a href="#admin-content" class="admin-skip">本文へ移動</a>
+    <header class="admin-topbar">
+      <a href="/admin" class="admin-brand">クリニックマッチ <span>運営管理</span></a>
+      <nav aria-label="サイトへの移動" class="flex gap-4">
+        <a href="/account" class="admin-site-link">マイページ</a><a href="/" class="admin-site-link">公開サイト ↗</a>
+      </nav>
+    </header>
+    <div class="admin-workspace">
+      <aside class="admin-sidebar"><AdminNav /></aside>
+      <details class="admin-mobile-nav"><summary>運営メニュー</summary><AdminNav /></details>
+      <main
+        id="admin-content"
+        class:list={['admin-content', { 'admin-content-narrow': ['3xl', '4xl'].includes(maxWidth) }]}
+      >
+        {
+          title && (
+            <header class="admin-page-heading">
+              <h1>{title}</h1>
+              {subtitle && <p>{subtitle}</p>}
+            </header>
+          )
+        }
+        <slot />
+      </main>
     </div>
-  </section>
+  </div>
 </Layout>
+<style is:global>
+  .admin-shell {
+    min-height: 100vh;
+    background: var(--cream);
+    color: var(--plum);
+    font-family: 'Noto Sans JP', sans-serif;
+    letter-spacing: normal;
+  }
+  .admin-topbar {
+    min-height: 64px;
+    padding: 12px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--ivory);
+  }
+  .admin-brand {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .admin-brand span {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--plum-soft);
+    margin-left: 16px;
+  }
+  .admin-site-link {
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 10px 0;
+  }
+  .admin-workspace {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    max-width: 1600px;
+    margin: auto;
+  }
+  .admin-sidebar {
+    padding: 28px 16px;
+    border-right: 1px solid var(--line);
+  }
+  .admin-content {
+    min-width: 0;
+    padding: 32px;
+  }
+  .admin-content-narrow {
+    max-width: 1000px;
+    width: 100%;
+  }
+  .admin-page-heading {
+    margin-bottom: 24px;
+  }
+  .admin-page-heading h1 {
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 700;
+  }
+  .admin-page-heading p {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--plum-soft);
+    max-width: 70ch;
+  }
+  .admin-shell .cm-heading,
+  .admin-shell .font-heading {
+    font-family: inherit;
+  }
+  .admin-shell .cm-card,
+  .admin-shell .cm-list-item {
+    border-radius: 8px;
+    box-shadow: none;
+  }
+  .admin-shell :is(.cm-btn-primary, .cm-btn-secondary, .cm-btn-dark) {
+    border-radius: 6px;
+    min-height: 44px;
+  }
+  .admin-shell .cm-btn-primary {
+    background: var(--plum);
+  }
+  .admin-shell .cm-btn-primary:hover {
+    background: var(--rose-deep);
+  }
+  .admin-shell :is(input, textarea, select) {
+    font-size: 16px;
+  }
+  .admin-shell :is(a, button, summary):focus-visible {
+    outline: 2px solid var(--rose-deep);
+    outline-offset: 3px;
+  }
+  .admin-shell summary {
+    cursor: pointer;
+  }
+  .admin-mobile-nav {
+    display: none;
+  }
+  .admin-skip {
+    position: fixed;
+    top: -80px;
+    left: 16px;
+    z-index: 100;
+    background: var(--ivory);
+    padding: 12px;
+  }
+  .admin-skip:focus {
+    top: 12px;
+  }
+  @media (max-width: 1023px) {
+    .admin-workspace {
+      display: block;
+    }
+    .admin-sidebar {
+      display: none;
+    }
+    .admin-mobile-nav {
+      display: block;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--ivory);
+    }
+    .admin-mobile-nav[open] {
+      padding-bottom: 20px;
+    }
+    .admin-mobile-nav summary {
+      padding: 14px 0;
+      font-size: 14px;
+    }
+    .admin-content {
+      padding: 24px 20px;
+    }
+  }
+  @media (max-width: 639px) {
+    .admin-topbar {
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    .admin-brand {
+      font-size: 15px;
+    }
+    .admin-brand span {
+      display: block;
+      margin: 2px 0 0;
+    }
+    .admin-site-link {
+      font-size: 12px;
+    }
+    .admin-content {
+      padding: 24px 16px;
+    }
+    .admin-page-heading h1 {
+      font-size: 22px;
+    }
+  }
+</style>

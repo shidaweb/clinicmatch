@@ -9,7 +9,7 @@ const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
 
 const admin = createSupabaseAdminClient(Astro.locals as never);
-const { data: approaches } = await admin
+const { data: approaches, error: loadError } = await admin
   .from('approaches')
   .select('id, kind, status, message, created_at, listing_id, wanted_request_id')
   .order('created_at', { ascending: false })
@@ -19,7 +19,29 @@ const kindLabels: Record<string, string> = { interest: '関心（買→売）', 
 const metadata = { title: 'アプローチ管理' };
 ---
 
-<AdminLayout metadata={metadata} title="アプローチ管理" maxWidth="5xl">
+<AdminLayout metadata={metadata} title="関心・提案" maxWidth="5xl">
+  {
+    loadError && (
+      <p role="alert" class="text-danger">
+        関心・提案を取得できませんでした。時間をおいて再読み込みしてください。
+      </p>
+    )
+  }
+  {
+    !loadError && !approaches?.length && (
+      <div class="border-t border-line py-8">
+        <>
+          <h2 class="font-semibold">関心・提案はまだありません</h2>
+          <p class="text-sm text-plum-soft mt-2">
+            出品への関心や買い希望への提案が届くと、ここから仲介を開始できます。
+          </p>
+          <a href="/admin/crm" class="cm-link inline-block mt-4">
+            全案件を確認する →
+          </a>
+        </>
+      </div>
+    )
+  }
   <ul class="space-y-4">
     {
       (approaches ?? []).map((a) => (

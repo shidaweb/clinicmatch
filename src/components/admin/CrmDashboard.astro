@@ -1,5 +1,5 @@
 ---
-import { SOURCE_LABELS, CRM_STATUSES, crmPriority, filterCrm, formatDate, str } from '~/lib/crm';
+import { SOURCE_LABELS, CRM_STATUSES, crmPriority, filterCrm, formatDate, str, matchesCrmAttention } from '~/lib/crm';
 import type { CrmData } from '~/lib/crm';
 import { POST_STATUS_LABELS } from '~/lib/marketplace';
 interface Props {
@@ -8,7 +8,8 @@ interface Props {
 }
 const { data, todayOnly = false } = Astro.props;
 const params = Astro.url.searchParams;
-const filtered = filterCrm(data.items, params, todayOnly);
+const now = new Date();
+const filtered = filterCrm(data.items, params, todayOnly, now);
 const page = Math.max(1, Math.min(Math.ceil(filtered.length / 50) || 1, Number(params.get('page')) || 1));
 const rows = filtered.slice((page - 1) * 50, page * 50);
 const pageUrl = (n: number) => {
@@ -16,94 +17,113 @@ const pageUrl = (n: number) => {
   p.set('page', String(n));
   return `?${p}`;
 };
-const active = data.items.filter(
-  (i) => !i.raw.archived_at && i.publication !== 'draft' && i.crm?.status !== 'completed'
-);
-const stats = [
-  { label: '期限超過', count: active.filter((i) => crmPriority(i) === 0).length },
-  { label: '今日が期限', count: active.filter((i) => crmPriority(i) === 1).length },
-  { label: '対応履歴未登録', count: active.filter((i) => !i.crm).length },
-  { label: '次回予定なし', count: active.filter((i) => !i.crm?.due_at).length },
+const queues = [
+  { key: 'overdue', label: '期限超過' },
+  { key: 'today', label: '今日が期限' },
+  { key: 'unassigned', label: '担当未割当' },
+  { key: 'unscheduled', label: '次回予定なし' },
 ];
+const attention = params.get('attention');
+const currentQueue = queues.find((q) => q.key === attention);
+const historyMissing = data.items.filter((i) => crmPriority(i, now) !== 9 && !i.crm).length;
+const stateLabels: Record<string, string> = {
+  ...POST_STATUS_LABELS,
+  new: '受付済み',
+  in_mediation: '仲介中',
+  agreed: '合意済み',
+  matched: 'マッチング済み',
+  declined: '見送り',
+  open: '進行中',
+  closed: '終了',
+};
 ---
 
-<section>
+<section aria-label="案件の対応一覧">
   {
     data.issues.length > 0 && (
-      <div role="alert" class="mb-6 rounded-xl border border-danger p-4 text-danger">
-        <>
-          <strong>一部の情報を取得できませんでした</strong>
-          <ul>
-            {data.issues.map((issue) => (
-              <li>{issue}</li>
-            ))}
-          </ul>
-          <p>表示中の件数は完全ではありません。CRMを未適用の場合、0011マイグレーションの確認が必要です。</p>
-        </>
+      <div role="alert" class="crm-warning">
+        <strong>一部の情報を取得できませんでした</strong>
+        <ul>
+          {data.issues.map((issue) => (
+            <li>{issue}</li>
+          ))}
+        </ul>
+        <p>件数は確定していません。取得エラーを解消してから確認してください。</p>
       </div>
     )
   }
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <nav class="crm-queues" aria-label="対応が必要な案件">
     {
-      stats.map((s) => (
-        <div class="cm-card p-4">
+      queues.map((queue) => (
+        <a href={`/admin/crm?attention=${queue.key}`} aria-current={attention === queue.key ? 'page' : undefined}>
           <>
-            <p class="text-sm text-plum-soft">{s.label}</p>
-            <p class="text-3xl font-semibold text-plum mt-2">{data.issues.length ? '—' : s.count}</p>
+            <span>{queue.label}</span>
+            <strong
+              class:list={{
+                'text-danger':
+                  queue.key === 'overdue' && data.items.some((i) => matchesCrmAttention(i, queue.key, now)),
+              }}
+            >
+              {data.issues.length ? '—' : data.items.filter((i) => matchesCrmAttention(i, queue.key, now)).length}
+            </strong>
+            <span class="crm-queue-arrow" aria-hidden="true">
+              ↗
+            </span>
           </>
-        </div>
+        </a>
       ))
     }
+  </nav>
+  <p class="crm-context">担当と次の対応を決めてから、期限を設定してください。時刻は日本時間です。</p>
+  <div class="crm-view-tabs">
+    <nav aria-label="一覧の範囲">
+      <a href="/admin" aria-current={todayOnly ? 'page' : undefined}>今日の対応</a><a
+        href="/admin/crm"
+        aria-current={!todayOnly ? 'page' : undefined}>全案件</a>
+    </nav>
+    <span
+      >{currentQueue?.label || (todayOnly ? '期限到来・予定未設定' : '下書き・完了を含む')}{
+        data.issues.length ? '' : ` · ${filtered.length}件`
+      }</span
+    >
   </div>
-  <p class="text-sm text-plum-soft mb-4">
-    時刻は日本時間です。過去のメール・電話履歴が未移行の案件は「対応履歴未登録」と表示します。公開済みでも運営の対応は継続します。
-  </p>
-  <div class="flex gap-4 mb-4">
-    <a class="cm-link" href="/admin">今日の対応</a><a class="cm-link" href="/admin/crm">全案件（下書きも含む）</a>
-  </div>
-  <form method="get" class="cm-card p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-    <div>
-      <label class="cm-label" for="crm-search">検索</label>
-      <input
+  <form method="get" class="crm-filters" aria-label="案件を絞り込む">
+    {currentQueue && <input type="hidden" name="attention" value={currentQueue.key} />}
+    <div class="crm-search">
+      <label for="crm-search">案件・連絡先を検索</label><input
         id="crm-search"
-        class="cm-input"
+        type="search"
         name="q"
         value={params.get('q')}
-        placeholder="氏名・組織・機器・メール・ID"
+        placeholder="機器名・氏名・組織名・メール"
+        class="cm-input"
       />
     </div>
     <div>
-      <label class="cm-label" for="crm-source">受付経路</label>
-      <select id="crm-source" class="cm-input" name="source">
-        <option value="">すべて</option>
-        {
+      <label for="crm-source">受付経路</label><select id="crm-source" class="cm-input" name="source"
+        ><option value="">すべて</option>{
           Object.entries(SOURCE_LABELS).map(([key, label]) => (
             <option value={key} selected={params.get('source') === key}>
               {label}
             </option>
           ))
-        }
-      </select>
+        }</select>
     </div>
     <div>
-      <label class="cm-label" for="crm-status">対応状態</label>
-      <select id="crm-status" class="cm-input" name="status">
-        <option value="">すべて</option>
-        {
+      <label for="crm-status">対応状態</label><select id="crm-status" class="cm-input" name="status"
+        ><option value="">すべて</option>{
           Object.entries(CRM_STATUSES).map(([key, label]) => (
             <option value={key} selected={params.get('status') === key}>
               {label}
             </option>
           ))
-        }
-      </select>
+        }</select>
     </div>
     <div>
-      <label class="cm-label" for="crm-owner">担当</label>
-      <select id="crm-owner" class="cm-input" name="owner">
-        <option value="">すべて</option>
-        <option value="unassigned" selected={params.get('owner') === 'unassigned'}>未割当</option>
-        {
+      <label for="crm-owner">運営担当</label><select id="crm-owner" class="cm-input" name="owner"
+        ><option value="">すべて</option><option value="unassigned" selected={params.get('owner') === 'unassigned'}
+          >未割当</option
+        >{
           data.members
             .filter((m) => m.role === 'admin')
             .map((m) => (
@@ -111,96 +131,433 @@ const stats = [
                 {str(m.full_name) || m.id.slice(0, 8)}
               </option>
             ))
-        }
-      </select>
+        }</select>
     </div>
-    <button class="cm-btn-primary self-end" type="submit">絞り込む</button>
+    <button class="cm-btn-primary" type="submit">絞り込む</button>
   </form>
-  <div class="cm-card overflow-x-auto">
-    <table class="w-full text-sm min-w-[850px]">
-      <thead class="text-left text-plum-soft border-b border-line"
+  {
+    (currentQueue || ['q', 'source', 'status', 'owner'].some((key) => params.get(key))) && (
+      <p class="crm-filter-note">
+        {currentQueue ? `${currentQueue.label}を表示中` : '絞り込み中'}
+        <a href={todayOnly ? '/admin' : '/admin/crm'}>条件を解除</a>
+      </p>
+    )
+  }
+  <div class="crm-records">
+    <table class="crm-table">
+      <caption class="sr-only">案件ごとの担当、次の対応、期限、連絡先</caption>
+      <thead
         ><tr
-          ><th class="p-4">期限・担当</th><th class="p-4">相手・案件</th><th class="p-4">次の対応</th><th class="p-4"
-            >連絡先</th
-          ><th class="p-4">状態</th></tr
+          ><th scope="col">案件・相手</th><th scope="col">次の対応</th><th scope="col">担当・期限</th><th scope="col"
+            >状態</th
+          ></tr
         ></thead
-      ><tbody
+      >
+      <tbody
         >{
-          rows.map((item) => (
-            <tr class="border-b border-line align-top">
-              <td class="p-4">
-                <>
-                  <p class:list={[crmPriority(item) === 0 ? 'text-danger font-semibold' : 'text-plum']}>
-                    {crmPriority(item) === 0 ? '期限超過 · ' : ''}
-                    {formatDate(item.crm?.due_at)}
-                  </p>
-                  <p class="text-plum-soft mt-1">
-                    {str(data.members.find((m) => m.id === item.crm?.owner_id)?.full_name) || '未割当'}
-                  </p>
-                  <small>受付 {formatDate(item.createdAt)}</small>
-                </>
-              </td>
-              <td class="p-4 max-w-xs">
-                <>
-                  <span class="cm-tag-sell">{SOURCE_LABELS[item.source]}</span>
-                  <a class="block cm-link font-semibold mt-2" href={`/admin/crm/${item.source}/${item.id}`}>
+          rows.map((item) => {
+            const owner =
+              str(data.members.find((m) => m.id === item.crm?.owner_id)?.full_name) ||
+              (item.crm?.owner_id ? String(item.crm.owner_id).slice(0, 8) : '未割当');
+            const priority = crmPriority(item, now);
+            return (
+              <tr>
+                <td class="crm-subject">
+                  <span class="crm-source">{SOURCE_LABELS[item.source]}</span>
+                  <a class="crm-title" href={`/admin/crm/${item.source}/${item.id}`}>
                     {item.title}
                   </a>
                   <p>
                     {item.organization || '組織未登録'} / {item.person || '担当者未確認'}
                   </p>
-                  <small class="text-plum-soft">{item.id.slice(0, 8)}</small>
-                </>
-              </td>
-              <td class="p-4 max-w-xs">
-                <>
-                  <p>{str(item.crm?.next_action) || '内容と既存の対応状況を確認'}</p>
-                  <small class="text-plum-soft">
-                    最終連絡：{item.crm?.last_contact_at ? formatDate(item.crm.last_contact_at) : '履歴未登録'}
-                  </small>
-                </>
-              </td>
-              <td class="p-4 max-w-xs break-all">
-                <p>{item.email || item.phone || item.contactSource}</p>
-                {item.raw.notification_status === 'failed' && <p class="text-danger">運営通知に失敗</p>}
-              </td>
-              <td class="p-4">
-                <>
-                  <p>{CRM_STATUSES[str(item.crm?.status)] || '未整理'}</p>
-                  <small class="text-plum-soft">
-                    {item.raw.archived_at ? '保管済み / ' : ''}
-                    {POST_STATUS_LABELS[item.publication] || item.publication}
-                  </small>
-                </>
-              </td>
-            </tr>
-          ))
+                  <p class="crm-secondary crm-contact">{item.email || item.phone || item.contactSource}</p>
+                  {item.raw.notification_status === 'failed' && <p class="text-danger">運営通知に失敗</p>}
+                </td>
+                <td data-label="次の対応" class="crm-action">
+                  <>
+                    <p class:list={{ 'crm-unset': !item.crm?.next_action }}>
+                      {str(item.crm?.next_action) || '対応状況を確認し、予定を設定'}
+                    </p>
+                    <p class="crm-secondary">
+                      最終連絡：{item.crm?.last_contact_at ? formatDate(item.crm.last_contact_at) : '履歴未登録'}
+                    </p>
+                  </>
+                </td>
+                <td data-label="担当・期限" class="crm-owner">
+                  <>
+                    <p class:list={{ 'crm-unset': !item.crm?.owner_id }}>{owner}</p>
+                    <p class:list={['crm-due', { 'text-danger font-semibold': priority === 0 }]}>
+                      {priority === 0 ? '期限超過 · ' : ''}
+                      {formatDate(item.crm?.due_at)}
+                    </p>
+                    <p class="crm-secondary">受付 {formatDate(item.createdAt)}</p>
+                  </>
+                </td>
+                <td data-label="状態">
+                  <>
+                    <span class:list={['crm-status', { 'crm-status-waiting': item.crm?.status === 'waiting' }]}>
+                      {CRM_STATUSES[str(item.crm?.status)] || '未整理'}
+                    </span>
+                    <p class="crm-secondary">
+                      {item.raw.archived_at ? '保管済み / ' : ''}
+                      {stateLabels[item.publication] || item.publication}
+                    </p>
+                    <a
+                      class="crm-open"
+                      href={`/admin/crm/${item.source}/${item.id}`}
+                      aria-label={`${item.title}の対応を確認`}
+                    >
+                      対応を確認 <span aria-hidden="true">→</span>
+                    </a>
+                  </>
+                </td>
+              </tr>
+            );
+          })
         }</tbody
       >
     </table>
     {
       !rows.length && (
-        <p class="p-8 text-plum-soft">
-          {data.issues.length
-            ? '取得エラーを解消してから再確認してください。'
-            : '条件に一致する案件はありません。全案件や絞り込み条件も確認できます。'}
-        </p>
+        <div class="crm-empty">
+          <>
+            <h2>{data.issues.length ? '案件を取得できませんでした' : '条件に一致する案件はありません'}</h2>
+            <p>
+              {data.issues.length
+                ? '取得エラーの内容を確認してください。'
+                : '絞り込み条件を解除するか、全案件から確認できます。'}
+            </p>
+            <a href="/admin/crm" class="cm-link">
+              全案件を見る →
+            </a>
+          </>
+        </div>
       )
     }
   </div>
-  <div class="flex gap-6 mt-4 text-sm">
-    <span>{filtered.length}件 / {page}ページ</span>{
-      page > 1 && (
-        <a class="cm-link" href={pageUrl(page - 1)}>
-          前へ
-        </a>
-      )
-    }{
-      page * 50 < filtered.length && (
-        <a class="cm-link" href={pageUrl(page + 1)}>
-          次へ
-        </a>
-      )
-    }
+  <div class="crm-list-footer">
+    <p>{page} / {Math.max(1, Math.ceil(filtered.length / 50))}ページ</p><nav aria-label="ページ切り替え">
+      {page > 1 && <a href={pageUrl(page - 1)}>← 前へ</a>}{
+        page * 50 < filtered.length && <a href={pageUrl(page + 1)}>次へ →</a>
+      }
+    </nav>
   </div>
+  <p class="crm-context">
+    対応履歴未登録：{
+      data.issues.length ? '—' : historyMissing
+    }件。過去のメール・電話が未記録の場合も含みます。公開済みの案件も、運営の対応は継続します。
+  </p>
 </section>
+<style>
+  .crm-warning {
+    padding: 16px;
+    border-left: 3px solid var(--danger);
+    background: var(--ivory);
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  .crm-queues {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .crm-queues a {
+    position: relative;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-right: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .crm-queues a:first-child {
+    padding-left: 0;
+  }
+  .crm-queues a:last-child {
+    border-right: 0;
+  }
+  .crm-queues a:hover,
+  .crm-queues a[aria-current] {
+    background: var(--blush);
+  }
+  .crm-queues strong {
+    font-size: 28px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .crm-queue-arrow {
+    position: absolute;
+    right: 16px;
+    top: 18px;
+    color: var(--plum-soft);
+  }
+  .crm-context {
+    color: var(--plum-soft);
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 14px 0 24px;
+  }
+  .crm-view-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .crm-view-tabs nav {
+    display: flex;
+    gap: 24px;
+  }
+  .crm-view-tabs a {
+    display: block;
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+  }
+  .crm-view-tabs a[aria-current] {
+    font-weight: 700;
+    border-bottom-color: var(--plum);
+  }
+  .crm-view-tabs > span {
+    font-size: 12px;
+    color: var(--plum-soft);
+  }
+  .crm-filters {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(145px, 1fr)) auto;
+    gap: 12px;
+    align-items: end;
+    padding: 20px 0;
+  }
+  .crm-filters > div {
+    min-width: 0;
+  }
+  .crm-filters label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .crm-filters :is(select, input) {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    min-height: 48px;
+  }
+  .crm-filters button {
+    min-height: 48px;
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+  .crm-filter-note {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+  .crm-filter-note a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .crm-records {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--ivory);
+  }
+  .crm-table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .crm-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--cream);
+    color: var(--plum-soft);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .crm-table th:nth-child(1) {
+    width: 34%;
+  }
+  .crm-table th:nth-child(2) {
+    width: 28%;
+  }
+  .crm-table th:nth-child(3) {
+    width: 21%;
+  }
+  .crm-table th:nth-child(4) {
+    width: 17%;
+  }
+  .crm-table td {
+    vertical-align: top;
+    padding: 18px 16px;
+    border-top: 1px solid var(--line);
+    overflow-wrap: anywhere;
+  }
+  .crm-table tbody tr:hover {
+    background: var(--cream);
+  }
+  .crm-source {
+    color: var(--plum-soft);
+    font-size: 12px;
+  }
+  .crm-title {
+    display: block;
+    font-weight: 700;
+    line-height: 1.7;
+    margin: 4px 0 6px;
+  }
+  .crm-title:hover {
+    text-decoration: underline;
+  }
+  .crm-secondary {
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--plum-soft);
+  }
+  .crm-contact {
+    overflow-wrap: anywhere;
+  }
+  .crm-unset {
+    color: var(--plum-soft);
+  }
+  .crm-due {
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .crm-status {
+    font-size: 12px;
+    padding: 3px 7px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .crm-status-waiting {
+    background: var(--blush);
+  }
+  .crm-open {
+    display: inline-block;
+    padding: 10px 0;
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .crm-list-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 0;
+    font-size: 13px;
+    color: var(--plum-soft);
+  }
+  .crm-list-footer nav {
+    display: flex;
+    gap: 24px;
+  }
+  .crm-list-footer a {
+    padding: 8px;
+  }
+  .crm-empty {
+    padding: 36px 20px;
+  }
+  .crm-empty h2 {
+    font-weight: 700;
+  }
+  .crm-empty p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: var(--plum-soft);
+  }
+  @media (max-width: 1279px) {
+    .crm-filters {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .crm-search {
+      grid-column: span 2;
+    }
+  }
+  @media (max-width: 767px) {
+    .crm-queues {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .crm-queues a {
+      padding: 14px 12px !important;
+    }
+    .crm-queues a:nth-child(2) {
+      border-right: 0;
+    }
+    .crm-queues a:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--line);
+    }
+    .crm-view-tabs {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0;
+    }
+    .crm-view-tabs > span {
+      padding-bottom: 10px;
+    }
+    .crm-table,
+    .crm-table tbody,
+    .crm-table tr,
+    .crm-table td {
+      display: block;
+      width: 100%;
+    }
+    .crm-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .crm-table tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      padding: 18px 16px;
+      gap: 12px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .crm-table tr:last-child {
+      border: 0;
+    }
+    .crm-table td {
+      border: 0;
+      padding: 0;
+      min-width: 0;
+    }
+    .crm-subject,
+    .crm-action {
+      grid-column: 1 / -1;
+    }
+    .crm-action {
+      padding-top: 12px !important;
+      border-top: 1px solid var(--line) !important;
+    }
+    .crm-table td[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      color: var(--plum-soft);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+  }
+  @media (max-width: 479px) {
+    .crm-filters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .crm-search {
+      grid-column: 1 / -1;
+    }
+    .crm-filters button {
+      align-self: end;
+    }
+    .crm-context {
+      margin-bottom: 20px;
+    }
+  }
+</style>

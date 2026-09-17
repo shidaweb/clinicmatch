@@ -146,6 +146,23 @@ export function crmPriority(item: CrmItem, now = new Date()) {
   return item.crm ? 3 : 2;
 }
 
+export function matchesCrmAttention(item: CrmItem, attention: string | null, now = new Date()) {
+  if (!attention) return true;
+  if (crmPriority(item, now) === 9) return false;
+  switch (attention) {
+    case 'overdue':
+      return crmPriority(item, now) === 0;
+    case 'today':
+      return crmPriority(item, now) === 1;
+    case 'unassigned':
+      return !item.crm?.owner_id;
+    case 'unscheduled':
+      return !item.crm?.due_at;
+    default:
+      return true;
+  }
+}
+
 export function filterCrm(items: CrmItem[], params: URLSearchParams, todayOnly: boolean, now = new Date()) {
   const q = (params.get('q') ?? '').trim().toLowerCase();
   const source = params.get('source');
@@ -154,6 +171,7 @@ export function filterCrm(items: CrmItem[], params: URLSearchParams, todayOnly: 
   return items
     .filter((item) => {
       if (todayOnly && crmPriority(item, now) >= 4) return false;
+      if (!matchesCrmAttention(item, params.get('attention'), now)) return false;
       if (source && item.source !== source) return false;
       if (status && (item.crm?.status ?? 'untriaged') !== status) return false;
       if (owner === 'unassigned' && item.crm?.owner_id) return false;

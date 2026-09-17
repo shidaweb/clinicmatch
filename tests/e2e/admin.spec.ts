@@ -32,12 +32,12 @@ test.describe('/admin page smoke (with admin credentials)', () => {
     await page.getByLabel('パスワード').fill(adminPassword!);
     await page.getByRole('button', { name: 'ログイン' }).click();
     await expect(page).toHaveURL(/\/admin$/);
-    await expect(page.getByRole('heading', { level: 1, name: '運営管理' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '今日の対応' })).toBeVisible();
 
     const checks: Array<{ href: string; heading: string }> = [
       { href: '/admin/posts', heading: '投稿審査' },
       { href: '/admin/consultations', heading: '相談一覧' },
-      { href: '/admin/threads', heading: '仲介ワークスペース' },
+      { href: '/admin/threads', heading: '仲介・メッセージ' },
       { href: '/admin/deals', heading: '売買契約・請求管理' },
     ];
 

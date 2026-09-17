@@ -80,6 +80,34 @@ function load(file, mocks = {}, cache = {}) {
     'due,public'
   );
   assert.equal(filterCrm(items, new URLSearchParams('q=Org'), false, now).length, 4);
+  const queueItems = [
+    make('unassigned'),
+    make('future', { crm: { owner_id: 'operator', due_at: '2026-09-11T00:00:00Z' } }),
+    make('overdue', { crm: { owner_id: 'operator', due_at: '2026-09-09T00:00:00Z' } }),
+    make('today', { crm: { owner_id: 'operator', due_at: '2026-09-09T08:00:00Z' } }),
+    make('done', { crm: { status: 'completed' } }),
+    make('draft', { publication: 'draft' }),
+    make('archived', { raw: { archived_at: '2026-09-08' } }),
+  ];
+  for (const [attention, expected] of [
+    ['unassigned', 'unassigned'],
+    ['unscheduled', 'unassigned'],
+    ['overdue', 'overdue'],
+    ['today', 'today'],
+  ]) {
+    assert.equal(
+      filterCrm(queueItems, new URLSearchParams({ attention }), false, now)
+        .map((i) => i.id)
+        .join(','),
+      expected,
+      attention + ' queue excludes inactive records'
+    );
+  }
+  assert.equal(
+    filterCrm(queueItems, new URLSearchParams('attention=overdue&owner=other'), false, now).length,
+    0,
+    'queue intersects owner filter'
+  );
   const mocks = {
     '~/lib/supabase/server': {
       createSupabaseServerClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
@@ -218,13 +246,25 @@ function load(file, mocks = {}, cache = {}) {
   assert.equal(await auth.getProfile({}, {}), null);
   assert.equal(verified, true);
   const registrationBase = {
-    email: 'member@example.invalid', password: 'StrongPassword1', account_type: 'corporate',
-    corporate_number: '1234567890123', name: 'Test', full_name: 'Test', prefecture: '東京都',
-    city: '港区', display_name: 'Test member', trade_side: 'both',
+    email: 'member@example.invalid',
+    password: 'StrongPassword1',
+    account_type: 'corporate',
+    corporate_number: '1234567890123',
+    name: 'Test',
+    full_name: 'Test',
+    prefecture: '東京都',
+    city: '港区',
+    display_name: 'Test member',
+    trade_side: 'both',
   };
   assert.equal(auth.validateRegisterPayload(registrationBase), null);
   assert.ok(auth.validateRegisterPayload({ ...registrationBase, account_type: undefined }));
-  const individual = { ...registrationBase, account_type: 'individual', corporate_number: '', invoice_registration_number: 'ｔ１２３４５６７８９０１２３' };
+  const individual = {
+    ...registrationBase,
+    account_type: 'individual',
+    corporate_number: '',
+    invoice_registration_number: 'ｔ１２３４５６７８９０１２３',
+  };
   assert.equal(auth.validateRegisterPayload(individual), null);
   for (const invoice of ['', '1234567890123', 'T123456789012', 'T12345678901234', 'Tabcdefghijklm'])
     assert.ok(auth.validateRegisterPayload({ ...individual, invoice_registration_number: invoice }));
@@ -237,14 +277,37 @@ function load(file, mocks = {}, cache = {}) {
     '~/lib/env': { hasSupabaseConfig: () => true },
     '~/lib/auth-url': { getEmailConfirmRedirectUrl: () => 'https://example.invalid/auth/callback' },
     '~/lib/supabase/server': {
-      createSupabaseServerClient: () => ({ auth: {
-        getUser: async () => ({ data: { user: currentRegistrationUser } }),
-        signUp: async () => { signups++; return { data: { user: { id: 'new-user', email: 'member@example.invalid', identities: [{}] }, session: null }, error: null }; },
-      }}),
-      createSupabaseAdminClient: () => ({ rpc: async (name, data) => { assert.equal(name, 'register_member'); rpcData = data; return { error: null }; } }),
+      createSupabaseServerClient: () => ({
+        auth: {
+          getUser: async () => ({ data: { user: currentRegistrationUser } }),
+          signUp: async () => {
+            signups++;
+            return {
+              data: { user: { id: 'new-user', email: 'member@example.invalid', identities: [{}] }, session: null },
+              error: null,
+            };
+          },
+        },
+      }),
+      createSupabaseAdminClient: () => ({
+        rpc: async (name, data) => {
+          assert.equal(name, 'register_member');
+          rpcData = data;
+          return { error: null };
+        },
+      }),
     },
   });
-  const registerRequest = (body) => registrationApi.POST({ request: new Request('https://example.invalid/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), cookies: {}, locals: {} });
+  const registerRequest = (body) =>
+    registrationApi.POST({
+      request: new Request('https://example.invalid/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+      cookies: {},
+      locals: {},
+    });
   assert.equal((await registerRequest({ ...individual, invoice_registration_number: '123456789012' })).status, 400);
   assert.equal(signups, 0, 'invalid identity must not create Auth users');
   assert.equal((await registerRequest(individual)).status, 200);
@@ -259,7 +322,9 @@ function load(file, mocks = {}, cache = {}) {
   assert.equal((await registerRequest({ ...individual, password: '' })).status, 200);
   assert.equal(signups, priorSignups, 'resume does not send signup or change password');
   assert.equal(rpcData.p_user, 'resume-user');
-  console.log('PASS: registration identity validation, canonical numbers, branch-specific RPC fields and onboarding resume.');
+  console.log(
+    'PASS: registration identity validation, canonical numbers, branch-specific RPC fields and onboarding resume.'
+  );
   console.log(
     'PASS: contact validation/fallback, malformed requests, persisted intake despite notification failure, DB error state, CRM priority/filtering, verified authentication.'
   );
