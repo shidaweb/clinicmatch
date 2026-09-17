@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     return json({ error: '残ショット数は0以上で入力してください' }, 400);
   }
   if (listingKind !== 'device' && submit && !org?.verified_at) {
-    return json({ error: '消耗品を審査提出するには法人確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
+    return json({ error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
   }
 
   if (listingKind !== 'device') {

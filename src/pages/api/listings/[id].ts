@@ -161,7 +161,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
     return json({ error: 'カテゴリ・メーカー・機種名は必須です' }, 400);
 
   if (mergedListingKind !== 'device' && submit && !org?.verified_at) {
-    return json({ error: '消耗品を審査提出するには法人確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
+    return json({ error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
   }
 
   if (mergedListingKind !== 'device') {

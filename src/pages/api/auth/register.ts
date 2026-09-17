@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { mapAuthRegisterError, normalizeCorporateNumber, validateRegisterPayload } from '~/lib/auth';
+import { normalizeInvoiceNumber } from '~/lib/member-identity';
 import { getEmailConfirmRedirectUrl } from '~/lib/auth-url';
 import { readObject, isEmail } from '~/lib/http';
 import { hasSupabaseConfig } from '~/lib/env';
@@ -28,7 +29,11 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
-  const corporateNumber = normalizeCorporateNumber(String(body.corporate_number ?? ''));
+  const accountType = String(body.account_type);
+  const corporateNumber =
+    accountType === 'corporate' ? normalizeCorporateNumber(String(body.corporate_number ?? '')) : null;
+  const invoiceNumber =
+    accountType === 'individual' ? normalizeInvoiceNumber(String(body.invoice_registration_number ?? '')) : null;
   const name = String(body.name ?? '').trim();
   const prefecture = String(body.prefecture ?? '').trim();
   const city = String(body.city ?? '').trim();
@@ -59,7 +64,9 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const { error: memberError } = await admin.rpc('register_member', {
     p_user: authData.user.id,
     p_data: {
+      account_type: accountType,
       corporate_number: corporateNumber,
+      invoice_registration_number: invoiceNumber,
       name,
       prefecture,
       city,

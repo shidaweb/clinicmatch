@@ -1,6 +1,8 @@
 import type { AstroCookies } from 'astro';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
 import { isEmail } from '~/lib/http';
+import { normalizeCorporateNumber, validateMemberIdentity } from '~/lib/member-identity';
+export { normalizeCorporateNumber } from '~/lib/member-identity';
 
 type RuntimeLocals = {
   runtime?: {
@@ -26,7 +28,7 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
   const { data: profile, error } = await supabase
     .from('profiles')
     .select(
-      'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, name, phone, contact_email, address_detail, verified_at)'
+      'id, org_id, full_name, display_name, avatar_path, trade_side, role, organizations(id, prefecture, city, corporate_number, account_type, invoice_registration_number, name, phone, contact_email, address_detail, verified_at)'
     )
     .eq('id', user.id)
     .single();
@@ -36,11 +38,6 @@ export async function getProfile(cookies: AstroCookies, locals?: RuntimeLocals) 
     throw new Error('会員情報を取得できませんでした');
   }
   return profile;
-}
-
-/** Normalize: strip spaces and hyphens */
-export function normalizeCorporateNumber(value: string): string {
-  return value.replace(/[\s\u3000-]/g, '');
 }
 
 /** 13 digits + modulus-9 check digit (国税庁法人番号) */
@@ -161,7 +158,6 @@ export function mapAuthResendError(error: AuthErrorLike): string {
 export function validateRegisterPayload(body: Record<string, unknown>): string | null {
   const email = String(body.email ?? '').trim();
   const password = String(body.password ?? '');
-  const corporateNumber = normalizeCorporateNumber(String(body.corporate_number ?? ''));
   const name = String(body.name ?? '').trim();
   const fullName = String(body.full_name ?? '').trim();
   const prefecture = String(body.prefecture ?? '').trim();
@@ -173,11 +169,9 @@ export function validateRegisterPayload(body: Record<string, unknown>): string |
   if (!isEmail(email)) return 'メールアドレスの形式を確認してください';
   if (!password) return 'パスワードを入力してください';
   if (!isValidPassword(password)) return PASSWORD_RULES_MESSAGE;
-  if (!corporateNumber) return '法人番号を入力してください';
-  if (!isValidCorporateNumberFormat(corporateNumber)) {
-    return '法人番号は13桁の数字で入力してください';
-  }
-  if (!name) return '組織名を入力してください';
+  const identityError = validateMemberIdentity(body);
+  if (identityError) return identityError;
+  if (!name) return body.account_type === 'individual' ? '氏名または屋号を入力してください' : '法人名を入力してください';
   if (!fullName) return '担当者名を入力してください';
   if (!prefecture) return '都道府県を選択してください';
   if (!city) return '市区町村を入力してください';

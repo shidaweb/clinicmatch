@@ -10,7 +10,9 @@ if (!profile) return Astro.redirect('/auth/login');
 
 const org = profile.organizations as {
   name?: string;
-  corporate_number?: string;
+  corporate_number?: string | null;
+  account_type?: 'corporate' | 'individual';
+  invoice_registration_number?: string | null;
   prefecture?: string;
   city?: string;
   phone?: string | null;
@@ -30,20 +32,24 @@ const avatarPlaceholder =
 <AccountLayout
   metadata={metadata}
   title="設定"
-  subtitle="組織名・法人番号は非公開です。連絡先は合意成立後にのみ取引先へ開示されます。"
+  subtitle="登録名・法人番号・インボイス登録番号は非公開です。連絡先は合意成立後にのみ取引先へ開示されます。"
   maxWidth="lg"
 >
   <form id="settings-form" class="cm-card p-6 space-y-4" data-user-id={profile.id}>
     <div>
-      <label class="cm-label">組織名（非公開）</label>
+      <label class="cm-label">登録区分</label>
+      <input value={org?.account_type === 'individual' ? '個人' : '法人'} disabled class="cm-input bg-surface-muted" />
+    </div>
+    <div>
+      <label class="cm-label">{org?.account_type === 'individual' ? '氏名または屋号（非公開）' : '法人名（非公開）'}</label>
       <input value={org?.name ?? ''} disabled class="cm-input bg-surface-muted" />
     </div>
     <div>
-      <label class="cm-label">法人番号</label>
-      <input value={org?.corporate_number ?? ''} disabled class="cm-input bg-surface-muted font-mono" />
+      <label class="cm-label">{org?.account_type === 'individual' ? 'インボイス登録番号' : '法人番号'}</label>
+      <input value={(org?.account_type === 'individual' ? org.invoice_registration_number : org?.corporate_number) ?? ''} disabled class="cm-input bg-surface-muted font-mono" />
     </div>
     <div>
-      <label class="cm-label" for="full_name">担当者名</label>
+      <label class="cm-label" for="full_name">{org?.account_type === 'individual' ? '氏名' : '担当者名'}</label>
       <input id="full_name" name="full_name" value={profile.full_name ?? ''} class="cm-input" />
     </div>
     <div>

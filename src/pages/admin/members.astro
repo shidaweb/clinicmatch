@@ -11,7 +11,7 @@ if (!profile || profile.role !== 'admin') return Astro.redirect('/account');
 const admin = createSupabaseAdminClient(Astro.locals as never);
 const { data: orgs } = await admin
   .from('organizations')
-  .select('id, corporate_number, name, prefecture, city, verified_at, created_at')
+  .select('id, account_type, corporate_number, invoice_registration_number, name, prefecture, city, verified_at, created_at')
   .order('created_at', { ascending: false });
 
 const metadata = { title: '会員管理' };
@@ -27,8 +27,9 @@ const metadata = { title: '会員管理' };
     <table class="w-full text-sm border-collapse">
       <thead>
         <tr class="border-b border-line text-left text-plum-soft">
-          <th class="py-2 pr-4">組織名</th>
-          <th class="py-2 pr-4">法人番号</th>
+          <th class="py-2 pr-4">登録名</th>
+          <th class="py-2 pr-4">登録区分</th>
+          <th class="py-2 pr-4">法人番号／インボイス登録番号</th>
           <th class="py-2 pr-4">所在地</th>
           <th class="py-2">登録日</th>
         </tr>
@@ -37,7 +38,8 @@ const metadata = { title: '会員管理' };
         {(orgs ?? []).map((o) => (
           <tr class="border-b border-line">
             <td class="py-3 pr-4 text-plum">{o.name}</td>
-            <td class="py-3 pr-4 font-mono text-xs text-plum">{o.corporate_number}</td>
+            <td class="py-3 pr-4 text-plum">{o.account_type === 'individual' ? '個人' : '法人'}</td>
+            <td class="py-3 pr-4 font-mono text-xs text-plum">{o.account_type === 'individual' ? o.invoice_registration_number : o.corporate_number}</td>
             <td class="py-3 pr-4 text-plum">{o.prefecture}{o.city}</td>
             <td class="py-3 text-plum-soft">{new Date(o.created_at).toLocaleDateString('ja-JP')}</td>
           </tr>
