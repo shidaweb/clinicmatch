@@ -213,7 +213,7 @@ html:not(.js) [class*='motion-safe:md:opacity-0'] {
   }
 
   .cm-search-float {
-    @apply rounded-pill border border-line bg-ivory px-4 py-3 shadow-soft -mt-2;
+    @apply rounded-3xl border border-line bg-ivory p-4 sm:p-5 shadow-soft -mt-2;
   }
 
   .cm-post-row {
