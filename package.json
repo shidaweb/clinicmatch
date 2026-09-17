@@ -18,6 +18,7 @@
     "check:eslint": "eslint .",
     "check:prettier": "prettier --check .",
     "test:e2e": "playwright test",
+    "test:trade": "node tests/unit/trade-lifecycle-db.mjs && node tests/unit/trade-notifications.cjs",
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "fix:eslint": "eslint --fix .",
     "fix:prettier": "prettier -w .",

@@ -1,5 +1,7 @@
 # クリニックマッチ｜通知メール 実装指示書（Cursor向け）
 
+> 2026-09-18：現行の挙動は[取引フロー・メールの検証記録](./trade-flow-audit-2026-09-18.md)、担当・期限・次の対応の改善案は[運営フォロー設計](./trade-operations-plan.md)を参照。以下の目標仕様と実装済み機能は区別してください。
+
 > 前提：**(A) 認証メールは Supabase Auth の機能を活用**（ダッシュボードのテンプレ＝`docs/supabase-auth-email-templates.md`）。**(B) 取引通知メールは、その同じHTMLテンプレートのデザインで、アプリから Resend 経由で送る**。
 > 既存実装：`src/lib/notifications.ts` の `sendAdminEmail`（Resend・宛先ハードコード）と各APIハンドラ。これを拡張して当事者通知まで対応する。
 > 関連：通知仕様（イベント/タイミング）、`docs/spec.md`（システム）。
