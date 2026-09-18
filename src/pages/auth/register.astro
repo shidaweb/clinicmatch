@@ -10,7 +10,7 @@ const sessionUser = hasSupabaseConfig(Astro.locals as never)
   ? (await createSupabaseServerClient(Astro.cookies, Astro.locals as never).auth.getUser()).data.user
   : null;
 const resuming = Boolean(sessionUser && Astro.url.searchParams.has('complete'));
-const metadata = { title: '会員登録' };
+const metadata = { title: '会員登録', showConsultBlock: false };
 const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams.get('trade_side') ?? '')
   ? (Astro.url.searchParams.get('trade_side') as 'sell' | 'buy' | 'both')
   : 'both';
@@ -18,7 +18,7 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
 
 <Layout metadata={metadata}>
   <section class="py-12 md:py-16 bg-cream">
-    <div class="max-w-lg mx-auto px-4 sm:px-6">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6">
       <h1 class="cm-heading text-3xl font-bold mb-2">{resuming ? '会員情報の登録を再開' : '会員登録'}</h1>
       <p class="text-plum-soft mb-2">
         登録すると、機器の出品・購入希望の投稿と、相手との<strong>コメント（取引相談）</strong>ができます。
@@ -28,6 +28,7 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
       </p>
 
       <form data-resuming={resuming} id="register-form" class="cm-card p-6 space-y-4" novalidate>
+        <h2 class="customer-form-heading">ログイン情報</h2>
         <div>
           <label class="cm-label" for="email">メールアドレス</label>
           <input
@@ -67,6 +68,7 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
             </div>
           )
         }
+        <h2 class="customer-form-heading">事業者情報</h2>
         <fieldset>
           <legend class="cm-label">登録区分 <span class="text-rose-deep">（必須）</span></legend>
           <div class="grid grid-cols-2 gap-3">
@@ -140,6 +142,7 @@ const initialTradeSide = ['sell', 'buy', 'both'].includes(Astro.url.searchParams
           <label class="cm-label" for="city">市区町村</label>
           <input id="city" name="city" required placeholder="例：渋谷区" class="cm-input" />
         </div>
+        <h2 class="customer-form-heading">利用時の表示・目的</h2>
         <div>
           <label class="cm-label" for="display_name">表示名</label>
           <input id="display_name" name="display_name" required class="cm-input" placeholder="例：東京の機器担当" />

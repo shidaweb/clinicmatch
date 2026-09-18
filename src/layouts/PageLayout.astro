@@ -1,5 +1,6 @@
 ---
 import Layout from '~/layouts/Layout.astro';
+import '~/styles/customer-ui.css';
 import Header from '~/components/widgets/Header.astro';
 import Footer from '~/components/widgets/Footer.astro';
 import BottomActionBar from '~/components/BottomActionBar.astro';
@@ -15,13 +16,18 @@ export interface Props {
 
 const { metadata } = Astro.props;
 const showConsultBlock = metadata?.showConsultBlock !== false;
+const area = Astro.url.pathname.startsWith('/account')
+  ? 'account'
+  : Astro.url.pathname.startsWith('/auth')
+    ? 'auth'
+    : 'public';
 ---
 
 <Layout metadata={metadata}>
   <Fragment slot="header">
     <Header {...headerData} isSticky />
   </Fragment>
-  <main>
+  <main class="public-content" data-area={area}>
     <slot />
     {showConsultBlock && <ConsultBlock />}
   </main>

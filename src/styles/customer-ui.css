@@ -1,0 +1,120 @@
+/* Customer surfaces: preserve Clinicmatch's palette while reducing decorative weight. */
+.public-content .cm-post-card,
+.public-content .cm-card,
+.public-content .cm-card-interactive,
+.public-content .cm-list-item {
+  border-radius: 8px;
+  box-shadow: none;
+}
+.public-content .cm-post-card:hover,
+.public-content .cm-card-interactive:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--rose-deep);
+}
+.public-content :is(.cm-btn-primary, .cm-btn-secondary, .cm-btn-dark, .cm-btn-line) {
+  border-radius: 8px;
+  min-height: 46px;
+}
+.public-content .cm-btn-primary {
+  background: var(--rose-deep);
+}
+.public-content .cm-btn-primary:hover {
+  background: var(--plum);
+}
+.public-content .cm-input {
+  border-radius: 8px;
+  font-size: 16px;
+  min-height: 48px;
+}
+.public-content .cm-link {
+  color: var(--rose-deep);
+  text-underline-offset: 4px;
+}
+.public-content :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--rose-deep);
+  outline-offset: 3px;
+}
+.public-content .cm-kicker,
+.public-content .cm-kicker-center {
+  font-size: 13px;
+  letter-spacing: normal;
+  justify-content: flex-start;
+}
+.public-content .cm-kicker::before,
+.public-content .cm-kicker-center::after {
+  display: none;
+}
+.public-content .cm-search-float {
+  border-radius: 12px;
+  box-shadow: none;
+  margin-top: 32px;
+  max-width: none;
+}
+.public-content .cm-market-tabs {
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.public-content .cm-market-tabs > a {
+  border-radius: 6px;
+  box-shadow: none;
+}
+.public-content .cm-market-kinds > a {
+  border-radius: 6px;
+}
+.public-content[data-area='account'] :is(.cm-heading, .font-heading),
+.public-content[data-area='auth'] :is(.cm-heading, .font-heading) {
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.public-content[data-area='account'] .cm-list-item {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  padding: 18px 0;
+  flex-wrap: wrap;
+}
+.public-content[data-area='account'] .cm-list-item > div {
+  flex-wrap: wrap;
+}
+.public-content[data-area='account'] .cm-list-item :is(a, button) {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+.public-content[data-area='auth'] #register-form {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  padding: 24px 0;
+  background: transparent;
+}
+.customer-form-heading {
+  padding-top: 24px;
+  margin-top: 28px !important;
+  border-top: 1px solid var(--line);
+  font-size: 17px;
+  font-weight: 700;
+}
+.customer-form-heading:first-child {
+  margin-top: 0 !important;
+  padding-top: 0;
+  border-top: 0;
+}
+.public-content[data-area='auth'] label:has(input[type='radio']) {
+  min-height: 44px;
+}
+@media (max-width: 639px) {
+  .public-content .cm-market-tabs > a {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .public-content[data-area='account'] .cm-list-item {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .public-content[data-area='account'] .cm-list-item > div {
+    width: 100%;
+  }
+}

@@ -1,21 +1,41 @@
 ---
 import ConsultButton from '~/components/ConsultButton.astro';
-
 interface Props {
   class?: string;
 }
-
 const { class: className = '' } = Astro.props;
 ---
 
-<section class:list={['bg-blush border-y border-line py-12 md:py-16', className]}>
-  <div class="max-w-content mx-auto px-4 sm:px-6 text-center">
-    <h2 class="cm-heading text-2xl md:text-3xl font-semibold text-plum">
-      写真と機種名だけでも、まずは相談。
-    </h2>
-    <p class="mt-3 text-plum-soft text-sm md:text-base">匿名OK・約2分。運営があいだに入ります。</p>
-    <div class="mt-6 flex justify-center">
-      <ConsultButton variant="primary" class="!bg-rose-deep !text-white !font-semibold !shadow-sm hover:!opacity-95" />
+<section class:list={['customer-consult border-t border-line bg-cream', className]}>
+  <div class="max-w-content mx-auto px-4 sm:px-6 customer-consult-inner">
+    <div>
+      <h2 class="cm-heading text-xl md:text-2xl font-semibold">売却・購入について相談する</h2><p>
+        機種や条件が決まっていなくても、分かる範囲でお知らせください。
+      </p>
     </div>
+    <ConsultButton variant="primary" />
   </div>
 </section>
+<style>
+  .customer-consult {
+    padding: 40px 0;
+  }
+  .customer-consult-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .customer-consult p {
+    margin-top: 12px;
+    color: var(--plum-soft);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  @media (max-width: 767px) {
+    .customer-consult-inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

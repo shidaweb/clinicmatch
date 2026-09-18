@@ -4,6 +4,7 @@ export const prerender = false;
 import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { categoryName } from '~/lib/categories';
 import { POST_STATUS_LABELS } from '~/lib/marketplace';
 
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
@@ -11,7 +12,7 @@ if (!profile) return Astro.redirect('/auth/login');
 
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
 const showArchived = Astro.url.searchParams.get('archived') === '1';
-const { data: wanted } = await supabase
+const { data: wanted, error: loadError } = await supabase
   .from('wanted_requests')
   .select('id, category_slug, maker, model, status, created_at')
   .eq('buyer_org_id', profile.org_id)
@@ -28,7 +29,12 @@ const metadata = { title: '買いたい一覧' };
 const draftSaved = Astro.url.searchParams.has('draft');
 ---
 
-<AccountLayout metadata={metadata} title="買いたい一覧" maxWidth="4xl">
+<AccountLayout
+  metadata={metadata}
+  title="買いたい一覧"
+  maxWidth="4xl"
+  subtitle="下書きを保存した後、審査に提出してください。運営が内容を確認して公開します。"
+>
   {
     draftSaved && (
       <p class="mb-4 rounded-xl border border-sage/30 bg-sage/10 px-4 py-3 text-sm text-plum">
@@ -41,11 +47,29 @@ const draftSaved = Astro.url.searchParams.has('draft');
   <a class="cm-link block mb-4" href={showArchived ? '/account/wanted' : '/account/wanted?archived=1'}
     >{showArchived ? '通常の一覧へ' : '保管した投稿を見る'}</a
   >
+  {
+    loadError && (
+      <p role="alert" class="py-6 text-danger">
+        情報を取得できませんでした。時間をおいて再読み込みしてください。
+      </p>
+    )
+  }
+  {
+    !loadError && !wanted?.length && (
+      <p class="border-t border-line py-8 text-plum-soft">
+        {showArchived
+          ? '保管した投稿はありません。'
+          : 'まだ投稿はありません。上の新規登録ボタンから入力を始められます。'}
+      </p>
+    )
+  }
   <ul class="space-y-3">
     {
       (wanted ?? []).map((item) => (
         <li class="cm-list-item flex justify-between items-center gap-3" data-wanted-id={item.id}>
-          <span class="text-plum">{item.maker && item.model ? `${item.maker} ${item.model}` : item.category_slug}</span>
+          <span class="text-plum">
+            {item.maker && item.model ? `${item.maker} ${item.model}` : categoryName(item.category_slug)}
+          </span>
           {item.status === 'rejected' && (
             <p class="text-sm text-danger">
               差し戻し理由：{reviews?.find((r) => r.wanted_id === item.id)?.reason || '運営へご確認ください'}
@@ -58,6 +82,11 @@ const draftSaved = Astro.url.searchParams.has('draft');
               </button>
             )}
             <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+            {!showArchived && item.status === 'published' && (
+              <a href={`/cases/${item.id}?type=wanted`} class="cm-link">
+                公開ページ
+              </a>
+            )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
               <>
                 <a href={`/account/wanted/${item.id}/edit`} class="cm-link">

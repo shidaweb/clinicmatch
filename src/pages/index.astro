@@ -3,7 +3,6 @@ export const prerender = true;
 
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import TrustBadges from '~/components/TrustBadges.astro';
 import MembershipBenefits from '~/components/MembershipBenefits.astro';
 import RecentDealsPanel from '~/components/RecentDealsPanel.astro';
 import MarketNow from '~/components/MarketNow.astro';
@@ -41,9 +40,13 @@ const categories: { slug: string; label: string; href: string; isNew?: boolean }
 const searchCategories = categories.filter((item) => item.slug !== 'consumables');
 
 const flowSteps = [
-  { num: '01', title: '相談・登録', desc: '匿名OK。分かる範囲で入力' },
-  { num: '02', title: '条件整理', desc: '運営が仲介して論点を揃える' },
-  { num: '03', title: 'マッチング', desc: '合意後に連絡先を開示' },
+  {
+    num: '1',
+    title: '機器や希望条件を登録',
+    desc: '売りたい機器、または探している機種・予算をお知らせください。相談から始めることもできます。',
+  },
+  { num: '2', title: '運営と条件を確認', desc: '価格、保守、付属品、引き渡し時期などを、運営が双方に確認します。' },
+  { num: '3', title: '合意後に契約へ', desc: '双方の合意を確認して連絡先を開示し、契約の手続きを進めます。' },
 ];
 
 const totalDeals = 38;
@@ -51,132 +54,195 @@ const avgMatchDays = 14;
 ---
 
 <Layout metadata={metadata}>
-  <section class="bg-cream pt-12 md:pt-16 pb-4">
-    <div class="max-w-content mx-auto px-4 sm:px-6 min-w-0">
-      <div class="grid max-[880px]:grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center min-w-0">
-        <div class="min-w-0">
-          <h1 class="cm-heading text-[30px] md:text-[40px] font-semibold">
-            美容医療機器の、次の場所を見つける
-          </h1>
-          <p class="mt-4 text-plum-soft leading-[1.75] text-[15px] md:text-base">
-            匿名で探せて、運営が仲介。中古の脱毛機・ピコ・HIFU・RF・痩身機器から、チップ・カートリッジなどの消耗品まで。連絡先は合意後に開示されます。
-          </p>
-          <div class="mt-8 flex flex-wrap gap-3">
-            <a href={getPermalink('contact')} class="cm-btn-primary">出品・購入を相談する</a>
-            <a href="/cases?view=done" class="cm-btn-secondary">在庫・成約事例を見る</a>
-          </div>
-          <div class="cm-stat-band mt-10 justify-start max-[480px]:flex-wrap max-[480px]:gap-y-3">
-            <div>
-              <p class="cm-stat-value">{totalDeals}</p>
-              <p class="cm-stat-label">累計成約</p>
+  <div class="customer-home">
+    <section class="bg-cream pt-12 md:pt-16 pb-4">
+      <div class="max-w-content mx-auto px-4 sm:px-6 min-w-0">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-x-14 items-center min-w-0">
+          <div class="min-w-0">
+            <h1 class="cm-heading text-[30px] md:text-[36px] font-semibold">
+              中古美容医療機器の<br />売買を運営が仲介
+            </h1>
+            <p class="mt-4 text-plum-soft leading-[1.75] text-[15px] md:text-base">
+              脱毛機・ピコレーザー・HIFUなどの機器や消耗品を扱っています。売却・購入の条件を運営と確認し、双方の合意後に連絡先を開示します。
+            </p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="/cases?view=active" class="cm-btn-primary">販売中の機器を探す</a>
+              <a href={getPermalink('contact/sell')} class="cm-btn-secondary">機器の売却を相談する</a>
             </div>
-            <div>
-              <p class="cm-stat-value">{avgMatchDays}<span class="text-lg">日</span></p>
-              <p class="cm-stat-label">平均マッチング</p>
-            </div>
-            <div>
-              <p class="cm-stat-value">100<span class="text-lg">%</span></p>
-              <p class="cm-stat-label">運営仲介</p>
-            </div>
+            <p class="home-record">
+              累計成約 <strong>{totalDeals}件</strong><span>平均マッチング <strong>{avgMatchDays}日</strong></span><a
+                href="/cases?view=done">成約事例を見る →</a
+              >
+            </p>
           </div>
-        </div>
 
-        <div class="min-w-0">
-          <RecentDealsPanel cases={recentDoneCases} totalCount={doneCaseCount} />
-        </div>
-      </div>
-
-      <form action="/cases" method="get" class="cm-search-float mt-8 max-w-4xl mx-auto">
-        <input type="hidden" name="view" value="active" />
-        <input type="hidden" name="type" value="listing" />
-        <input type="hidden" name="listingKind" id="hero-listing-kind" value="" />
-        <div
-          class="mb-3 inline-flex rounded-pill border border-line bg-ivory p-1"
-          role="radiogroup"
-          aria-label="検索する出品種別"
-        >
-          <button type="button" data-hero-kind="" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium bg-rose text-white" aria-checked="true">すべて</button>
-          <button type="button" data-hero-kind="device" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft" aria-checked="false">機器本体</button>
-          <button type="button" data-hero-kind="consumable" class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft" aria-checked="false">消耗品</button>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[11rem_minmax(0,1fr)_10rem_auto] gap-3 min-w-0">
-          <select name="category" aria-label="カテゴリ" class="w-full min-w-0">
-            <option value="">カテゴリ</option>
-            {searchCategories.map(({ slug, label }) => (
-              <option value={slug}>{label}</option>
-            ))}
-          </select>
-          <input
-            type="search"
-            name="q"
-            placeholder="メーカー・機種名"
-            aria-label="メーカー・機種名"
-            class="w-full min-h-[48px] rounded-[10px] border border-line px-4 py-2.5 text-base bg-ivory min-w-0"
-          />
-          <select name="prefecture" aria-label="都道府県" class="w-full min-w-0">
-            <option value="">エリア</option>
-            {PREFECTURES.map((pref) => (
-              <option value={pref}>{pref}</option>
-            ))}
-          </select>
-          <button type="submit" class="cm-btn-dark min-h-[48px] px-8">検索</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <MembershipBenefits totalDeals={totalDeals} avgMatchDays={avgMatchDays} />
-
-  <MarketNow recentDoneCases={recentDoneCases} />
-
-  <section class="py-[52px] md:py-[72px] bg-cream">
-    <div class="max-w-content mx-auto px-4 sm:px-6">
-      <p class="cm-kicker-center mb-2">ご利用の流れ</p>
-      <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-8 text-center">取引の進め方</h2>
-      <div class="grid md:grid-cols-3 gap-10">
-        {flowSteps.map(({ num, title, desc }) => (
-          <div>
-            <p class="font-heading text-3xl text-gold tabular-nums">{num}</p>
-            <h3 class="mt-2 font-heading text-lg font-semibold text-plum">{title}</h3>
-            <p class="mt-2 text-sm text-plum-soft leading-relaxed">{desc}</p>
+          <div class="min-w-0 order-3 lg:order-2">
+            <RecentDealsPanel cases={recentDoneCases} totalCount={doneCaseCount} />
           </div>
-        ))}
-      </div>
-      <div class="mt-10">
-        <TrustBadges />
-      </div>
-    </div>
-  </section>
 
-  <section class="py-[52px] md:py-[72px] bg-blush border-y border-line">
-    <div class="max-w-content mx-auto px-4 sm:px-6">
-      <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-6">カテゴリから探す</h2>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map(({ label, href, isNew }) => (
-          <a href={href} class:list={['cm-card-interactive flex items-center justify-between p-5 group relative', isNew && 'border-rose']}>
-            {isNew && (
-              <span class="absolute -top-2.5 left-4 rounded-pill bg-rose px-2 py-0.5 text-[10px] font-semibold text-white">
-                NEW
-              </span>
-            )}
-            <span class="font-heading font-semibold text-plum group-hover:text-rose-deep">{label}</span>
-            <span class="text-sm text-rose">→</span>
-          </a>
-        ))}
+          <form action="/cases" method="get" class="cm-search-float !mt-0 w-full order-2 lg:order-3 lg:col-span-2">
+            <input type="hidden" name="view" value="active" />
+            <input type="hidden" name="type" value="listing" />
+            <input type="hidden" name="listingKind" id="hero-listing-kind" value="" />
+            <div
+              class="mb-3 inline-flex rounded-pill border border-line bg-ivory p-1"
+              role="group"
+              aria-label="検索する出品種別"
+            >
+              <button
+                type="button"
+                data-hero-kind=""
+                class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium bg-rose text-white"
+                aria-pressed="true">すべて</button
+              >
+              <button
+                type="button"
+                data-hero-kind="device"
+                class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft"
+                aria-pressed="false">機器本体</button
+              >
+              <button
+                type="button"
+                data-hero-kind="consumable"
+                class="hero-kind-btn rounded-pill px-4 py-1.5 text-xs font-medium text-plum-soft"
+                aria-pressed="false">消耗品</button
+              >
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[11rem_minmax(0,1fr)_10rem_auto] gap-3 min-w-0">
+              <select name="category" aria-label="カテゴリ" class="w-full min-w-0">
+                <option value="">カテゴリ</option>
+                {searchCategories.map(({ slug, label }) => <option value={slug}>{label}</option>)}
+              </select>
+              <input
+                type="search"
+                name="q"
+                placeholder="メーカー・機種名"
+                aria-label="メーカー・機種名"
+                class="w-full min-h-[48px] rounded-[10px] border border-line px-4 py-2.5 text-base bg-ivory min-w-0"
+              />
+              <select name="prefecture" aria-label="都道府県" class="w-full min-w-0">
+                <option value="">エリア</option>
+                {PREFECTURES.map((pref) => <option value={pref}>{pref}</option>)}
+              </select>
+              <button type="submit" class="cm-btn-dark min-h-[48px] px-8">検索</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <BlogLatestPosts
-    animate={false}
-    title="読み物"
-    information="中古美容医療機器の見極め・注意点・相場感を、実務目線で整理します。"
-  />
+    <MembershipBenefits />
 
-  <FAQPageJsonLd faqs={[...homeFaqs]} />
-  <HomeFaqs items={[...homeFaqs]} />
+    <MarketNow recentDoneCases={recentDoneCases} />
+
+    <section class="py-[52px] md:py-[72px] bg-cream">
+      <div class="max-w-content mx-auto px-4 sm:px-6">
+        <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-8">取引の進め方</h2>
+        <ol class="home-flow">
+          {
+            flowSteps.map(({ num, title, desc }) => (
+              <li>
+                <p class="home-step">{num}</p>
+                <h3 class="mt-2 font-heading text-lg font-semibold text-plum">{title}</h3>
+                <p class="mt-2 text-sm text-plum-soft leading-relaxed">{desc}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    <section class="py-[52px] md:py-[72px] bg-blush border-y border-line">
+      <div class="max-w-content mx-auto px-4 sm:px-6">
+        <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-6">カテゴリから探す</h2>
+        <div class="home-categories">
+          {
+            categories.map(({ label, href }) => (
+              <a href={href} class="home-category group">
+                <span class="font-heading font-semibold text-plum group-hover:text-rose-deep">{label}</span>
+                <span class="text-sm text-rose">→</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <BlogLatestPosts
+      animate={false}
+      title="読み物"
+      information="中古美容医療機器の見極め・注意点・相場感を、実務目線で整理します。"
+    />
+
+    <FAQPageJsonLd faqs={[...homeFaqs]} />
+    <HomeFaqs items={[...homeFaqs]} />
+  </div>
 </Layout>
 
+<style>
+  .home-record {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--plum-soft);
+    font-size: 13px;
+  }
+  .home-record strong {
+    color: var(--plum);
+    font-weight: 500;
+  }
+  .home-record a {
+    color: var(--rose-deep);
+  }
+  .home-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .home-flow li {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+  .home-step {
+    font-size: 14px;
+    color: var(--plum-soft);
+  }
+  .home-categories {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+  .home-category {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    min-height: 64px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .home-category:hover {
+    color: var(--rose-deep);
+  }
+  .home-category span {
+    font-family: inherit;
+    font-size: 14px;
+  }
+  @media (max-width: 639px) {
+    .home-flow {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .home-categories {
+      grid-template-columns: 1fr 1fr;
+      gap: 0 20px;
+    }
+  }
+</style>
 <script>
   function initHeroKindToggle() {
     const kindInput = document.getElementById('hero-listing-kind') as HTMLInputElement | null;
@@ -190,7 +256,7 @@ const avgMatchDays = 14;
         button.classList.toggle('bg-rose', selected);
         button.classList.toggle('text-white', selected);
         button.classList.toggle('text-plum-soft', !selected);
-        button.setAttribute('aria-checked', selected ? 'true' : 'false');
+        button.setAttribute('aria-pressed', selected ? 'true' : 'false');
       });
     };
 

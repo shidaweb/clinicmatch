@@ -11,7 +11,7 @@ if (!profile) return Astro.redirect('/auth/login');
 
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
 const showArchived = Astro.url.searchParams.get('archived') === '1';
-const { data: listings } = await supabase
+const { data: listings, error: loadError } = await supabase
   .from('listings')
   .select('id, maker, model, status, created_at')
   .eq('seller_org_id', profile.org_id)
@@ -28,7 +28,12 @@ const metadata = { title: '売りたい一覧' };
 const draftSaved = Astro.url.searchParams.has('draft');
 ---
 
-<AccountLayout metadata={metadata} title="売りたい一覧" maxWidth="4xl">
+<AccountLayout
+  metadata={metadata}
+  title="売りたい一覧"
+  maxWidth="4xl"
+  subtitle="下書きを保存した後、審査に提出してください。運営が内容を確認して公開します。"
+>
   {
     draftSaved && (
       <p class="mb-4 rounded-xl border border-sage/30 bg-sage/10 px-4 py-3 text-sm text-plum">
@@ -41,6 +46,22 @@ const draftSaved = Astro.url.searchParams.has('draft');
   <a class="cm-link block mb-4" href={showArchived ? '/account/listings' : '/account/listings?archived=1'}
     >{showArchived ? '通常の一覧へ' : '保管した投稿を見る'}</a
   >
+  {
+    loadError && (
+      <p role="alert" class="py-6 text-danger">
+        情報を取得できませんでした。時間をおいて再読み込みしてください。
+      </p>
+    )
+  }
+  {
+    !loadError && !listings?.length && (
+      <p class="border-t border-line py-8 text-plum-soft">
+        {showArchived
+          ? '保管した投稿はありません。'
+          : 'まだ投稿はありません。上の新規出品ボタンから入力を始められます。'}
+      </p>
+    )
+  }
   <ul class="space-y-3">
     {
       (listings ?? []).map((item) => (
@@ -60,6 +81,11 @@ const draftSaved = Astro.url.searchParams.has('draft');
               </button>
             )}
             <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+            {!showArchived && item.status === 'published' && (
+              <a href={`/cases/${item.id}?type=listing`} class="cm-link">
+                公開ページ
+              </a>
+            )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
               <>
                 <a href={`/account/listings/${item.id}/edit`} class="cm-link">

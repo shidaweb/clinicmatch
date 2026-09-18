@@ -23,9 +23,15 @@ const widthClass = {
 ---
 
 <Layout metadata={{ ...metadata, showConsultBlock: false }}>
-  <section class="py-10 md:py-14 bg-cream min-h-[60vh]">
+  <section class="py-6 md:py-8 bg-cream min-h-[60vh]">
+    {
+      showNav && (
+        <div class="max-w-content mx-auto px-4 sm:px-6">
+          <AccountNav />
+        </div>
+      )
+    }
     <div class={`${widthClass} mx-auto px-4 sm:px-6`}>
-      {showNav && <AccountNav />}
       {
         title && (
           <header class="mb-8 flex flex-wrap items-start justify-between gap-4">

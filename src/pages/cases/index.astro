@@ -131,7 +131,17 @@ const listingKindLabels: Record<string, string> = {
   consumable_expired: '消耗品（期限切れ・研修用）',
 };
 
-const activeFilterCount = [category, prefecture, city, minPrice, maxPrice, q, listingKind, clinicalUse, validOnly].filter(Boolean).length;
+const activeFilterCount = [
+  category,
+  prefecture,
+  city,
+  minPrice,
+  maxPrice,
+  q,
+  listingKind,
+  clinicalUse,
+  validOnly,
+].filter(Boolean).length;
 
 const donePaged = paginateList(staticCases, currentPage);
 const marketPaged = paginateList(marketPosts, currentPage);
@@ -142,10 +152,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
     <div class="max-w-content mx-auto px-4 sm:px-6">
       <Breadcrumb
         class="mb-4 text-sm text-plum-soft"
-        items={[
-          { name: 'トップ', url: getHomePermalink() },
-          { name: '在庫・取引事例' },
-        ]}
+        items={[{ name: 'トップ', url: getHomePermalink() }, { name: '在庫・取引事例' }]}
       />
 
       <header class="mb-6">
@@ -221,93 +228,122 @@ const marketPaged = paginateList(marketPosts, currentPage);
         </a>
       </div>
 
-      {showMarket && (
-        <div class="cm-market-kinds mb-6 flex items-center gap-2" aria-label="出品種別クイックフィルタ">
-          <a href={buildCasesUrl({ view, type, listingKind: '', page: '1' })} class={quickKindClass(listingKind === '', listingCount)}>
-            すべて {listingCount}
-          </a>
-          <a
-            href={buildCasesUrl({ view, type, listingKind: 'device', page: '1' })}
-            class={quickKindClass(listingKind === 'device', deviceCount)}
-          >
-            機器本体 {deviceCount}
-          </a>
-          <a
-            href={buildCasesUrl({ view, type, listingKind: 'consumable', page: '1' })}
-            class={quickKindClass(listingKind === 'consumable', consumableTotalCount)}
-          >
-            消耗品（すべて） {consumableTotalCount}
-          </a>
-          <a
-            href={buildCasesUrl({ view, type, listingKind: 'consumable_valid', page: '1' })}
-            class={quickKindClass(listingKind === 'consumable_valid', consumableValidCount)}
-          >
-            消耗品（期限内） {consumableValidCount}
-          </a>
-          <a
-            href={buildCasesUrl({ view, type, listingKind: 'consumable_expired', page: '1' })}
-            class={quickKindClass(listingKind === 'consumable_expired', consumableExpiredCount)}
-          >
-            消耗品（期限切れ・研修用） {consumableExpiredCount}
-          </a>
-        </div>
-      )}
+      {
+        showMarket && (
+          <div class="cm-market-kinds mb-6 flex items-center gap-2" aria-label="出品種別クイックフィルタ">
+            <a
+              href={buildCasesUrl({ view, type, listingKind: '', page: '1' })}
+              class={quickKindClass(listingKind === '', listingCount)}
+            >
+              すべて {listingCount}
+            </a>
+            <a
+              href={buildCasesUrl({ view, type, listingKind: 'device', page: '1' })}
+              class={quickKindClass(listingKind === 'device', deviceCount)}
+            >
+              機器本体 {deviceCount}
+            </a>
+            <a
+              href={buildCasesUrl({ view, type, listingKind: 'consumable', page: '1' })}
+              class={quickKindClass(listingKind === 'consumable', consumableTotalCount)}
+            >
+              消耗品（すべて） {consumableTotalCount}
+            </a>
+            <a
+              href={buildCasesUrl({ view, type, listingKind: 'consumable_valid', page: '1' })}
+              class={quickKindClass(listingKind === 'consumable_valid', consumableValidCount)}
+            >
+              消耗品（期限内） {consumableValidCount}
+            </a>
+            <a
+              href={buildCasesUrl({ view, type, listingKind: 'consumable_expired', page: '1' })}
+              class={quickKindClass(listingKind === 'consumable_expired', consumableExpiredCount)}
+            >
+              消耗品（期限切れ・研修用） {consumableExpiredCount}
+            </a>
+          </div>
+        )
+      }
 
       <div class="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-8">
         <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
-          {view !== 'done' && (
-            <MarketFilters
-              {view}
-              {type}
-              {category}
-              {prefecture}
-              {city}
-              {minPrice}
-              {maxPrice}
-              {sort}
-              {q}
-              listingKind={listingKind}
-              clinicalUse={clinicalUse}
-              validOnly={validOnly}
-            />
-          )}
-          {view === 'done' && category && (
-            <div class="rounded-card border border-line bg-ivory p-4 text-sm text-plum-soft">
-              カテゴリ: {category}
-              <a href={buildCasesUrl({ view: 'done' })} class="block mt-2 text-rose hover:underline">フィルタを解除</a>
-            </div>
-          )}
+          {
+            view !== 'done' && (
+              <MarketFilters
+                {view}
+                {type}
+                {category}
+                {prefecture}
+                {city}
+                {minPrice}
+                {maxPrice}
+                {sort}
+                {q}
+                listingKind={listingKind}
+                clinicalUse={clinicalUse}
+                validOnly={validOnly}
+              />
+            )
+          }
+          {
+            view === 'done' && category && (
+              <div class="rounded-card border border-line bg-ivory p-4 text-sm text-plum-soft">
+                カテゴリ: {category}
+                <a href={buildCasesUrl({ view: 'done' })} class="block mt-2 text-rose hover:underline">
+                  フィルタを解除
+                </a>
+              </div>
+            )
+          }
         </aside>
 
         <div>
-          {view !== 'done' && (
-            <MarketFilterSheet
-              {view}
-              {type}
-              {category}
-              {prefecture}
-              {city}
-              {minPrice}
-              {maxPrice}
-              {sort}
-              {q}
-              listingKind={listingKind}
-              clinicalUse={clinicalUse}
-              validOnly={validOnly}
-              activeCount={activeFilterCount}
-            />
-          )}
+          {
+            view !== 'done' && (
+              <MarketFilterSheet
+                {view}
+                {type}
+                {category}
+                {prefecture}
+                {city}
+                {minPrice}
+                {maxPrice}
+                {sort}
+                {q}
+                listingKind={listingKind}
+                clinicalUse={clinicalUse}
+                validOnly={validOnly}
+                activeCount={activeFilterCount}
+              />
+            )
+          }
 
           {
             activeFilterCount > 0 && view !== 'done' && (
               <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
-                {category && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">カテゴリ: {category}</span>}
-                {prefecture && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{prefecture}</span>}
+                {category && (
+                  <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">
+                    カテゴリ: {category}
+                  </span>
+                )}
+                {prefecture && (
+                  <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{prefecture}</span>
+                )}
                 {city && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{city}</span>}
-                {listingKind && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{listingKindLabels[listingKind] ?? listingKind}</span>}
-                {clinicalUse && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{clinicalUse}</span>}
-                {validOnly === '1' && <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">期限内のみ</span>}
-                <a href={buildCasesUrl({ view, type, sort })} class="text-rose hover:underline text-xs">クリア</a>
+                {listingKind && (
+                  <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">
+                    {listingKindLabels[listingKind] ?? listingKind}
+                  </span>
+                )}
+                {clinicalUse && (
+                  <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">{clinicalUse}</span>
+                )}
+                {validOnly === '1' && (
+                  <span class="rounded-pill border border-line bg-ivory px-3 py-1 text-plum-soft">期限内のみ</span>
+                )}
+                <a href={buildCasesUrl({ view, type, sort })} class="text-rose hover:underline text-xs">
+                  クリア
+                </a>
               </div>
             )
           }
@@ -336,24 +372,28 @@ const marketPaged = paginateList(marketPosts, currentPage);
           }
 
           {
-            showMarket && (
-              marketPosts.length === 0 ? (
+            showMarket &&
+              (marketPosts.length === 0 ? (
                 <div class="space-y-6">
                   <div class="rounded-card border border-line bg-ivory p-6">
                     <h2 class="font-heading text-lg font-semibold text-plum">募集中の出品はまだありません</h2>
-                    <p class="mt-2 text-sm text-plum-soft">
-                      買いたい登録をしておくと、入荷の瞬間に通知が届きます。
-                    </p>
+                    <p class="mt-2 text-sm text-plum-soft">探している機種や条件を、運営に相談できます。</p>
                     <div class="mt-4 flex flex-wrap gap-3">
-                      <a href="/contact/buy" class="cm-btn-primary">買いたいを登録して入荷通知を受け取る</a>
-                      <a href="/contact" class="cm-btn-secondary">条件で相談する</a>
+                      <a href="/contact/buy" class="cm-btn-primary">
+                        購入希望を相談する
+                      </a>
+                      <a href="/contact" class="cm-btn-secondary">
+                        条件で相談する
+                      </a>
                     </div>
                   </div>
                   {staticCases.length > 0 && (
                     <section>
                       <div class="mb-3 flex items-center justify-between">
                         <h3 class="font-heading text-base font-semibold text-plum">直近の成約事例</h3>
-                        <a href={buildCasesUrl({ view: 'done' })} class="text-xs text-rose hover:underline">すべて見る →</a>
+                        <a href={buildCasesUrl({ view: 'done' })} class="text-xs text-rose hover:underline">
+                          すべて見る →
+                        </a>
                       </div>
                       <div class="divide-y divide-line border-t border-line">
                         {staticCases.slice(0, 3).map((entry) => {
@@ -390,13 +430,12 @@ const marketPaged = paginateList(marketPosts, currentPage);
                     filters={filters}
                   />
                 </>
-              )
-            )
+              ))
           }
 
           {
-            showDone && (
-              staticCases.length === 0 ? (
+            showDone &&
+              (staticCases.length === 0 ? (
                 <EmptyState
                   title="成約事例がありません"
                   message="カテゴリを変えるか、相談フォームからお問い合わせください。"
@@ -430,20 +469,18 @@ const marketPaged = paginateList(marketPosts, currentPage);
                     filters={filters}
                   />
                 </>
-              )
-            )
+              ))
           }
 
           <div class="mt-10 rounded-card border border-dashed border-rose/40 bg-ivory p-6 text-center">
             <h2 class="font-heading text-lg font-semibold text-plum">条件に合う在庫が見つからない？</h2>
-            <p class="mt-2 text-sm text-plum-soft">匿名OK・約2分。運営が仲介してマッチングします。</p>
+            <p class="mt-2 text-sm text-plum-soft">希望条件を伺い、運営が売り手・買い手の間を仲介します。</p>
             <a href="/contact" class="mt-4 cm-btn-primary inline-flex">条件で相談する</a>
           </div>
         </div>
       </div>
     </div>
   </section>
-
 </Layout>
 
 <style>
@@ -456,10 +493,14 @@ const marketPaged = paginateList(marketPosts, currentPage);
     white-space: nowrap;
   }
   @media (min-width: 640px) {
-    .cm-market-kinds { flex-wrap: wrap; }
+    .cm-market-kinds {
+      flex-wrap: wrap;
+    }
   }
   @media (max-width: 639px) {
-    .cm-market-tabs { gap: 0.375rem; }
+    .cm-market-tabs {
+      gap: 0.375rem;
+    }
     .cm-market-tabs > a {
       padding: 0.5rem 0.625rem;
       font-size: 0.75rem;

@@ -10,7 +10,7 @@ const resent = Astro.url.searchParams.has('resent');
 const error = Astro.url.searchParams.get('error');
 const confirmExpired = error === 'confirm';
 
-const metadata = { title: 'ログイン' };
+const metadata = { title: 'ログイン', showConsultBlock: false };
 ---
 
 <Layout metadata={metadata}>

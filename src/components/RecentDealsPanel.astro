@@ -1,7 +1,7 @@
 ---
 import Image from '~/components/common/Image.astro';
 import type { DoneCasePreview } from '~/lib/home-page';
-import { categoryIcon, formatTransactionMonth } from '~/lib/home-page';
+import { formatTransactionMonth } from '~/lib/home-page';
 
 interface Props {
   cases: DoneCasePreview[];
@@ -14,34 +14,26 @@ const hasCases = cases.length > 0;
 
 {
   hasCases ? (
-    <aside class="rounded-card border border-line bg-ivory p-6 shadow-soft" aria-label="直近の成約事例">
+    <aside class="rounded-lg border border-line bg-ivory p-5" aria-label="直近の成約事例">
       <div class="mb-3 flex items-baseline justify-between gap-3">
         <h2 class="font-heading text-base font-semibold text-plum">直近の成約</h2>
-        <span class="text-[11px] text-muted shrink-0">価格帯は守秘のため幅で表示</span>
+        <span class="text-xs text-muted shrink-0">価格帯は守秘のため幅で表示</span>
       </div>
 
-      <ul class="divide-y divide-dashed divide-line">
+      <ul class="divide-y divide-line">
         {cases.map((item) => (
-          <li class="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0">
-            <span
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blush text-lg"
-              aria-hidden="true"
-            >
-              {categoryIcon(item.category)}
-            </span>
+          <li class="flex flex-wrap items-center gap-3.5 py-3 first:pt-0 last:pb-0">
             <div class="min-w-0 flex-1">
-              <p class="truncate text-[13.5px] font-bold text-plum">
+              <a href={`/cases/${item.slug}`} class="block text-sm font-semibold text-plum hover:underline">
                 {item.manufacturer} {item.model}
-              </p>
-              <p class="text-[11.5px] text-muted">
+              </a>
+              <p class="text-xs text-muted">
                 {item.categoryLabel} ・ {formatTransactionMonth(item.transactionDate)}
               </p>
             </div>
             <div class="shrink-0 text-right">
-              <p class="font-heading text-[15px] font-semibold text-rose-deep tabular-nums">
-                {item.priceRange}
-              </p>
-              <p class="text-[10.5px] text-muted">成約価格帯</p>
+              <p class="font-heading text-[15px] font-semibold text-rose-deep tabular-nums">{item.priceRange}</p>
+              <p class="text-xs text-muted">成約価格帯</p>
             </div>
           </li>
         ))}
@@ -51,9 +43,7 @@ const hasCases = cases.length > 0;
         <a href="/cases?view=done" class="text-[13px] font-bold text-rose-deep hover:underline">
           成約事例をすべて見る →
         </a>
-        {totalCount > 0 && (
-          <span class="text-[10.5px] text-muted">直近{totalCount}件を掲載中</span>
-        )}
+        {totalCount > 0 && <span class="text-xs text-muted">直近{totalCount}件を掲載中</span>}
       </div>
     </aside>
   ) : (

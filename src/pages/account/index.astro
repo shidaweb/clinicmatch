@@ -4,6 +4,7 @@ export const prerender = false;
 import AccountLayout from '~/layouts/AccountLayout.astro';
 import { getProfile } from '~/lib/auth';
 import { createSupabaseServerClient } from '~/lib/supabase/server';
+import { categoryName } from '~/lib/categories';
 import { POST_STATUS_LABELS } from '~/lib/marketplace';
 import { hasSupabaseConfig } from '~/lib/env';
 
@@ -11,18 +12,41 @@ const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile) return Astro.redirect('/auth/login');
 
 let listings: Array<{ id: string; maker: string; model: string; status: string }> = [];
-let wanted: Array<{ id: string; category_slug: string; status: string }> = [];
+let wanted: Array<{ id: string; category_slug: string; maker: string | null; model: string | null; status: string }> =
+  [];
 let approachesCount = 0;
 let threadsCount = 0;
+let loadFailed = false;
 
 if (hasSupabaseConfig(Astro.locals as never)) {
   const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
-  const [{ data: myListings }, { data: myWanted }, { count: approachCount }, { count: threadCount }] = await Promise.all([
-    supabase.from('listings').select('id, maker, model, status').eq('seller_org_id', profile.org_id).order('created_at', { ascending: false }).limit(5),
-    supabase.from('wanted_requests').select('id, category_slug, status').eq('buyer_org_id', profile.org_id).order('created_at', { ascending: false }).limit(5),
+  const [
+    { data: myListings, error: listingsError },
+    { data: myWanted, error: wantedError },
+    { count: approachCount, error: approachesError },
+    { count: threadCount, error: threadsError },
+  ] = await Promise.all([
+    supabase
+      .from('listings')
+      .select('id, maker, model, status')
+      .eq('seller_org_id', profile.org_id)
+      .is('archived_at', null)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('wanted_requests')
+      .select('id, category_slug, maker, model, status')
+      .eq('buyer_org_id', profile.org_id)
+      .is('archived_at', null)
+      .order('created_at', { ascending: false })
+      .limit(5),
     supabase.from('approaches').select('*', { count: 'exact', head: true }).or(`from_org_id.eq.${profile.org_id}`),
-    supabase.from('threads').select('*', { count: 'exact', head: true }).or(`buyer_org_id.eq.${profile.org_id},seller_org_id.eq.${profile.org_id}`),
+    supabase
+      .from('threads')
+      .select('*', { count: 'exact', head: true })
+      .or(`buyer_org_id.eq.${profile.org_id},seller_org_id.eq.${profile.org_id}`),
   ]);
+  loadFailed = Boolean(listingsError || wantedError || approachesError || threadsError);
   listings = myListings ?? [];
   wanted = myWanted ?? [];
   approachesCount = approachCount ?? 0;
@@ -31,79 +55,227 @@ if (hasSupabaseConfig(Astro.locals as never)) {
 
 const metadata = { title: 'マイページ' };
 const displayName = profile.full_name?.trim() || '担当者';
+const postLink = (kind: 'listings' | 'wanted', item: { id: string; status: string }) =>
+  ['draft', 'rejected'].includes(item.status)
+    ? `/account/${kind}/${item.id}/edit`
+    : item.status === 'published'
+      ? `/cases/${item.id}?type=${kind === 'listings' ? 'listing' : 'wanted'}`
+      : `/account/${kind}`;
 ---
 
-<AccountLayout metadata={metadata} showNav={true}>
-  <header class="mb-8">
-    <h1 class="cm-heading text-3xl font-bold">マイページ</h1>
-    <p class="mt-2 text-plum-soft">{displayName} さん</p>
-  </header>
-
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <a href="/account/listings/new" class="cm-card p-5 hover:shadow-lg transition border-rose/25">
-      <p class="text-sm font-semibold text-rose">売りたいを出す</p>
-    </a>
-    <a href="/account/wanted/new" class="cm-card p-5 hover:shadow-lg transition border-gold/30">
-      <p class="text-sm font-semibold text-gold">買いたいを出す</p>
-    </a>
-    <a href="/account/threads" class="cm-card p-5 hover:shadow-lg transition">
-      <p class="text-sm font-semibold text-plum">メッセージ</p>
-      <p class="text-2xl font-heading font-bold text-rose mt-1 tabular-nums">{threadsCount}</p>
-    </a>
-    <a href="/account/deals" class="cm-card p-5 hover:shadow-lg transition">
-      <p class="text-sm font-semibold text-plum">契約・請求</p>
-    </a>
-  </div>
-
-  <div class="mt-4">
-    <a href="/account/approaches" class="cm-link">アプローチ一覧（{approachesCount}件）</a>
-  </div>
-
-  <div class="mt-10 grid lg:grid-cols-2 gap-8">
+<AccountLayout metadata={metadata} title="マイページ" subtitle={`${displayName} さん`}>
+  {
+    loadFailed && (
+      <p role="alert" class="border-l-2 border-danger p-4 mb-6 text-sm">
+        一部の情報を取得できませんでした。時間をおいて再読み込みしてください。
+      </p>
+    )
+  }
+  <div class="account-start">
     <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-heading text-lg font-semibold text-plum">売りたい</h2>
-        <a href="/account/listings" class="cm-link">すべて</a>
-      </div>
-      <ul class="space-y-3">
-        {
-          listings.length ? listings.map((item) => (
-            <li class="cm-list-item flex justify-between gap-3">
-              <span class="text-sm text-plum">{item.maker} {item.model}</span>
-              <span class="text-xs text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
-            </li>
-          )) : (
-            <li class="text-sm text-plum-soft">まだ出品がありません</li>
-          )
-        }
-      </ul>
+      <h2>機器を出品する</h2><p>機器の状態や希望価格を入力し、運営の審査に提出します。</p><a
+        href="/account/listings/new"
+        class="cm-btn-primary">売りたい機器を登録</a>
     </div>
-
     <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-heading text-lg font-semibold text-plum">買いたい</h2>
-        <a href="/account/wanted" class="cm-link">すべて</a>
-      </div>
-      <ul class="space-y-3">
-        {
-          wanted.length ? wanted.map((item) => (
-            <li class="cm-list-item flex justify-between gap-3">
-              <span class="text-sm text-plum">{item.category_slug}</span>
-              <span class="text-xs text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
-            </li>
-          )) : (
-            <li class="text-sm text-plum-soft">まだ買いたいがありません</li>
-          )
-        }
-      </ul>
+      <h2>購入希望を伝える</h2><p>探している機種・予算・導入時期を登録できます。</p><a
+        href="/account/wanted/new"
+        class="cm-btn-secondary">買いたい条件を登録</a>
     </div>
   </div>
-
+  <nav class="account-activity" aria-label="取引の確認">
+    <a href="/account/threads"
+      ><span>メッセージ</span><strong>{loadFailed ? '—' : `${threadsCount}件のやり取り`}</strong><span
+        aria-hidden="true">→</span
+      ></a
+    >
+    <a href="/account/approaches"
+      ><span>送った関心・提案</span><strong>{loadFailed ? '—' : `${approachesCount}件`}</strong><span aria-hidden="true"
+        >→</span
+      ></a
+    >
+    <a href="/account/deals"><span>契約・請求</span><strong>内容を確認</strong><span aria-hidden="true">→</span></a>
+  </nav>
+  <div class="account-posts">
+    <section>
+      <header><h2>売りたい機器</h2><a href="/account/listings">一覧を見る →</a></header>
+      <ul>
+        {
+          listings.map((item) => (
+            <li>
+              <a href={postLink('listings', item)}>
+                <>
+                  <span>
+                    {item.maker} {item.model}
+                  </span>
+                  <span class="account-post-status">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+                </>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        !listings.length && !loadFailed && (
+          <p class="account-empty">まだ出品はありません。「売りたい機器を登録」から下書きを保存できます。</p>
+        )
+      }
+    </section>
+    <section>
+      <header><h2>買いたい条件</h2><a href="/account/wanted">一覧を見る →</a></header>
+      <ul>
+        {
+          wanted.map((item) => (
+            <li>
+              <a href={postLink('wanted', item)}>
+                <>
+                  <span>{[item.maker, item.model].filter(Boolean).join(' ') || categoryName(item.category_slug)}</span>
+                  <span class="account-post-status">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
+                </>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        !wanted.length && !loadFailed && (
+          <p class="account-empty">まだ購入希望はありません。機種が決まっていない場合は、カテゴリから登録できます。</p>
+        )
+      }
+    </section>
+  </div>
+  <p class="account-help">投稿や取引でお困りの場合は、<a href="/contact">運営に相談する</a></p>
   {
     profile.role === 'admin' && (
-      <div class="mt-10">
-        <a href="/admin" class="cm-link font-medium">運営管理画面へ →</a>
-      </div>
+      <p class="mt-6">
+        <a href="/admin" class="cm-link text-sm">
+          運営管理画面へ →
+        </a>
+      </p>
     )
   }
 </AccountLayout>
+<style>
+  .account-start {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .account-start h2 {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .account-start p {
+    margin: 12px 0 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--plum-soft);
+  }
+  .account-activity {
+    margin: 32px 0 40px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .account-activity a {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .account-activity a + a {
+    border-left: 1px solid var(--line);
+  }
+  .account-activity a:hover {
+    background: var(--blush);
+  }
+  .account-activity strong {
+    grid-row: 2;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .account-activity span:last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+  .account-posts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .account-posts section {
+    min-width: 0;
+  }
+  .account-posts header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .account-posts h2 {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .account-posts header a {
+    font-size: 13px;
+    color: var(--rose-deep);
+  }
+  .account-posts li a {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .account-posts li a:hover {
+    text-decoration: underline;
+  }
+  .account-post-status {
+    color: var(--plum-soft);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .account-empty {
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--plum-soft);
+  }
+  .account-help {
+    font-size: 14px;
+    color: var(--plum-soft);
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    margin-top: 40px;
+  }
+  .account-help a {
+    color: var(--rose-deep);
+    text-decoration: underline;
+  }
+  @media (max-width: 639px) {
+    .account-start,
+    .account-posts,
+    .account-activity {
+      grid-template-columns: 1fr;
+    }
+    .account-start > div + div {
+      border-top: 1px solid var(--line);
+      padding-top: 24px;
+    }
+    .account-activity a {
+      padding: 16px 0;
+    }
+    .account-activity a + a {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>
