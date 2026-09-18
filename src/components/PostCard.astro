@@ -1,5 +1,5 @@
 ---
-import { findEquipmentImage, equipmentImageUrl } from '~/lib/equipment-images';
+import { categoryImageUrl, categoryImageCaption } from '~/lib/category-images';
 import { MARKET_CATEGORIES } from '~/lib/categories';
 import { getEnv } from '~/lib/env';
 import {
@@ -49,8 +49,9 @@ const imageUrl = isListing
   : wanted?.reference_image_path && supabaseUrl
     ? `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`
     : null;
-const sampleImage = isListing && !coverImage ? findEquipmentImage(makerName, modelName, listing!.listing_kind) : null;
-const displayImageUrl = imageUrl ?? (sampleImage ? equipmentImageUrl(sampleImage) : null);
+const isIllustration = isListing && !coverImage;
+const displayImageUrl =
+  imageUrl ?? (isIllustration ? categoryImageUrl(post.category_slug, listing!.listing_kind) : null);
 const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
 
 let expiryBadge: { label: string; className: string } | null = null;
@@ -69,20 +70,23 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
 }
 ---
 
-<a href={href} class:list={['cm-post-card cm-market-card group', { 'has-photo': Boolean(displayImageUrl) }]}>
+<a
+  href={href}
+  class:list={['cm-post-card cm-market-card group', { 'has-photo': isListing && Boolean(displayImageUrl) }]}
+>
   {
     isListing && displayImageUrl && (
       <figure class="listing-photo" data-card-image>
         <>
           <img
             src={displayImageUrl}
-            alt={sampleImage ? `${imageAlt}の参考写真（出品個体ではありません）` : imageAlt}
+            alt={isIllustration ? `${categoryName}のイメージ（出品個体ではありません）` : imageAlt}
             width="480"
             height="320"
             loading="lazy"
             decoding="async"
           />
-          <figcaption>{sampleImage ? '参考画像・出品個体ではありません' : '出品写真'}</figcaption>
+          <figcaption>{isIllustration ? categoryImageCaption : '出品写真'}</figcaption>
         </>
       </figure>
     )

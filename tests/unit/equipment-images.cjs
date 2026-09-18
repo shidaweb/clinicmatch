@@ -28,3 +28,37 @@ for (const item of equipmentImages)
 console.log(
   'PASS: model/maker matching, variant and consumable exclusions, normalized labels, all image assets exist.'
 );
+
+const categoriesModule = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(fs.readFileSync('src/lib/categories.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText,
+  { exports: categoriesModule.exports }
+);
+const categoryModule = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(fs.readFileSync('src/lib/category-images.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText,
+  {
+    exports: categoryModule.exports,
+    require: (name) => {
+      assert.equal(name, './categories');
+      return categoriesModule.exports;
+    },
+  }
+);
+const { categoryImageUrl, categoryImageCaption } = categoryModule.exports;
+for (const slug of categoriesModule.exports.CATEGORY_SLUGS) {
+  for (const width of [480, 960]) {
+    assert.equal(categoryImageUrl(slug, 'device', width), `/images/categories/${slug}-${width}.webp`);
+    assert.ok(fs.existsSync('public' + categoryImageUrl(slug, 'device', width)));
+    assert.ok(fs.existsSync('public' + categoryImageUrl(slug, 'consumable', width)));
+  }
+}
+assert.equal(categoryImageUrl('unknown'), categoryImageUrl('others'));
+assert.equal(categoryImageUrl(null), categoryImageUrl('others'));
+assert.equal(categoryImageUrl('../private'), categoryImageUrl('others'));
+assert.equal(categoryImageCaption, '（写真はイメージです）');
+console.log('PASS: all category fallbacks and consumables resolve to existing assets; unknown categories are safe.');

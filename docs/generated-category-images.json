@@ -1,0 +1,71 @@
+{
+  "mode": "built-in imagegen",
+  "date": "2026-09-18",
+  "assets": [
+    {
+      "key": "treatment-hero",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-922ad723-761a-4d82-a58d-3b5ebf8f2f83.png",
+      "prompt": "Use case: photorealistic-natural. Create a landscape 3:2 editorial hero photograph for a Japanese aesthetic medical equipment marketplace. A fictional Japanese female physician in her late 30s with tied back hair, ivory clinical tunic, disposable gloves, calmly performing an ultrasound facial treatment on an adult female patient reclining on a treatment bed, body covered with white towel. Physician gently holds the referenced white Ulthera handpiece flat against the patient's lower cheek with gel; one hand guides the probe, other supports the cheek. The referenced Ulthera console and monitor are clearly visible next to the bed and correctly connected. Reference images 1 and 2 are equipment references, preserve recognizable console and handpiece design. Naturally lit modern Japanese clinic, warm ivory walls, muted beige linen, realistic skin texture, candid focused expressions, no posing toward camera, balanced composition with physician and device both visible, professional magazine photography. No blood, no needles, no exposed breasts, no before/after, no result claims, no added words, no logos added, no watermark. All people fictional."
+    },
+    {
+      "key": "hair-removal",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-394200ec-6237-48ed-b46d-376a38d42c3c.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a professional laser hair removal console with flexible cooling hose and treatment handpiece. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "pico-laser",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-b5b7a30c-845c-493b-b4ef-6cd196040351.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a picosecond dermatology laser console with articulated optical arm and fine handpiece. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "yag",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-6f4f8194-38a0-44ac-bd97-1dc30f74e603.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a Q-switched Nd:YAG dermatology laser console with articulated metal optical arm. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "co2",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-388f8a4c-cbdf-41b8-ab75-5cfd790cbe99.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a compact dermatology CO2 laser console with articulated arm and precision handpiece. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "ipl",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-fc8407b7-fb09-435f-b8ff-cd933a987979.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: an intense pulsed light IPL console with a broad rectangular treatment window handpiece and thick cable. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "hifu",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-bf60ac9e-b0e9-44d7-9a75-44da9e999b6b.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a focused ultrasound HIFU console with monitor and white ultrasound handpiece. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "rf",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-2671e7c4-5328-4cef-a023-e294cb879634.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a radiofrequency aesthetic treatment console with wired rounded contact handpiece. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "body",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-afaceafd-84eb-4771-bf95-620ef4214875.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a noninvasive body contouring console with two padded applicators resting on holders. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "facial-care",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-7f38db68-870f-42cf-b1cc-d76d00a66210.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a facial hydrodermabrasion and infusion console with clear fluid bottles and small pen handpieces. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "diagnostics",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-812ae121-ee3d-4cc5-a8d9-93d0ea2ab96f.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a professional facial skin imaging analyzer with chin rest and curved imaging hood. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "others",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-4236f39f-f84f-4eb9-803a-f1dc28239442.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a neutral clinic equipment corner with a stainless instrument trolley and compact unbranded medical console. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    },
+    {
+      "key": "consumable",
+      "original": "/Users/norimitsushida/.codex/generated_images/01a0b19f-57a8-79a1-9b59-ab7da84afcb7/exec-0c1e466b-ba04-4163-814c-70244bca4f0f.png",
+      "prompt": "Use case: product-mockup. Generate a photorealistic editorial catalogue image for a Japanese used aesthetic medical equipment marketplace. Subject: a small neutral tray of sealed generic aesthetic clinic treatment tips, unopened gauze packets and plain accessory cartridges, no machine, no needles, no pharmaceuticals. Single generic unbranded device, NOT a specific manufacturer or model. Warm ivory clinic wall and floor, soft natural window light, realistic restrained equipment design, clean muted neutral tones, generous margin around whole device, landscape 3:2 composition. No people, no logo, no lettering, no watermark, no decorative graphics. This is a category placeholder, not a real item for sale. Leave lower right quiet for a small caption rendered by website HTML."
+    }
+  ]
+}

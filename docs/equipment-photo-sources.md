@@ -38,3 +38,11 @@
 ## 追加・差し替え
 
 対応は `src/lib/equipment-images.ts` で管理。メーカーが不明な機器、異なる派生モデル、消耗品には本体写真を自動適用しない。対応変更時は `tests/unit/equipment-images.cjs` を更新し、`npm run test:workflow` を実行する。
+
+## 2026-09-18 更新：カテゴリ代替画像・施術ヒーロー
+
+トップと共通相談枠は `public/images/equipment/treatment-hero-{768,1440}.webp` に差し替え。提供されたウルセラ本体とハンドピースを参照し、架空の女性医師が施術している場面を組み込み imagegen で生成。「写真はイメージです（AI生成）」と表示する。
+
+画像未登録の出品一覧・詳細は、従来のメーカー・機種一致の参考写真に代えて `public/images/categories/` の11カテゴリ別画像を使用。消耗品は本体画像との混同を避け、専用の `consumable-{480,960}.webp` を使用。登録写真を優先し、代替画像には小さく「（写真はイメージです）」とHTMLで表示する。カテゴリ不明時は `others` を使用。提供写真のギャラリー・付属品撮影例は継続。
+
+全13点の生成プロンプトと原本パスは [generated-category-images.json](generated-category-images.json)。公開用画像はWebPに軽量化。生成画像は特定の出品個体・医師・症例の記録ではない。
