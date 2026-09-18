@@ -62,3 +62,23 @@ assert.equal(categoryImageUrl(null), categoryImageUrl('others'));
 assert.equal(categoryImageUrl('../private'), categoryImageUrl('others'));
 assert.equal(categoryImageCaption, '（写真はイメージです）');
 console.log('PASS: all category fallbacks and consumables resolve to existing assets; unknown categories are safe.');
+
+const legacyModule = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(fs.readFileSync('src/lib/legacy-placeholder-images.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText,
+  { exports: legacyModule.exports }
+);
+const { actualListingImages, isLegacyPlaceholder } = legacyModule.exports;
+const oldPath = '05bbf8e4-f9d0-402c-b393-8ce208082ebf/1784636217305.png';
+assert.equal(isLegacyPlaceholder(oldPath), true);
+assert.equal(isLegacyPlaceholder('05bbf8e4-f9d0-402c-b393-8ce208082ebf/new-photo.png'), false);
+const realPhoto = { storage_path: '05bbf8e4-f9d0-402c-b393-8ce208082ebf/new-photo.png', is_cover: false };
+const mixedPhotos = [{ storage_path: oldPath, is_cover: true }, realPhoto];
+assert.equal(actualListingImages(mixedPhotos).length, 1);
+assert.equal(actualListingImages(mixedPhotos)[0], realPhoto);
+assert.equal(mixedPhotos.length, 2);
+assert.equal(actualListingImages(null).length, 0);
+assert.equal(actualListingImages([{ storage_path: oldPath }]).length, 0);
+console.log('PASS: verified legacy placeholders excluded, new/real photos retained, source data unchanged.');

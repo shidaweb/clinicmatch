@@ -22,6 +22,7 @@ import {
   type PublicListing,
   type PublicWanted,
 } from '~/lib/marketplace';
+import { actualListingImages } from '~/lib/legacy-placeholder-images';
 import { categoryImageUrl, categoryImageCaption } from '~/lib/category-images';
 import { hasSupabaseConfig } from '~/lib/env';
 import { getProfile } from '~/lib/auth';
@@ -106,7 +107,7 @@ if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
     listing = data as PublicListing | null;
     if (listing) {
       mode = 'listing';
-      images = (listing.listing_images ?? []).map((img) => ({
+      images = actualListingImages(listing.listing_images).map((img) => ({
         ...img,
         url: supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}` : null,
       }));

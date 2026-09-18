@@ -1,5 +1,6 @@
 ---
 import { categoryImageUrl, categoryImageCaption } from '~/lib/category-images';
+import { actualListingImages } from '~/lib/legacy-placeholder-images';
 import { MARKET_CATEGORIES } from '~/lib/categories';
 import { getEnv } from '~/lib/env';
 import {
@@ -36,10 +37,8 @@ const location = isListing
 
 const yearLabel = isListing && listing!.manufacture_year ? `${listing!.manufacture_year}年` : null;
 
-const coverImage =
-  isListing && listing!.listing_images?.length
-    ? (listing!.listing_images.find((img) => img.is_cover) ?? listing!.listing_images[0])
-    : null;
+const listingPhotos = actualListingImages(listing?.listing_images);
+const coverImage = listingPhotos.find((img) => img.is_cover) ?? listingPhotos[0] ?? null;
 
 const supabaseUrl = getEnv('PUBLIC_SUPABASE_URL', Astro.locals);
 const imageUrl = isListing
@@ -49,7 +48,7 @@ const imageUrl = isListing
   : wanted?.reference_image_path && supabaseUrl
     ? `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`
     : null;
-const isIllustration = isListing && !coverImage;
+const isIllustration = isListing && !imageUrl;
 const displayImageUrl =
   imageUrl ?? (isIllustration ? categoryImageUrl(post.category_slug, listing!.listing_kind) : null);
 const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
@@ -80,6 +79,7 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
         <>
           <img
             src={displayImageUrl}
+            data-fallback={categoryImageUrl(post.category_slug, listing!.listing_kind)}
             alt={isIllustration ? `${categoryName}のイメージ（出品個体ではありません）` : imageAlt}
             width="480"
             height="320"
@@ -182,12 +182,20 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
         if (image.naturalWidth > 0) image.parentElement?.setAttribute('data-loaded', 'true');
       };
       const showFallback = () => {
+        const fallback = image.dataset.fallback;
+        if (fallback && image.getAttribute('src') !== fallback) {
+          image.src = fallback;
+          image.alt = 'カテゴリのイメージ（出品個体ではありません）';
+          const caption = image.parentElement?.querySelector('figcaption');
+          if (caption) caption.textContent = '（写真はイメージです）';
+          return;
+        }
         image.parentElement?.removeAttribute('data-loaded');
         image.parentElement?.setAttribute('data-error', 'true');
         image.remove();
       };
       image.addEventListener('load', showPhoto, { once: true });
-      image.addEventListener('error', showFallback, { once: true });
+      image.addEventListener('error', showFallback);
       if (image.complete) {
         if (image.naturalWidth > 0) showPhoto();
         else showFallback();
