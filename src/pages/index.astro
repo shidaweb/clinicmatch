@@ -54,7 +54,7 @@ const flowSteps = [
 <Layout metadata={metadata}>
   <div class="customer-home">
     <section class="home-intro">
-      <div class="max-w-content mx-auto px-4 sm:px-6">
+      <div class="home-intro-container mx-auto px-4 sm:px-6">
         <div class="home-intro-grid">
           <div class="home-intro-copy">
             <p class="home-service">美容医療機器の中古売買 · クリニックマッチ</p>
@@ -74,7 +74,7 @@ const flowSteps = [
             <img
               src="/images/equipment/treatment-hero-1440.webp"
               srcset="/images/equipment/treatment-hero-768.webp 768w, /images/equipment/treatment-hero-1440.webp 1440w"
-              sizes="(min-width: 1024px) 50vw, 100vw"
+              sizes="(min-width: 1280px) 680px, (min-width: 768px) 54vw, 100vw"
               width="1536"
               height="1024"
               fetchpriority="high"
@@ -245,11 +245,8 @@ const flowSteps = [
     height: auto;
     border-radius: 8px;
   }
-  .home-equipment-visual figcaption {
-    font-size: 11px;
-    line-height: 1.7;
-    color: var(--plum-soft);
-    margin-top: 8px;
+  .home-intro-container {
+    max-width: 1328px;
   }
   .home-intro-grid .home-search {
     grid-column: 1 / -1;
@@ -296,8 +293,8 @@ const flowSteps = [
   }
   .home-intro-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: 48px;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+    gap: 40px;
     align-items: center;
   }
   .home-service {
@@ -481,7 +478,7 @@ const flowSteps = [
   @media (max-width: 1023px) {
     .home-intro-grid {
       gap: 28px;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     }
     .home-title {
       font-size: 32px;
@@ -503,6 +500,12 @@ const flowSteps = [
     .home-intro-grid {
       grid-template-columns: 1fr;
       gap: 32px;
+    }
+    .home-equipment-visual {
+      margin-inline: -16px;
+    }
+    .home-equipment-visual img {
+      border-radius: 0;
     }
     .home-service {
       font-size: 12px;
