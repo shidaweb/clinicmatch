@@ -3,6 +3,7 @@ export const prerender = true;
 
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
+import EquipmentGallery from '~/components/EquipmentGallery.astro';
 import MembershipBenefits from '~/components/MembershipBenefits.astro';
 import { formatTransactionMonth } from '~/lib/home-page';
 import MarketNow from '~/components/MarketNow.astro';
@@ -63,11 +64,23 @@ const flowSteps = [
                 class="hidden sm:block"
               />売り手と買い手の間に入り、運営が取引を仲介します。
             </p>
+            <a href="#home-search-heading" class="home-buy-link cm-btn-primary">購入する機器を探す ↓</a>
             <a href={getPermalink('contact/sell')} class="home-sell-link"
               >機器の売却を相談する <span aria-hidden="true">↗</span></a
             >
             <p class="home-privacy">組織名・連絡先は非公開。双方の合意後に開示します。</p>
           </div>
+          <figure class="home-equipment-visual">
+            <img
+              src="/images/equipment/collage-1440.webp"
+              srcset="/images/equipment/collage-768.webp 768w, /images/equipment/collage-1440.webp 1440w"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              width="1536"
+              height="1024"
+              fetchpriority="high"
+              alt="ジェントルマックスプロとウルセラを配置した機器のイメージコラージュ"
+            /><figcaption>提供写真をもとにしたイメージ画像です。販売中の在庫を示すものではありません。</figcaption>
+          </figure>
           <form action="/cases" method="get" class="home-search" aria-labelledby="home-search-heading">
             <h2 id="home-search-heading">条件から機器を探す</h2>
             <p class="home-search-description">メーカー・機種名やエリアで絞り込めます。</p>
@@ -190,6 +203,7 @@ const flowSteps = [
     <section class="py-[52px] md:py-[72px] bg-blush border-y border-line">
       <div class="max-w-content mx-auto px-4 sm:px-6">
         <h2 class="cm-heading text-xl md:text-2xl font-semibold text-plum mb-6">カテゴリから探す</h2>
+        <EquipmentGallery />
         <div class="home-categories">
           {
             categories.map(({ label, href }) => (
@@ -215,6 +229,67 @@ const flowSteps = [
 </Layout>
 
 <style>
+  .home-buy-link {
+    margin-top: 24px;
+    margin-right: 20px;
+  }
+  #home-search-heading {
+    scroll-margin-top: 100px;
+  }
+  .home-equipment-visual {
+    min-width: 0;
+    margin: 0;
+  }
+  .home-equipment-visual img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .home-equipment-visual figcaption {
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--plum-soft);
+    margin-top: 8px;
+  }
+  .home-intro-grid .home-search {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 8px 32px;
+  }
+  .home-search h2,
+  .home-search-description,
+  .home-search-kinds {
+    grid-column: 1;
+  }
+  .home-intro-grid .home-search-kinds {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .home-intro-grid .home-search-fields {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-intro-grid .home-search-query {
+    grid-column: 1 / -1;
+  }
+  @media (max-width: 767px) {
+    .home-intro-grid .home-search {
+      display: block;
+    }
+    .home-equipment-visual {
+      order: 0;
+    }
+    .home-intro-grid .home-search-fields {
+      grid-template-columns: 1fr;
+    }
+    .home-intro-grid .home-search-kinds {
+      margin: 16px 0;
+    }
+  }
+
   .home-intro {
     background: var(--cream);
     padding: 56px 0 64px;

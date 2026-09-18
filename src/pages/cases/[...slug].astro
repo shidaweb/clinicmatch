@@ -22,6 +22,7 @@ import {
   type PublicListing,
   type PublicWanted,
 } from '~/lib/marketplace';
+import { findEquipmentImage, equipmentImageUrl, sampleImageNotice } from '~/lib/equipment-images';
 import { hasSupabaseConfig } from '~/lib/env';
 import { getProfile } from '~/lib/auth';
 import { matchWantedForListing, matchListingsForWanted } from '~/lib/matching';
@@ -42,6 +43,7 @@ let listing: PublicListing | null = null;
 let wanted: PublicWanted | null = null;
 let matchWanted: ReturnType<typeof matchWantedForListing> = [];
 let matchListings: ReturnType<typeof matchListingsForWanted> = [];
+let sampleImage: ReturnType<typeof findEquipmentImage> = null;
 let images: Array<{ url: string | null; storage_path: string; is_cover: boolean }> = [];
 let wantedImages: Array<{ url: string; alt: string }> = [];
 let profile: Awaited<ReturnType<typeof getProfile>> = null;
@@ -105,6 +107,7 @@ if (isUuid(slug) && hasSupabaseConfig(Astro.locals as never)) {
     listing = data as PublicListing | null;
     if (listing) {
       mode = 'listing';
+      sampleImage = findEquipmentImage(listing.maker, listing.model, listing.listing_kind);
       images = (listing.listing_images ?? []).map((img) => ({
         ...img,
         url: supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/listing-images/${img.storage_path}` : null,
@@ -393,6 +396,8 @@ const staticSpecItems = staticData
                   ) : null
                 )}
               </div>
+            ) : sampleImage ? (
+              <figure class="rounded-lg border border-line bg-ivory overflow-hidden"><img src={equipmentImageUrl(sampleImage,960)} alt={`${sampleImage.name}の参考写真`} width="960" height="1280" class="w-full aspect-[4/3] object-contain" /><figcaption class="border-t border-line p-4 text-sm text-plum-soft">{sampleImageNotice}</figcaption></figure>
             ) : (
               <div class="aspect-[4/3] rounded-card bg-ivory border border-line flex items-center justify-center text-plum-soft">画像なし</div>
             )}
@@ -650,7 +655,7 @@ const staticSpecItems = staticData
           )}
         </div>
         <h1 class="cm-heading text-[26px] md:text-[34px] font-semibold text-plum leading-snug">{staticData.title}</h1>
-        <p class="mt-2 text-plum-soft">{staticData.manufacturer}　/　{staticData.model}</p>
+        <p class="mt-2 text-plum-soft">{staticData.manufacturer} / {staticData.model}</p>
         <dl class="mt-7 flex flex-wrap gap-x-10 gap-y-4">
           <div>
             <dt class="text-xs text-muted tracking-wide">製造</dt>

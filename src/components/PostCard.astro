@@ -1,4 +1,5 @@
 ---
+import { findEquipmentImage, equipmentImageUrl } from '~/lib/equipment-images';
 import { MARKET_CATEGORIES } from '~/lib/categories';
 import { getEnv } from '~/lib/env';
 import {
@@ -48,6 +49,8 @@ const imageUrl = isListing
   : wanted?.reference_image_path && supabaseUrl
     ? `${supabaseUrl}/storage/v1/object/public/wanted-images/${wanted.reference_image_path}`
     : null;
+const sampleImage = isListing && !coverImage ? findEquipmentImage(makerName, modelName, listing!.listing_kind) : null;
+const displayImageUrl = imageUrl ?? (sampleImage ? equipmentImageUrl(sampleImage) : null);
 const imageAlt = `${makerName ?? ''} ${modelName}`.trim() || categoryName;
 
 let expiryBadge: { label: string; className: string } | null = null;
@@ -66,7 +69,24 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
 }
 ---
 
-<a href={href} class="cm-post-card cm-market-card group">
+<a href={href} class:list={['cm-post-card cm-market-card group', { 'has-photo': Boolean(displayImageUrl) }]}>
+  {
+    isListing && displayImageUrl && (
+      <figure class="listing-photo" data-card-image>
+        <>
+          <img
+            src={displayImageUrl}
+            alt={sampleImage ? `${imageAlt}の参考写真（出品個体ではありません）` : imageAlt}
+            width="480"
+            height="320"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>{sampleImage ? '参考画像・出品個体ではありません' : '出品写真'}</figcaption>
+        </>
+      </figure>
+    )
+  }
   <div class="cm-market-card-header">
     <div class="min-w-0">
       <span class:list={[isListing ? 'cm-tag-sell' : 'cm-tag-buy']}>
@@ -75,7 +95,7 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
       <p class="mt-2 text-xs leading-relaxed text-plum-soft break-words">{categoryName}</p>
     </div>
     {
-      isListing && (
+      isListing && !displayImageUrl && (
         <div class="cm-market-thumbnail" data-card-image>
           <span class="cm-market-photo-empty">写真なし</span>
           {imageUrl && <img src={imageUrl} alt={imageAlt} width="80" height="80" loading="lazy" decoding="async" />}
@@ -159,6 +179,7 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
       };
       const showFallback = () => {
         image.parentElement?.removeAttribute('data-loaded');
+        image.parentElement?.setAttribute('data-error', 'true');
         image.remove();
       };
       image.addEventListener('load', showPhoto, { once: true });
@@ -174,6 +195,33 @@ if (isListing && listing!.listing_kind !== 'device' && listing!.expiry_date) {
 </script>
 
 <style>
+  .listing-photo[data-error]::before {
+    content: '画像を表示できません';
+    display: grid;
+    place-items: center;
+    height: 200px;
+    color: var(--plum-soft);
+    font-size: 13px;
+  }
+  .has-photo .cm-market-card-header {
+    min-height: 0;
+    margin-top: 16px;
+  }
+  .listing-photo {
+    position: relative;
+    background: var(--ivory);
+  }
+  .listing-photo img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+  }
+  .listing-photo figcaption {
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--plum-soft);
+  }
   .cm-market-card {
     display: flex;
     flex-direction: column;

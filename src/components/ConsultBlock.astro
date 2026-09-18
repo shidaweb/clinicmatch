@@ -8,6 +8,16 @@ const { class: className = '' } = Astro.props;
 
 <section class:list={['customer-consult border-t border-line bg-cream', className]}>
   <div class="max-w-content mx-auto px-4 sm:px-6 customer-consult-inner">
+    <figure class="consult-equipment">
+      <img
+        src="/images/equipment/collage-768.webp"
+        alt="美容医療機器のイメージコラージュ"
+        width="768"
+        height="512"
+        loading="lazy"
+        decoding="async"
+      /><figcaption>機器のイメージ</figcaption>
+    </figure>
     <div>
       <h2 class="cm-heading text-xl md:text-2xl font-semibold">売却・購入について相談する</h2><p>
         機種や条件が決まっていなくても、分かる範囲でお知らせください。
@@ -17,6 +27,20 @@ const { class: className = '' } = Astro.props;
   </div>
 </section>
 <style>
+  .consult-equipment {
+    width: 180px;
+    flex-shrink: 0;
+  }
+  .consult-equipment img {
+    border-radius: 6px;
+    width: 100%;
+    height: auto;
+  }
+  .consult-equipment figcaption {
+    font-size: 11px;
+    color: var(--plum-soft);
+    margin-top: 6px;
+  }
   .customer-consult {
     padding: 40px 0;
   }

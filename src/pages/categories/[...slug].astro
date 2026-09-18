@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
+import EquipmentGallery from '~/components/EquipmentGallery.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Button from '~/components/ui/Button.astro';
 import Breadcrumb from '~/components/seo/Breadcrumb.astro';
@@ -70,6 +71,7 @@ const FORM_SELL = getPermalink('contact/sell');
         <p class="mt-4 text-lg text-plum-soft leading-relaxed">{data.description}</p>
       </header>
 
+      <EquipmentGallery category={categorySlug} />
       <section class="mb-10 cm-card p-6 border-rose/20">
         <h2 class="font-heading text-2xl font-bold text-plum mb-2">このカテゴリの在庫</h2>
         <p class="text-sm text-plum-soft mb-4">募集中の売りたい・買いたいを一覧で比較できます。</p>
@@ -91,12 +93,14 @@ const FORM_SELL = getPermalink('contact/sell');
       <section class="mb-10" aria-labelledby="machines-heading">
         <h2 id="machines-heading" class="font-heading text-2xl font-bold text-plum mb-4">主な取扱機種</h2>
         <ul class="grid gap-3 sm:grid-cols-2">
-          {data.machines.map((m) => (
-            <li class="flex items-baseline gap-2 p-3 rounded-xl bg-ivory border border-line">
-              <span class="font-medium text-plum">{m.name}</span>
-              <span class="text-sm text-plum-soft">{m.manufacturer}</span>
-            </li>
-          ))}
+          {
+            data.machines.map((m) => (
+              <li class="flex items-baseline gap-2 p-3 rounded-xl bg-ivory border border-line">
+                <span class="font-medium text-plum">{m.name}</span>
+                <span class="text-sm text-plum-soft">{m.manufacturer}</span>
+              </li>
+            ))
+          }
         </ul>
       </section>
 
@@ -106,50 +110,54 @@ const FORM_SELL = getPermalink('contact/sell');
           中古購入で確認すべきポイント
         </h2>
         <ul class="space-y-2">
-          {data.checkpoints.map((item) => (
-            <li class="flex items-start gap-2">
-              <span class="text-rose mt-0.5">✓</span>
-              <span class="text-plum-soft">{item}</span>
-            </li>
-          ))}
+          {
+            data.checkpoints.map((item) => (
+              <li class="flex items-start gap-2">
+                <span class="text-rose mt-0.5">✓</span>
+                <span class="text-plum-soft">{item}</span>
+              </li>
+            ))
+          }
         </ul>
       </section>
 
       <!-- 取引事例 -->
-      {categoryCases.length > 0 && (
-        <section class="mb-10" aria-labelledby="cases-heading">
-          <h2 id="cases-heading" class="font-heading text-2xl font-bold text-plum mb-4">取引事例</h2>
-          <div class="grid gap-4 sm:grid-cols-2">
-            {categoryCases.map((caseEntry) => {
-              const caseSlug = caseEntry.id.replace(/\.mdx?$/, '');
-              const caseHref = getPermalink(`cases/${caseSlug}`);
-              const caseData = caseEntry.data;
-              return (
-                <a href={caseHref} class="cm-card block p-4 hover:shadow-lg transition group">
-                  <h3 class="font-heading font-bold text-plum group-hover:text-rose">{caseData.title}</h3>
-                  <dl class="mt-2 text-sm text-plum-soft space-y-0.5">
-                    <div class="flex justify-between">
-                      <dt>製造</dt>
-                      <dd>{formatDateYMD(caseData.manufacturedDate)}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                      <dt>取引時期</dt>
-                      <dd>{formatDateYMD(caseData.transactionDate)}</dd>
-                    </div>
-                  </dl>
-                  <p class="mt-2 text-sm text-rose font-medium">詳細を見る →</p>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {
+        categoryCases.length > 0 && (
+          <section class="mb-10" aria-labelledby="cases-heading">
+            <h2 id="cases-heading" class="font-heading text-2xl font-bold text-plum mb-4">
+              取引事例
+            </h2>
+            <div class="grid gap-4 sm:grid-cols-2">
+              {categoryCases.map((caseEntry) => {
+                const caseSlug = caseEntry.id.replace(/\.mdx?$/, '');
+                const caseHref = getPermalink(`cases/${caseSlug}`);
+                const caseData = caseEntry.data;
+                return (
+                  <a href={caseHref} class="cm-card block p-4 hover:shadow-lg transition group">
+                    <h3 class="font-heading font-bold text-plum group-hover:text-rose">{caseData.title}</h3>
+                    <dl class="mt-2 text-sm text-plum-soft space-y-0.5">
+                      <div class="flex justify-between">
+                        <dt>製造</dt>
+                        <dd>{formatDateYMD(caseData.manufacturedDate)}</dd>
+                      </div>
+                      <div class="flex justify-between">
+                        <dt>取引時期</dt>
+                        <dd>{formatDateYMD(caseData.transactionDate)}</dd>
+                      </div>
+                    </dl>
+                    <p class="mt-2 text-sm text-rose font-medium">詳細を見る →</p>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        )
+      }
 
       <!-- CTA -->
       <section class="pt-8 border-t border-line" aria-labelledby="cta-heading">
-        <h2 id="cta-heading" class="font-heading text-xl font-bold text-plum mb-4">
-          この機器の購入・売却をご検討の方
-        </h2>
+        <h2 id="cta-heading" class="font-heading text-xl font-bold text-plum mb-4">この機器の購入・売却をご検討の方</h2>
         <p class="text-plum-soft mb-6">
           {data.title}の中古購入・売却について、条件の整理からマッチングまでサポートします。お気軽にご相談ください。
         </p>

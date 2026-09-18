@@ -1,0 +1,96 @@
+---
+import { equipmentImages, equipmentImageUrl } from '~/lib/equipment-images';
+interface Props {
+  category?: string;
+}
+const { category } = Astro.props;
+const items = equipmentImages.filter((item) => !category || item.category === category);
+---
+
+{
+  items.length > 0 && (
+    <div class="equipment-gallery">
+      <>
+        <p class="gallery-note">機器の参考写真です。掲載中の在庫や付属品を示すものではありません。</p>
+        <div class="equipment-gallery-grid">
+          {items.map((item) => (
+            <a href={`/cases?view=active&type=listing&q=${encodeURIComponent(item.name)}`}>
+              <figure>
+                <img
+                  src={equipmentImageUrl(item)}
+                  alt={`${item.name}の参考写真`}
+                  width="480"
+                  height="640"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>
+                  <span>{item.maker}</span>
+                  <strong>{item.name}</strong>
+                  <span class="equipment-link">掲載を探す →</span>
+                </figcaption>
+              </figure>
+            </a>
+          ))}
+        </div>
+      </>
+    </div>
+  )
+}
+<style>
+  .equipment-gallery {
+    margin: 24px 0 32px;
+  }
+  .gallery-note {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--plum-soft);
+    margin-bottom: 16px;
+  }
+  .equipment-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+  }
+  .equipment-gallery-grid a {
+    min-width: 0;
+    max-width: 260px;
+  }
+  .equipment-gallery img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--ivory);
+  }
+  .equipment-gallery figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 12px;
+  }
+  .equipment-gallery figcaption span {
+    font-size: 12px;
+    color: var(--plum-soft);
+  }
+  .equipment-gallery strong {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .equipment-gallery .equipment-link {
+    color: var(--rose-deep);
+    margin-top: 4px;
+  }
+  .equipment-gallery a:hover strong {
+    text-decoration: underline;
+  }
+  @media (max-width: 639px) {
+    .equipment-gallery-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px 16px;
+    }
+    .equipment-gallery img {
+      height: 190px;
+    }
+  }
+</style>
