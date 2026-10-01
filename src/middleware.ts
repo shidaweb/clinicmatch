@@ -25,6 +25,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (origin && origin !== url.origin) return new Response('Forbidden origin', { status: 403 });
   }
   const response = await next();
-  if (/^\/(admin|account|api)(\/|$)/.test(url.pathname)) response.headers.set('Cache-Control', 'private, no-store');
+  if (/^\/(admin|account|api)(\/|$)/.test(url.pathname)) {
+    response.headers.set('Cache-Control', 'private, no-store, no-transform');
+  }
   return response;
 });
