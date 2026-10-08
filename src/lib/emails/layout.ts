@@ -74,7 +74,7 @@ export function renderEmail(opts: RenderEmailOptions): string {
             </tr>
             <tr>
               <td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">
-                クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。
+                クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。
               </td>
             </tr>
           </table>

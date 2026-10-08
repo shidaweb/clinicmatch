@@ -9,14 +9,20 @@ const orgJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'クリニックマッチ',
-  alternateName: '株式会社キラック',
+  alternateName: 'あるそら株式会社',
   url: siteUrl,
   logo: logoUrl,
   description: '美容医療機器の中古売買・仲介サービス',
   foundingDate: '2025-07',
+  parentOrganization: {
+    '@type': 'Organization',
+    name: 'あるそら株式会社',
+    alternateName: 'ALSOLA Inc.',
+    url: 'https://alsola.co.jp',
+  },
   founder: {
     '@type': 'Person',
-    name: '志田 麻記',
+    name: '志田 典道',
   },
   address: {
     '@type': 'PostalAddress',

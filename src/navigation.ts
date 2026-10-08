@@ -68,6 +68,11 @@ export const footerData = {
     { text: '利用規約', href: '/terms' },
     { text: 'プライバシーポリシー', href: '/privacy' },
   ],
-  footNote: '© 2026 株式会社キラック all rights reserved.',
+  footNote: '© 2026 あるそら株式会社 all rights reserved.',
+  operator: { text: 'あるそら株式会社（ALSOLA Inc.）', href: 'https://alsola.co.jp' },
+  sisterSites: [
+    { text: 'トラックマッチ', description: '中古トラックのAIマッチング', href: 'https://www.truckmatch.jp' },
+    { text: 'Tenbin', description: '複数Googleカレンダー対応の日程調整', href: 'https://tenbin.link' },
+  ],
   showConsult: false,
 };

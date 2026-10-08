@@ -13,6 +13,12 @@ interface Link {
   dataOpenAsPopup?: boolean;
 }
 
+interface SisterSite {
+  text: string;
+  description?: string;
+  href: string;
+}
+
 interface Links {
   title?: string;
   links: Array<Link>;
@@ -24,9 +30,11 @@ export interface Props {
   footNote?: string;
   theme?: string;
   showConsult?: boolean;
+  operator?: { text: string; href: string };
+  sisterSites?: Array<SisterSite>;
 }
 
-const { secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astro.props;
+const { secondaryLinks = [], links = [], footNote = '', theme = 'light', operator, sisterSites = [] } = Astro.props;
 ---
 
 <footer class:list={[{ dark: theme === 'dark' }, 'relative not-prose bg-plum']}>
@@ -68,6 +76,26 @@ const { secondaryLinks = [], links = [], footNote = '', theme = 'light' } = Astr
         ))
       }
     </div>
+    {(operator || sisterSites.length > 0) && (
+      <div class="border-t py-5 text-sm" style="border-color: rgb(216 196 189 / 0.2); color: #D8C4BD;">
+        <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          {operator && (
+            <span class="whitespace-nowrap">
+              運営：<a href={operator.href} target="_blank" rel="noopener" class="underline-offset-2 hover:underline hover:text-[#F4E3DD]">{operator.text}</a>
+            </span>
+          )}
+          {sisterSites.length > 0 && (
+            <span class="whitespace-nowrap" style="color: #F4E3DD;">姉妹サービス</span>
+          )}
+          {sisterSites.map(({ text, description, href }) => (
+            <a href={href} target="_blank" rel="noopener" class="inline-flex flex-wrap items-baseline hover:text-[#F4E3DD] hover:underline underline-offset-2">
+              <span class="whitespace-nowrap">{text}</span>
+              {description && <span class="whitespace-nowrap opacity-70">（{description}）</span>}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
     <div class="border-t py-6 md:py-8" style="border-color: rgb(216 196 189 / 0.2);">
       <div class="md:flex md:items-center md:justify-between gap-4">
         <div class="mb-4 md:mb-0">
