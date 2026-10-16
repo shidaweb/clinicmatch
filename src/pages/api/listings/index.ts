@@ -3,6 +3,7 @@ import { readObject } from '~/lib/http';
 import { createPostOnce } from '~/lib/post-creation';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '~/lib/supabase/server';
 import { getProfile } from '~/lib/auth';
+import { priceRangeError } from '~/lib/marketplace';
 import { notifyListingSubmission } from '~/lib/emails/notify-submission';
 import {
   parseListingKind,
@@ -19,7 +20,14 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
   const body = await readObject(request);
   if (!body) return json({ error: '入力内容の形式が不正です' }, 400);
-  for (const key of ['asking_price', 'budget', 'quantity', 'manufacture_year', 'min_remaining_shots']) {
+  for (const key of [
+    'asking_price',
+    'asking_price_max',
+    'budget',
+    'quantity',
+    'manufacture_year',
+    'min_remaining_shots',
+  ]) {
     const value = body[key];
     if (
       value != null &&
@@ -45,6 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     manufacture_year: body.manufacture_year ? Number(body.manufacture_year) : null,
     condition: body.condition ? String(body.condition) : null,
     asking_price: body.asking_price ? Number(body.asking_price) : null,
+    asking_price_max: body.asking_price_max ? Number(body.asking_price_max) : null,
     location_prefecture: String(body.location_prefecture ?? org?.prefecture ?? ''),
     location_city: String(body.location_city ?? org?.city ?? ''),
     has_accessories: body.has_accessories === true || body.has_accessories === 'true',
@@ -66,6 +75,8 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     status: submit ? 'pending_review' : 'draft',
   };
 
+  const rangeError = priceRangeError(payload.asking_price, payload.asking_price_max);
+  if (rangeError) return json({ error: rangeError }, 400);
   if (!payload.category_slug || !payload.maker || !payload.model) {
     return json({ error: 'カテゴリ・メーカー・機種名は必須です' }, 400);
   }
@@ -76,7 +87,10 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     return json({ error: '残ショット数は0以上で入力してください' }, 400);
   }
   if (listingKind !== 'device' && submit && !org?.verified_at) {
-    return json({ error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
+    return json(
+      { error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' },
+      400
+    );
   }
 
   if (listingKind !== 'device') {

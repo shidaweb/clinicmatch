@@ -4,6 +4,7 @@ import {
   LISTING_KIND_LABELS,
   anonymousOrgLabel,
   formatLocation,
+  formatPriceRangeYen,
   formatPriceYen,
   MAINTENANCE_LABELS,
   type PublicListing,
@@ -28,7 +29,9 @@ const title = isListing
     ? `${wanted!.maker} ${wanted!.model}`
     : categoryName;
 
-const priceLabel = isListing ? formatPriceYen(listing!.asking_price) : formatPriceYen(wanted!.budget);
+const priceLabel = isListing
+  ? formatPriceRangeYen(listing!.asking_price, listing!.asking_price_max)
+  : formatPriceYen(wanted!.budget);
 const location = isListing
   ? formatLocation(listing!.location_prefecture, listing!.location_city)
   : wanted!.area_prefecture && wanted!.area_city

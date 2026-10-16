@@ -9,6 +9,20 @@ export function formatPriceYen(amount: number | null | undefined): string {
   return `${amount.toLocaleString('ja-JP')}円`;
 }
 
+/** Returns an error message when the price range is invalid, otherwise null. */
+export function priceRangeError(min: unknown, max: unknown): string | null {
+  if (max == null || max === '') return null;
+  if (min == null || min === '') return '価格の上限を入れる場合は下限も入力してください';
+  return Number(max) < Number(min) ? '価格の上限は下限以上にしてください' : null;
+}
+
+/** Listing price, shown as a range when an upper bound is set (e.g. 800,000円〜1,000,000円). */
+export function formatPriceRangeYen(min: number | null | undefined, max?: number | null): string {
+  if (min == null) return '応相談';
+  if (max == null || max === min) return formatPriceYen(min);
+  return `${min.toLocaleString('ja-JP')}円〜${max.toLocaleString('ja-JP')}円`;
+}
+
 export function formatLocation(prefecture: string, city: string): string {
   return `${prefecture}${city}`;
 }
@@ -103,6 +117,7 @@ export type PublicListing = {
   manufacture_year: number | null;
   condition: string | null;
   asking_price: number | null;
+  asking_price_max?: number | null;
   location_prefecture: string;
   location_city: string;
   has_accessories: boolean | null;
@@ -158,7 +173,7 @@ export type PublicWanted = {
 /** Safe public select — excludes org private fields */
 export const PUBLIC_LISTING_SELECT = `
   id, category_slug, maker, model, manufacture_year, condition,
-  asking_price, location_prefecture, location_city,
+  asking_price, asking_price_max, location_prefecture, location_city,
   has_accessories, accessories_detail, maker_maintenance,
   maintenance_transferable, maintenance_notes, description,
   listing_kind, consumable_master_id, quantity, open_state,

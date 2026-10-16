@@ -7,6 +7,7 @@ import {
   CLINICAL_USE_LABELS,
   LISTING_KIND_LABELS,
   formatLocation,
+  formatPriceRangeYen,
   formatPriceYen,
   type PublicListing,
   type PublicWanted,
@@ -28,7 +29,9 @@ const categoryName =
 const modelName = isListing ? listing!.model : (wanted!.model ?? categoryName);
 const makerName = isListing ? listing!.maker : wanted!.maker;
 
-const priceLabel = isListing ? formatPriceYen(listing!.asking_price) : formatPriceYen(wanted!.budget);
+const priceLabel = isListing
+  ? formatPriceRangeYen(listing!.asking_price, listing!.asking_price_max)
+  : formatPriceYen(wanted!.budget);
 const location = isListing
   ? formatLocation(listing!.location_prefecture, listing!.location_city)
   : wanted!.area_prefecture && wanted!.area_city

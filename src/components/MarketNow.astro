@@ -46,9 +46,10 @@ const { recentDoneCases } = Astro.props;
       .replace(/'/g, '&#39;');
   }
 
-  function formatPrice(amount) {
+  function formatPrice(amount, max) {
     if (amount == null) return '応相談';
-    return `${Number(amount).toLocaleString('ja-JP')}円`;
+    const min = `${Number(amount).toLocaleString('ja-JP')}円`;
+    return max == null || Number(max) === Number(amount) ? min : `${min}〜${Number(max).toLocaleString('ja-JP')}円`;
   }
 
   function formatTransactionMonth(ym) {
@@ -68,7 +69,7 @@ const { recentDoneCases } = Astro.props;
         </div>
         <h3 class="font-bold text-[15px] text-plum line-clamp-2">${model}</h3>
         ${maker}
-        <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">${escapeHtml(formatPrice(item.asking_price))}</p>
+        <p class="font-heading text-lg font-semibold text-rose-deep tabular-nums">${escapeHtml(formatPrice(item.asking_price, item.asking_price_max))}</p>
         <a href="${href}" class="cm-btn-secondary text-sm mt-auto text-center">詳細を見る</a>
       </article>
     `;

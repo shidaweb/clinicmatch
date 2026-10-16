@@ -117,7 +117,11 @@ export async function fetchMarketPosts(
       query = query.eq('listing_kind', listingKind);
     }
     if (clinicalUse) query = query.eq('clinical_use', clinicalUse);
-    if (minPrice) query = query.gte('asking_price', Number(minPrice));
+    // A price range matches when it overlaps the filter (asking_price is the lower bound).
+    if (minPrice && Number.isFinite(Number(minPrice))) {
+      const min = Number(minPrice);
+      query = query.or(`asking_price.gte.${min},asking_price_max.gte.${min}`);
+    }
     if (maxPrice) query = query.lte('asking_price', Number(maxPrice));
     if (q) query = query.or(`maker.ilike.%${q}%,model.ilike.%${q}%`);
 

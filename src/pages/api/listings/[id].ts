@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { readObject } from '~/lib/http';
 import { uploadPostImage } from '~/lib/post-media';
 import { getProfile } from '~/lib/auth';
+import { priceRangeError } from '~/lib/marketplace';
 import { createSupabaseServerClient, createSupabaseAdminClient } from '~/lib/supabase/server';
 import { notifyListingSubmission } from '~/lib/emails/notify-submission';
 import {
@@ -32,6 +33,9 @@ function buildListingPatchPayload(body: Record<string, unknown>, org: { prefectu
   }
   if ('condition' in body) payload.condition = body.condition ? String(body.condition) : null;
   if ('asking_price' in body) payload.asking_price = body.asking_price ? Number(body.asking_price) : null;
+  if ('asking_price_max' in body) {
+    payload.asking_price_max = body.asking_price_max ? Number(body.asking_price_max) : null;
+  }
   if ('location_prefecture' in body) {
     payload.location_prefecture = String(body.location_prefecture ?? org?.prefecture ?? '');
   }
@@ -96,7 +100,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   }
   const org = profile.organizations as { prefecture?: string; city?: string; verified_at?: string | null } | null;
   const payload = buildListingPatchPayload(body, org);
-  for (const key of ['asking_price', 'budget', 'manufacture_year', 'quantity']) {
+  for (const key of ['asking_price', 'asking_price_max', 'budget', 'manufacture_year', 'quantity']) {
     if (
       key in payload &&
       payload[key] != null &&
@@ -123,7 +127,7 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   const { data: existing } = await supabase
     .from('listings')
     .select(
-      'id, status, seller_org_id, category_slug, maker, model, listing_kind, consumable_master_id, open_state, expiry_date, remaining_shots'
+      'id, status, seller_org_id, category_slug, maker, model, listing_kind, consumable_master_id, open_state, expiry_date, remaining_shots, asking_price, asking_price_max'
     )
     .eq('id', id)
     .is('archived_at', null)
@@ -132,6 +136,11 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   if (!existing || existing.seller_org_id !== profile.org_id) {
     return json({ error: '出品が見つかりません' }, 404);
   }
+  const rangeError = priceRangeError(
+    Object.hasOwn(payload, 'asking_price') ? payload.asking_price : existing.asking_price,
+    Object.hasOwn(payload, 'asking_price_max') ? payload.asking_price_max : existing.asking_price_max
+  );
+  if (rangeError) return json({ error: rangeError }, 400);
   // Published listings are edited in place by the seller and stay published (migration 0019).
   if (existing.status === 'published' && 'status' in payload)
     return json({ error: '公開中の出品は審査に提出できません' }, 400);

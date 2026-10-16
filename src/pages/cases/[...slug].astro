@@ -16,6 +16,7 @@ import {
   TRANSFER_LABELS,
   anonymousOrgLabel,
   formatLocation,
+  formatPriceRangeYen,
   formatPriceYen,
   PUBLIC_LISTING_SELECT,
   PUBLIC_WANTED_SELECT,
@@ -441,7 +442,7 @@ const staticSpecItems = staticData
             </div>
             <div class="mt-5 rounded-card border border-rose/20 bg-ivory p-5 shadow-soft">
               <p class="text-xs text-plum-soft">希望価格</p>
-              <p class="font-heading text-3xl font-semibold text-rose tabular-nums">{formatPriceYen(listing.asking_price)}</p>
+              <p class="font-heading text-3xl font-semibold text-rose tabular-nums">{formatPriceRangeYen(listing.asking_price, listing.asking_price_max)}</p>
               {listing.negotiable && <p class="mt-1 text-xs text-plum-soft">価格は応相談</p>}
             </div>
             {listing.listing_kind !== 'device' && (

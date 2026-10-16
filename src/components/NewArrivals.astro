@@ -27,9 +27,10 @@
 <script>
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 
-  function formatPrice(amount: number | null | undefined) {
+  function formatPrice(amount: number | null | undefined, max?: number | null) {
     if (amount == null) return '応相談';
-    return `${amount.toLocaleString('ja-JP')}円`;
+    const min = `${amount.toLocaleString('ja-JP')}円`;
+    return max == null || max === amount ? min : `${min}〜${max.toLocaleString('ja-JP')}円`;
   }
 
   function escapeHtml(value: unknown) {
@@ -67,7 +68,7 @@
     const isListing = kind === 'listing';
     const model = isListing ? item.model : item.model ?? (item.categories as { name?: string } | null)?.name ?? '買いたい';
     const maker = isListing ? item.maker : item.maker;
-    const price = isListing ? formatPrice(item.asking_price as number) : formatPrice(item.budget as number);
+    const price = isListing ? formatPrice(item.asking_price as number, item.asking_price_max as number | null) : formatPrice(item.budget as number);
     const tagClass = isListing ? 'cm-tag-sell' : 'cm-tag-buy';
     const tagLabel = isListing ? '売りたい' : '買いたい';
     const href = `/cases/${item.id}?type=${kind}`;
