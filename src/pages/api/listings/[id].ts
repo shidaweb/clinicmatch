@@ -21,6 +21,23 @@ function json(data: unknown, status = 200) {
   });
 }
 
+// Fields a seller may change after publication; mirrors guard_member_write in 0019.
+const PUBLISHED_EDITABLE_FIELDS = [
+  'asking_price',
+  'negotiable',
+  'quantity',
+  'description',
+  'condition',
+  'condition_note',
+  'has_accessories',
+  'accessories_detail',
+  'maker_maintenance',
+  'maintenance_transferable',
+  'maintenance_notes',
+  'location_prefecture',
+  'location_city',
+] as const;
+
 function buildListingPatchPayload(body: Record<string, unknown>, org: { prefecture?: string; city?: string } | null) {
   const payload: Record<string, unknown> = {};
 
@@ -132,8 +149,29 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   if (!existing || existing.seller_org_id !== profile.org_id) {
     return json({ error: '出品が見つかりません' }, 404);
   }
+  if (existing.status === 'published') {
+    if (body.submit === true || body.submit === 'true')
+      return json({ error: '公開中の出品は審査に提出できません' }, 400);
+    const published: Record<string, unknown> = {};
+    for (const key of PUBLISHED_EDITABLE_FIELDS) if (key in payload) published[key] = payload[key];
+    if (Object.keys(published).length === 0) return json({ error: '更新する項目がありません' }, 400);
+    if ('location_prefecture' in published && !String(published.location_prefecture).trim())
+      return json({ error: '都道府県は必須です' }, 400);
+    if ('location_city' in published && !String(published.location_city).trim())
+      return json({ error: '市区町村は必須です' }, 400);
+    const { data: updated, error } = await supabase
+      .from('listings')
+      .update(published)
+      .eq('id', id)
+      .eq('status', 'published')
+      .is('archived_at', null)
+      .select('id');
+    if (error) return json({ error: '保存できませんでした。時間をおいて再度お試しください。' }, 400);
+    if (!updated?.length) return json({ error: '状態が変更されました。再読み込みしてください' }, 409);
+    return json({ success: true, id });
+  }
   if (!['draft', 'rejected'].includes(existing.status)) {
-    return json({ error: '審査中・公開中・取引中の出品は編集できません。運営にお問い合わせください。' }, 400);
+    return json({ error: '審査中・取引中の出品は編集できません。運営にお問い合わせください。' }, 400);
   }
 
   const submit = body.submit === true || body.submit === 'true';
@@ -161,7 +199,10 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
     return json({ error: 'カテゴリ・メーカー・機種名は必須です' }, 400);
 
   if (mergedListingKind !== 'device' && submit && !org?.verified_at) {
-    return json({ error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' }, 400);
+    return json(
+      { error: '消耗品を審査提出するには事業者確認が必要です。設定画面から運営へお問い合わせください。' },
+      400
+    );
   }
 
   if (mergedListingKind !== 'device') {

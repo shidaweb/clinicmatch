@@ -82,9 +82,14 @@ const draftSaved = Astro.url.searchParams.has('draft');
             )}
             <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
             {!showArchived && item.status === 'published' && (
-              <a href={`/cases/${item.id}?type=listing`} class="cm-link">
-                公開ページ
-              </a>
+              <>
+                <a href={`/cases/${item.id}?type=listing`} class="cm-link">
+                  公開ページ
+                </a>
+                <a href={`/account/listings/${item.id}/edit`} class="cm-link">
+                  価格・条件を編集
+                </a>
+              </>
             )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
               <>
