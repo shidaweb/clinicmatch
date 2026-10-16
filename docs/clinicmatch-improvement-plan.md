@@ -1,7 +1,7 @@
 # ClinicMatch 改善計画書 — Cursor 実装用ディレクティブ
 
 > **対象サイト**: https://clinicmatch.org
-> **運営**: 株式会社キラック
+> **運営**: あるそら株式会社
 > **技術スタック**: Astro（SSG）+ Cloudflare Pages / GA4（G-HPBRHZ68XF）/ Fillout（フォーム）/ LINE公式
 > **現状スコープ**: 中古美容医療機器（脱毛・ピコ・IPL）の売買マッチング
 > **方針**: 美容医療領域に振り切って横展開する

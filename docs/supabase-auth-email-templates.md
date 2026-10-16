@@ -47,7 +47,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             </tr>
             <tr>
               <td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">
-                クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。
+                クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。
               </td>
             </tr>
           </table>
@@ -86,7 +86,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             <p style="margin:0 0 22px;font-size:12px;line-height:1.7;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#A1606E;">{{ .ConfirmationURL }}</a></p>
             <p style="margin:0;padding-top:18px;border-top:1px solid #ECDED7;font-size:12px;line-height:1.8;color:#9E8A8F;">このご招待には有効期限があります。お心当たりがない場合は、このメールは破棄してください。</p>
           </td></tr>
-          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
+          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
         </table>
       </td></tr>
     </table>
@@ -123,7 +123,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             </table>
             <p style="margin:0;padding-top:18px;border-top:1px solid #ECDED7;font-size:12px;line-height:1.8;color:#9E8A8F;">リンクとコードには有効期限があります。お心当たりがない場合は、このメールは破棄してください。</p>
           </td></tr>
-          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
+          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
         </table>
       </td></tr>
     </table>
@@ -159,7 +159,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             <p style="margin:0 0 22px;font-size:12px;line-height:1.7;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#A1606E;">{{ .ConfirmationURL }}</a></p>
             <p style="margin:0;padding-top:18px;border-top:1px solid #ECDED7;font-size:12px;line-height:1.8;color:#9E8A8F;">お心当たりがない場合は、確認せずにこのメールを破棄してください。変更は行われません。</p>
           </td></tr>
-          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
+          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
         </table>
       </td></tr>
     </table>
@@ -195,7 +195,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             <p style="margin:0 0 22px;font-size:12px;line-height:1.7;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#A1606E;">{{ .ConfirmationURL }}</a></p>
             <p style="margin:0;padding-top:18px;border-top:1px solid #ECDED7;font-size:12px;line-height:1.8;color:#9E8A8F;">お心当たりがない場合は、このメールを破棄してください。パスワードは変更されません。リンクには有効期限があります。</p>
           </td></tr>
-          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
+          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
         </table>
       </td></tr>
     </table>
@@ -228,7 +228,7 @@ Supabase ダッシュボード → Authentication → Emails の各テンプレ�
             </table>
             <p style="margin:0;padding-top:18px;border-top:1px solid #ECDED7;font-size:12px;line-height:1.8;color:#9E8A8F;">コードには有効期限があります。心当たりのない場合は入力せず、このメールを破棄してください。コードは誰にも共有しないでください。</p>
           </td></tr>
-          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ 株式会社キラック<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
+          <tr><td style="padding:18px 28px;background:#46343A;font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;font-size:11px;line-height:1.7;color:#D8C4BD;">クリニックマッチ ／ あるそら株式会社<br>本メールは送信専用です。ご返信いただいてもお答えできません。</td></tr>
         </table>
       </td></tr>
     </table>
