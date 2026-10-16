@@ -11,12 +11,15 @@ if (!profile) return Astro.redirect('/auth/login');
 
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
 const showArchived = Astro.url.searchParams.get('archived') === '1';
-const { data: listings, error: loadError } = await supabase
+let postsQuery = supabase
   .from('listings')
   .select('id, maker, model, status, created_at')
   .eq('seller_org_id', profile.org_id)
   .filter('archived_at', showArchived ? 'not.is' : 'is', 'null')
   .order('created_at', { ascending: false });
+// Deleted posts are closed and archived; they are gone for the member, so the archive view skips them.
+if (showArchived) postsQuery = postsQuery.neq('status', 'closed');
+const { data: listings, error: loadError } = await postsQuery;
 
 const { data: reviews } = await supabase
   .from('post_review_events')
@@ -89,6 +92,9 @@ const draftSaved = Astro.url.searchParams.has('draft');
                 <a href={`/account/listings/${item.id}/edit`} class="cm-link">
                   編集
                 </a>
+                <button type="button" class="cm-link text-danger" data-remove-listing={item.id}>
+                  削除
+                </button>
               </>
             )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
@@ -159,4 +165,37 @@ const draftSaved = Astro.url.searchParams.has('draft');
       }
     })
   );
+</script>
+
+<script>
+  document.addEventListener('click', async (event) => {
+    const button = (event.target instanceof Element ? event.target : null)?.closest('button[data-remove-listing]');
+    if (!(button instanceof HTMLButtonElement)) return;
+    const listingId = button.getAttribute('data-remove-listing');
+    if (!listingId) return;
+
+    const ok = window.confirm(
+      'この売りたい投稿を削除しますか？\n公開ページから取り下げられ、一覧からも消えます。この操作は元に戻せません。'
+    );
+    if (!ok) return;
+
+    const status = document.getElementById('listing-delete-status');
+    const show = (message: string, isError = false) => {
+      if (!status) return;
+      status.classList.remove('hidden', 'text-danger', 'text-plum-soft');
+      status.classList.add(isError ? 'text-danger' : 'text-plum-soft');
+      status.textContent = message;
+    };
+    button.disabled = true;
+    show('削除中…');
+    const res = await fetch(`/api/listings/${listingId}`, { method: 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      button.disabled = false;
+      show(json.error ?? '削除に失敗しました', true);
+      return;
+    }
+    document.querySelector(`[data-listing-id="${listingId}"]`)?.remove();
+    show('削除しました');
+  });
 </script>

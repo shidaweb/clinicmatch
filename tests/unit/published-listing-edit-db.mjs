@@ -96,12 +96,18 @@ const image = await media(ids.listing, { action: 'attach', path: path(ids.listin
 assert.equal(image.image.is_cover, true, 'published listing accepts a new image');
 await media(ids.listing, { action: 'archive', image_id: image.image.id });
 await assert.rejects(media(ids.reserved, { action: 'attach', path: path(ids.reserved) }), /post_not_editable/);
-await db.exec('reset role');
-assert.equal(
-  (await db.query('select asking_price from listings where id=$1', [ids.listing])).rows[0].asking_price,
-  850000
+const deleted = await db.query(
+  "update listings set status='closed',archived_at=now() where id=$1 and status='published' and archived_at is null returning id",
+  [ids.listing]
 );
+assert.equal(deleted.rows.length, 1, 'server deletes a published listing by closing and archiving it');
+await db.exec('reset role');
+const removed = (await db.query('select status,archived_at,asking_price from listings where id=$1', [ids.listing]))
+  .rows[0];
+assert.equal(removed.status, 'closed', 'deleted listing is no longer published');
+assert.ok(removed.archived_at, 'deleted listing is archived');
+assert.equal(removed.asking_price, 850000, 'deleted listing keeps its data');
 console.log(
-  'PASS: published listings accept content and image edits; ownership, status, publication time and reserved listings stay locked.'
+  'PASS: published listings accept content and image edits and server-side deletion; ownership, status, publication time and reserved listings stay locked for members.'
 );
 await db.close();

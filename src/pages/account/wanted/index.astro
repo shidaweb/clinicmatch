@@ -12,12 +12,15 @@ if (!profile) return Astro.redirect('/auth/login');
 
 const supabase = createSupabaseServerClient(Astro.cookies, Astro.locals as never);
 const showArchived = Astro.url.searchParams.get('archived') === '1';
-const { data: wanted, error: loadError } = await supabase
+let postsQuery = supabase
   .from('wanted_requests')
   .select('id, category_slug, maker, model, status, created_at')
   .eq('buyer_org_id', profile.org_id)
   .filter('archived_at', showArchived ? 'not.is' : 'is', 'null')
   .order('created_at', { ascending: false });
+// Deleted posts are closed and archived; they are gone for the member, so the archive view skips them.
+if (showArchived) postsQuery = postsQuery.neq('status', 'closed');
+const { data: wanted, error: loadError } = await postsQuery;
 
 const { data: reviews } = await supabase
   .from('post_review_events')
@@ -83,9 +86,14 @@ const draftSaved = Astro.url.searchParams.has('draft');
             )}
             <span class="text-sm text-plum-soft">{POST_STATUS_LABELS[item.status] ?? item.status}</span>
             {!showArchived && item.status === 'published' && (
-              <a href={`/cases/${item.id}?type=wanted`} class="cm-link">
-                公開ページ
-              </a>
+              <>
+                <a href={`/cases/${item.id}?type=wanted`} class="cm-link">
+                  公開ページ
+                </a>
+                <button type="button" class="cm-link text-danger" data-remove-wanted={item.id}>
+                  削除
+                </button>
+              </>
             )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
               <>
@@ -155,4 +163,37 @@ const draftSaved = Astro.url.searchParams.has('draft');
       }
     })
   );
+</script>
+
+<script>
+  document.addEventListener('click', async (event) => {
+    const button = (event.target instanceof Element ? event.target : null)?.closest('button[data-remove-wanted]');
+    if (!(button instanceof HTMLButtonElement)) return;
+    const wantedId = button.getAttribute('data-remove-wanted');
+    if (!wantedId) return;
+
+    const ok = window.confirm(
+      'この買いたい投稿を削除しますか？\n公開ページから取り下げられ、一覧からも消えます。この操作は元に戻せません。'
+    );
+    if (!ok) return;
+
+    const status = document.getElementById('wanted-delete-status');
+    const show = (message: string, isError = false) => {
+      if (!status) return;
+      status.classList.remove('hidden', 'text-danger', 'text-plum-soft');
+      status.classList.add(isError ? 'text-danger' : 'text-plum-soft');
+      status.textContent = message;
+    };
+    button.disabled = true;
+    show('削除中…');
+    const res = await fetch(`/api/wanted/${wantedId}`, { method: 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      button.disabled = false;
+      show(json.error ?? '削除に失敗しました', true);
+      return;
+    }
+    document.querySelector(`[data-wanted-id="${wantedId}"]`)?.remove();
+    show('削除しました');
+  });
 </script>

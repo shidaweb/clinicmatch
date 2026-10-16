@@ -138,6 +138,27 @@ export const DELETE: APIRoute = async ({ params, cookies, locals }) => {
   const profile = await getProfile(cookies, locals as never);
   if (!profile) return json({ error: 'ログインが必要です' }, 401);
   const admin = createSupabaseAdminClient(locals as never);
+  const { data: post } = await admin
+    .from('wanted_requests')
+    .select('status')
+    .eq('id', params.id!)
+    .eq('buyer_org_id', profile.org_id)
+    .is('archived_at', null)
+    .maybeSingle();
+  if (post?.status === 'published') {
+    // Deleting a live post closes it and hides it from the member's lists; the row stays for existing conversations.
+    const { data: removed, error: removeError } = await admin
+      .from('wanted_requests')
+      .update({ status: 'closed', archived_at: new Date().toISOString() })
+      .eq('id', params.id!)
+      .eq('buyer_org_id', profile.org_id)
+      .eq('status', 'published')
+      .is('archived_at', null)
+      .select('id');
+    if (removeError) return json({ error: '削除できませんでした。時間をおいて再度お試しください。' }, 503);
+    if (!removed?.length) return json({ error: '状態が変更されました。再読み込みしてください' }, 409);
+    return json({ success: true, id: params.id, deleted: true });
+  }
   const { data, error } = await admin
     .from('wanted_requests')
     .update({ archived_at: new Date().toISOString() })
