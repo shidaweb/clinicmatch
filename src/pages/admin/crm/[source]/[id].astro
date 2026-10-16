@@ -13,6 +13,7 @@ import {
   str,
 } from '~/lib/crm';
 import type { Row } from '~/lib/crm';
+import { isLegacyPlaceholder } from '~/lib/legacy-placeholder-images';
 const profile = await getProfile(Astro.cookies, Astro.locals as never);
 if (!profile || profile.role !== 'admin') return Astro.redirect('/auth/login');
 const admin = createSupabaseAdminClient(Astro.locals as never);
@@ -35,6 +36,35 @@ const dueValue = item?.crm?.due_at
   ? new Date(Date.parse(str(item.crm.due_at)) + 9 * 3600000).toISOString().slice(0, 16)
   : '';
 const initialOccurrence = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 16);
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+// Images the member posted with the listing or wanted request, cover first.
+let postImages: Array<{ id: string; url: string; isCover: boolean }> = [];
+let postImagesError = false;
+if (item?.source === 'listings' && supabaseUrl) {
+  const { data: images, error } = await admin
+    .from('listing_images')
+    .select('id, storage_path, is_cover, sort_order')
+    .eq('listing_id', item.id)
+    .is('archived_at', null)
+    .order('is_cover', { ascending: false })
+    .order('sort_order', { ascending: true });
+  postImagesError = Boolean(error);
+  postImages = (images ?? [])
+    .filter((image) => !isLegacyPlaceholder(image.storage_path))
+    .map((image) => ({
+      id: image.id,
+      url: `${supabaseUrl}/storage/v1/object/public/listing-images/${image.storage_path}`,
+      isCover: image.is_cover,
+    }));
+} else if (item?.source === 'wanted_requests' && supabaseUrl && str(item.raw.reference_image_path)) {
+  postImages = [
+    {
+      id: 'reference',
+      url: `${supabaseUrl}/storage/v1/object/public/wanted-images/${str(item.raw.reference_image_path)}`,
+      isCover: false,
+    },
+  ];
+}
 const related = item?.orgId ? data.items.filter((i) => i.orgId === item.orgId && i.id !== item.id) : [];
 const fields: Record<string, string> = {
   body: '相談内容',
@@ -155,6 +185,27 @@ const fields: Record<string, string> = {
                 </div>
               ))}
           </dl>
+          {['listings', 'wanted_requests'].includes(item.source) && (
+            <div class="mt-6">
+              <h3 class="text-sm text-plum-soft">投稿された画像</h3>
+              {postImagesError ? (
+                <p class="text-danger mt-2">画像を取得できませんでした。再読み込みしてください。</p>
+              ) : postImages.length ? (
+                <ul class="crm-post-images">
+                  {postImages.map((image, index) => (
+                    <li>
+                      <a href={image.url} target="_blank" rel="noopener">
+                        <img src={image.url} alt={`投稿画像 ${index + 1}`} loading="lazy" decoding="async" />
+                      </a>
+                      {image.isCover && <span>カバー</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="mt-2">画像は投稿されていません。</p>
+              )}
+            </div>
+          )}
           {['listings', 'wanted_requests'].includes(item.source) && (
             <p class="mt-5">
               <a class="cm-link" href="/admin/posts">
@@ -341,6 +392,33 @@ const fields: Record<string, string> = {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 32px;
     margin-top: 28px;
+  }
+  .crm-post-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .crm-post-images li {
+    position: relative;
+  }
+  .crm-post-images img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--cream);
+  }
+  .crm-post-images span {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #fff;
+    background: var(--rose-deep);
   }
   .crm-detail-panel {
     min-width: 0;
