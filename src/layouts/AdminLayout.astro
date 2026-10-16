@@ -18,6 +18,9 @@ const { metadata, title, subtitle, maxWidth = '5xl' } = Astro.props;
       <a href="/admin" class="admin-brand">クリニックマッチ <span>運営管理</span></a>
       <nav aria-label="サイトへの移動" class="flex gap-4">
         <a href="/account" class="admin-site-link">マイページ</a><a href="/" class="admin-site-link">公開サイト ↗</a>
+        <form method="post" action="/api/auth/logout">
+          <button type="submit" class="admin-site-link">ログアウト</button>
+        </form>
       </nav>
     </header>
     <div class="admin-workspace">

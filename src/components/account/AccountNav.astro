@@ -22,6 +22,9 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/account';
       </a>
     ))
   }
+  <form method="post" action="/api/auth/logout" class="account-logout">
+    <button type="submit">ログアウト</button>
+  </form>
 </nav>
 <style>
   .account-nav {
@@ -46,11 +49,24 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/account';
   .account-nav a:hover {
     color: var(--rose-deep);
   }
+  .account-logout {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .account-logout button {
+    padding: 14px 0;
+    font-size: 14px;
+    color: var(--plum-soft);
+  }
+  .account-logout button:hover {
+    color: var(--rose-deep);
+  }
   @media (max-width: 639px) {
     .account-nav {
       gap: 20px;
     }
-    .account-nav a {
+    .account-nav a,
+    .account-logout button {
       font-size: 13px;
     }
   }
