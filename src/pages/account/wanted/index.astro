@@ -95,6 +95,11 @@ const draftSaved = Astro.url.searchParams.has('draft');
                 </button>
               </>
             )}
+            {!showArchived && item.status === 'pending_review' && (
+              <a href={`/account/wanted/${item.id}/edit`} class="cm-link">
+                編集
+              </a>
+            )}
             {!showArchived && ['draft', 'rejected'].includes(item.status) && (
               <>
                 <a href={`/account/wanted/${item.id}/edit`} class="cm-link">

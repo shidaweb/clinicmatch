@@ -22,10 +22,12 @@ const { data: listing } = await supabase
   .eq('seller_org_id', profile.org_id)
   .single();
 
-if (!listing || listing.archived_at || !['draft', 'rejected', 'published'].includes(listing.status))
+if (!listing || listing.archived_at || !['draft', 'rejected', 'pending_review', 'published'].includes(listing.status))
   return Astro.redirect('/account/listings');
-// Published listings can be edited in place by the seller (see migration 0019).
+// Published listings (migration 0019) and listings under review (migration 0021) are saved in place.
 const isPublished = listing.status === 'published';
+const isPendingReview = listing.status === 'pending_review';
+const saveInPlace = isPublished || isPendingReview;
 const admin = createSupabaseAdminClient(Astro.locals as never);
 const { data: archivedImages, error: archivedError } = await admin
   .from('listing_images')
@@ -50,6 +52,13 @@ const metadata = { title: '出品を編集' };
     isPublished && (
       <p class="cm-card mb-6 p-4 text-sm text-plum">
         公開中の出品です。保存した内容と画像の変更はすぐに公開ページへ反映されます。
+      </p>
+    )
+  }
+  {
+    isPendingReview && (
+      <p class="cm-card mb-6 p-4 text-sm text-plum">
+        審査中の出品です。保存すると、修正した内容と画像でそのまま審査を続けます。再提出は不要です。
       </p>
     )
   }
@@ -206,7 +215,7 @@ const metadata = { title: '出品を編集' };
       <textarea name="description" rows="4" class="cm-input">{listing.description ?? ''}</textarea>
     </div>
     {
-      isPublished ? (
+      saveInPlace ? (
         <div class="flex gap-3">
           <button type="submit" name="action" value="draft" class="cm-btn-primary">
             変更を保存
@@ -304,7 +313,7 @@ const metadata = { title: '出品を編集' };
   </div>
 </AccountLayout>
 
-<script define:vars={{ listingId: listing.id, isPublished }}>
+<script define:vars={{ listingId: listing.id, saveInPlace }}>
   // 注意: define:vars 付きスクリプトはインライン扱いで TypeScript が変換されない。
   // TS構文（type / as / 型注釈）を書くとブラウザで SyntaxError になり
   // ページ内のJSが全て動かなくなるため、必ずプレーンJSで書くこと。
@@ -364,8 +373,8 @@ const metadata = { title: '出品を編集' };
     const data = Object.fromEntries(fd);
     data.negotiable = fd.has('negotiable');
     data.reuse_attestation = fd.has('reuse_attestation');
-    // 公開中の出品は審査に再提出せず、その場で保存する
-    data.submit = !isPublished && submitter === 'submit';
+    // 公開中・審査中の出品は審査に再提出せず、その場で保存する
+    data.submit = !saveInPlace && submitter === 'submit';
     status.classList.remove('hidden');
     status.textContent = '保存中…';
     const res = await fetch(`/api/listings/${listingId}`, {

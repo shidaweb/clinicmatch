@@ -148,13 +148,13 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
     return json({ error: '都道府県は必須です' }, 400);
   if ('location_city' in payload && !String(payload.location_city).trim())
     return json({ error: '市区町村は必須です' }, 400);
-  if (!['draft', 'rejected', 'published'].includes(existing.status)) {
-    return json({ error: '審査中・取引中の出品は編集できません。運営にお問い合わせください。' }, 400);
+  if (!['draft', 'rejected', 'pending_review', 'published'].includes(existing.status)) {
+    return json({ error: '取引中の出品は編集できません。運営にお問い合わせください。' }, 400);
   }
 
   const submit = body.submit === true || body.submit === 'true';
-  // Live listings must keep satisfying the submission rules after every edit.
-  const validate = submit || existing.status === 'published';
+  // Listings under review or live must keep satisfying the submission rules after every edit.
+  const validate = submit || ['pending_review', 'published'].includes(existing.status);
   const mergedListingKind = parseListingKind(payload.listing_kind ?? existing.listing_kind);
   const mergedMasterId = String(
     (Object.hasOwn(payload, 'consumable_master_id') ? payload.consumable_master_id : existing.consumable_master_id) ??

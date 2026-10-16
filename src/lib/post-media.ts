@@ -82,7 +82,10 @@ export function uploadPostImage(source: 'listings' | 'wanted_requests'): APIRout
       .maybeSingle();
     if (postError) return mediaError();
     if (!post) return mediaError('forbidden');
-    const editable = source === 'listings' ? ['draft', 'rejected', 'published'] : ['draft', 'rejected'];
+    const editable =
+      source === 'listings'
+        ? ['draft', 'rejected', 'pending_review', 'published']
+        : ['draft', 'rejected', 'pending_review'];
     if (post.archived_at || !editable.includes(post.status)) return mediaError('post_not_editable');
     const bucket = source === 'listings' ? 'listing-images' : 'wanted-images';
     const { error: uploadError } = await admin.storage

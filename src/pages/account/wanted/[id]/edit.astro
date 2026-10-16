@@ -21,8 +21,10 @@ const { data: wanted } = await supabase
   .eq('buyer_org_id', profile.org_id)
   .single();
 
-if (!wanted || wanted.archived_at || !['draft', 'rejected'].includes(wanted.status))
+if (!wanted || wanted.archived_at || !['draft', 'rejected', 'pending_review'].includes(wanted.status))
   return Astro.redirect('/account/wanted');
+// Requests under review are saved in place and stay in review (migration 0021).
+const isPendingReview = wanted.status === 'pending_review';
 
 const org = profile.organizations as { prefecture?: string; city?: string } | null;
 const metadata = { title: '買いたいを編集' };
@@ -35,6 +37,13 @@ const metadata = { title: '買いたいを編集' };
   maxWidth="2xl"
 >
   <a href="/account/wanted" class="cm-link text-sm mb-6 inline-block">← 買いたい一覧</a>
+  {
+    isPendingReview && (
+      <p class="cm-card mb-6 p-4 text-sm text-plum">
+        審査中の買いたいです。保存すると、修正した内容でそのまま審査を続けます。再提出は不要です。
+      </p>
+    )
+  }
 
   <form id="wanted-form" class="cm-card p-6 space-y-4">
     <div>
@@ -149,15 +158,29 @@ const metadata = { title: '買いたいを編集' };
       <label class="cm-label">要件</label>
       <textarea name="requirements" rows="4" class="cm-input">{wanted.requirements ?? ''}</textarea>
     </div>
-    <div class="flex gap-3">
-      <button
-        type="submit"
-        name="action"
-        value="draft"
-        class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum">保存</button
-      >
-      <button type="submit" name="action" value="submit" class="cm-btn-primary">審査に提出</button>
-    </div>
+    {
+      isPendingReview ? (
+        <div class="flex gap-3">
+          <button type="submit" name="action" value="draft" class="cm-btn-primary">
+            変更を保存
+          </button>
+        </div>
+      ) : (
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            name="action"
+            value="draft"
+            class="rounded-xl border border-line px-5 py-2.5 text-sm text-plum"
+          >
+            保存
+          </button>
+          <button type="submit" name="action" value="submit" class="cm-btn-primary">
+            審査に提出
+          </button>
+        </div>
+      )
+    }
     <p id="wanted-status" class="text-sm text-plum-soft hidden"></p>
   </form>
 </AccountLayout>

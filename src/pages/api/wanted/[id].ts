@@ -84,8 +84,8 @@ export const PATCH: APIRoute = async ({ params, request, cookies, locals }) => {
   if (!existing || existing.buyer_org_id !== profile.org_id) {
     return json({ error: '買いたいが見つかりません' }, 404);
   }
-  if (!['draft', 'rejected'].includes(existing.status)) {
-    return json({ error: '審査中・公開中・取引中の購入希望は編集できません。運営にお問い合わせください。' }, 400);
+  if (!['draft', 'rejected', 'pending_review'].includes(existing.status)) {
+    return json({ error: '公開中・取引中の購入希望は編集できません。運営にお問い合わせください。' }, 400);
   }
   if (!String(payload.category_slug ?? existing.category_slug).trim())
     return json({ error: 'カテゴリは必須です' }, 400);
