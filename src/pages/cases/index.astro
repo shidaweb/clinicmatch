@@ -80,12 +80,15 @@ if (hasSupabaseConfig(Astro.locals as never)) {
   if (initialVisit && view === 'active') {
     if (listingCount > 0) {
       type = 'listing';
-    } else if (listingCount + wantedCount > 0) {
-      type = 'all';
+    } else if (wantedCount > 0) {
+      type = 'wanted';
     } else {
       view = 'done';
     }
   }
+
+  // The tabs choose 売りたい or 買いたい, so the market never mixes both (/cases?view=active opens 在庫).
+  if (view === 'active' && type === 'all') type = 'listing';
 
   if (view !== 'done') {
     const displayType = type;
@@ -229,7 +232,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
       </div>
 
       {
-        showMarket && (
+        showMarket && type !== 'wanted' && (
           <div class="cm-market-kinds mb-6 flex items-center gap-2" aria-label="出品種別クイックフィルタ">
             <a
               href={buildCasesUrl({ view, type, listingKind: '', page: '1' })}
@@ -266,7 +269,7 @@ const marketPaged = paginateList(marketPosts, currentPage);
       }
 
       <div class="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-8">
-        <aside class="hidden lg:block lg:sticky lg:top-24 lg:self-start">
+        <aside class="cm-market-filters hidden lg:block lg:sticky lg:top-24 lg:self-start">
           {
             view !== 'done' && (
               <MarketFilters
@@ -495,6 +498,16 @@ const marketPaged = paginateList(marketPosts, currentPage);
   @media (min-width: 640px) {
     .cm-market-kinds {
       flex-wrap: wrap;
+    }
+  }
+  /* The filter column stays in view and scrolls on its own when taller than the screen. */
+  @media (min-width: 1024px) {
+    .cm-market-filters {
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-right: 4px;
+      padding-bottom: 8px;
     }
   }
   @media (max-width: 639px) {
