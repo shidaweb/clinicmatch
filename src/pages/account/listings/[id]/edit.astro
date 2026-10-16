@@ -24,7 +24,7 @@ const { data: listing } = await supabase
 
 if (!listing || listing.archived_at || !['draft', 'rejected', 'published'].includes(listing.status))
   return Astro.redirect('/account/listings');
-// Published listings keep their identity; only price and terms can change (see migration 0019).
+// Published listings can be edited in place by the seller (see migration 0019).
 const isPublished = listing.status === 'published';
 const admin = createSupabaseAdminClient(Astro.locals as never);
 const { data: archivedImages, error: archivedError } = await admin
@@ -49,7 +49,7 @@ const metadata = { title: '出品を編集' };
   {
     isPublished && (
       <p class="cm-card mb-6 p-4 text-sm text-plum">
-        公開中の出品です。保存した内容はすぐに公開ページへ反映されます。カテゴリ・メーカー・機種名・出品種別・画像を変更したい場合は運営へご相談ください。
+        公開中の出品です。保存した内容と画像の変更はすぐに公開ページへ反映されます。
       </p>
     )
   }
@@ -58,7 +58,7 @@ const metadata = { title: '出品を編集' };
     <input type="hidden" name="id" value={listing.id} />
     <div>
       <label class="cm-label">カテゴリ</label>
-      <select name="category_slug" required class="cm-input" disabled={isPublished}>
+      <select name="category_slug" required class="cm-input">
         {
           MARKET_CATEGORIES.map((c) => (
             <option value={c.slug} selected={listing.category_slug === c.slug}>
@@ -71,16 +71,16 @@ const metadata = { title: '出品を編集' };
     <div class="grid sm:grid-cols-2 gap-4">
       <div>
         <label class="cm-label">メーカー</label>
-        <input id="listing-maker" name="maker" required value={listing.maker} class="cm-input" disabled={isPublished} />
+        <input id="listing-maker" name="maker" required value={listing.maker} class="cm-input" />
       </div>
       <div>
         <label class="cm-label">機種名</label>
-        <input id="listing-model" name="model" required value={listing.model} class="cm-input" disabled={isPublished} />
+        <input id="listing-model" name="model" required value={listing.model} class="cm-input" />
       </div>
     </div>
     <div>
       <label class="cm-label">出品種別</label>
-      <select id="listing-kind" name="listing_kind" class="cm-input" disabled={isPublished}>
+      <select id="listing-kind" name="listing_kind" class="cm-input">
         <option value="device" selected={listing.listing_kind === 'device'}>機器本体</option>
         <option value="consumable_valid" selected={listing.listing_kind === 'consumable_valid'}>消耗品（期限内）</option
         >
@@ -103,7 +103,6 @@ const metadata = { title: '出品を編集' };
           name="consumable_master_id"
           class="cm-input"
           data-initial={listing.consumable_master_id ?? ''}
-          disabled={isPublished}
         >
           <option value="">メーカー・機種名に紐づく品目を選択</option>
         </select>
@@ -115,7 +114,7 @@ const metadata = { title: '出品を編集' };
         </div>
         <div>
           <label class="cm-label">開封状態</label>
-          <select name="open_state" class="cm-input" disabled={isPublished}>
+          <select name="open_state" class="cm-input">
             <option value="sealed" selected={listing.open_state === 'sealed' || !listing.open_state}>未開封</option>
             <option value="opened" selected={listing.open_state === 'opened'}>開封済み</option>
             <option value="used" selected={listing.open_state === 'used'}>使用済み</option>
@@ -125,34 +124,21 @@ const metadata = { title: '出品を編集' };
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="cm-label">有効期限</label>
-          <input
-            name="expiry_date"
-            type="date"
-            value={listing.expiry_date ?? ''}
-            class="cm-input"
-            disabled={isPublished}
-          />
+          <input name="expiry_date" type="date" value={listing.expiry_date ?? ''} class="cm-input" />
         </div>
         <div>
           <label class="cm-label">残ショット数</label>
-          <input
-            name="remaining_shots"
-            type="number"
-            min="0"
-            value={listing.remaining_shots ?? ''}
-            class="cm-input"
-            disabled={isPublished}
-          />
+          <input name="remaining_shots" type="number" min="0" value={listing.remaining_shots ?? ''} class="cm-input" />
         </div>
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="cm-label">残寿命（任意）</label>
-          <input name="remaining_life" value={listing.remaining_life ?? ''} class="cm-input" disabled={isPublished} />
+          <input name="remaining_life" value={listing.remaining_life ?? ''} class="cm-input" />
         </div>
         <div>
           <label class="cm-label">ロット番号（任意）</label>
-          <input name="lot_number" value={listing.lot_number ?? ''} class="cm-input" disabled={isPublished} />
+          <input name="lot_number" value={listing.lot_number ?? ''} class="cm-input" />
         </div>
       </div>
       <div>
@@ -164,13 +150,7 @@ const metadata = { title: '出品を編集' };
         価格は応相談
       </label>
       <label class="inline-flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="reuse_attestation"
-          value="true"
-          checked={listing.reuse_attestation === true}
-          disabled={isPublished}
-        />
+        <input type="checkbox" name="reuse_attestation" value="true" checked={listing.reuse_attestation === true} />
         再利用・改造品ではないことを確認済み
       </label>
     </section>
@@ -181,13 +161,7 @@ const metadata = { title: '出品を編集' };
       </div>
       <div>
         <label class="cm-label">年式</label>
-        <input
-          name="manufacture_year"
-          type="number"
-          value={listing.manufacture_year ?? ''}
-          class="cm-input"
-          disabled={isPublished}
-        />
+        <input name="manufacture_year" type="number" value={listing.manufacture_year ?? ''} class="cm-input" />
       </div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -238,7 +212,7 @@ const metadata = { title: '出品を編集' };
     <p id="listing-status" class="text-sm text-plum-soft hidden"></p>
   </form>
 
-  <div class:list={['mt-8 cm-card p-6', isPublished && 'hidden']}>
+  <div class="mt-8 cm-card p-6">
     <h2 class="font-heading font-semibold text-plum mb-4">画像</h2>
     <div id="existing-images" class="grid grid-cols-3 gap-3 mb-4">
       {
@@ -370,11 +344,9 @@ const metadata = { title: '出品を編集' };
     const fd = new FormData(form);
     const data = Object.fromEntries(fd);
     data.negotiable = fd.has('negotiable');
-    // 公開中は価格・条件のみ送る（無効化した項目は FormData に含まれない）
-    if (!isPublished) {
-      data.reuse_attestation = fd.has('reuse_attestation');
-      data.submit = submitter === 'submit';
-    }
+    data.reuse_attestation = fd.has('reuse_attestation');
+    // 公開中の出品は審査に再提出せず、その場で保存する
+    data.submit = !isPublished && submitter === 'submit';
     status.classList.remove('hidden');
     status.textContent = '保存中…';
     const res = await fetch(`/api/listings/${listingId}`, {

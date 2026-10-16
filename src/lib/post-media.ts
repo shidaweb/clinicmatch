@@ -20,7 +20,7 @@ export function mediaError(message = '') {
   const text = message.includes('image_limit')
     ? '画像は最大10枚までです。'
     : message.includes('post_not_editable')
-      ? '審査中・公開中・保管済みの投稿は画像を変更できません。'
+      ? '審査中・取引中・保管済みの投稿は画像を変更できません。'
       : message.includes('forbidden')
         ? '投稿が見つからないか、変更する権限がありません。'
         : /submission_conflict|image_set_conflict/.test(message)
@@ -82,7 +82,8 @@ export function uploadPostImage(source: 'listings' | 'wanted_requests'): APIRout
       .maybeSingle();
     if (postError) return mediaError();
     if (!post) return mediaError('forbidden');
-    if (post.archived_at || !['draft', 'rejected'].includes(post.status)) return mediaError('post_not_editable');
+    const editable = source === 'listings' ? ['draft', 'rejected', 'published'] : ['draft', 'rejected'];
+    if (post.archived_at || !editable.includes(post.status)) return mediaError('post_not_editable');
     const bucket = source === 'listings' ? 'listing-images' : 'wanted-images';
     const { error: uploadError } = await admin.storage
       .from(bucket)
