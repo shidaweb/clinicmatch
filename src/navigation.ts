@@ -71,8 +71,26 @@ export const footerData = {
   footNote: '© 2026 あるそら株式会社 all rights reserved.',
   operator: { text: 'あるそら株式会社（ALSOLA Inc.）', href: 'https://alsola.co.jp' },
   sisterSites: [
-    { text: 'トラックマッチ', description: '中古トラックのAIマッチング', href: 'https://www.truckmatch.jp' },
-    { text: 'Tenbin', description: '複数Googleカレンダー対応の日程調整', href: 'https://tenbin.link' },
-  ],
+  {
+    "text": "ウレシニア Webサポート",
+    "description": "電話で話しながら、Webの閲覧や操作をお手伝いします。",
+    "href": "https://uresenior.com/"
+  },
+  {
+    "text": "トラックマッチ",
+    "description": "中古トラックの購入と売却をお手伝いします。",
+    "href": "https://www.truckmatch.jp/"
+  },
+  {
+    "text": "Tenbin.link",
+    "description": "専門家への相談を予約し、日程を調整できます。",
+    "href": "https://tenbin.link/"
+  },
+  {
+    "text": "Sonae",
+    "description": "クリニックの薬やサプリの在庫を管理できます。",
+    "href": "https://sonae.clinic/"
+  }
+],
   showConsult: false,
 };

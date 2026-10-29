@@ -81,16 +81,16 @@ const { secondaryLinks = [], links = [], footNote = '', theme = 'light', operato
         <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
           {operator && (
             <span class="whitespace-nowrap">
-              運営：<a href={operator.href} target="_blank" rel="noopener" class="underline-offset-2 hover:underline hover:text-[#F4E3DD]">{operator.text}</a>
+              運営：<a href={operator.href} target="_blank" rel="noopener" class="underline-offset-2 hover:underline hover:text-[#F4E3DD]">{operator.text}</a><span class="block mt-1">日本進出・新規事業の立ち上げを支援。</span>
             </span>
           )}
           {sisterSites.length > 0 && (
-            <span class="whitespace-nowrap" style="color: #F4E3DD;">姉妹サービス</span>
+            <span class="whitespace-nowrap" style="color: #F4E3DD;">関連サービス</span>
           )}
           {sisterSites.map(({ text, description, href }) => (
             <a href={href} target="_blank" rel="noopener" class="inline-flex flex-wrap items-baseline hover:text-[#F4E3DD] hover:underline underline-offset-2">
               <span class="whitespace-nowrap">{text}</span>
-              {description && <span class="whitespace-nowrap opacity-70">（{description}）</span>}
+              {description && <span class="opacity-90">（{description}）</span>}
             </a>
           ))}
         </div>
